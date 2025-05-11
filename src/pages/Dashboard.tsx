@@ -5,12 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User } from "lucide-react";
+import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User, Check, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, differenceInSeconds, differenceInMinutes, differenceInHours } from "date-fns";
+import SignatureCanvas from "@/components/SignatureCanvas";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const HOURLY_RATE = 15; // £15/hour placeholder rate
 
@@ -30,6 +33,12 @@ const DashboardPage = () => {
   const [breakStart, setBreakStart] = useState<Date | null>(null);
   const [totalBreakDuration, setTotalBreakDuration] = useState(0); // in seconds
   const [isShiftComplete, setIsShiftComplete] = useState(false);
+  
+  // Signature validation states
+  const [isStartSignatureEmpty, setIsStartSignatureEmpty] = useState(true);
+  const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
+  const [showValidationAlert, setShowValidationAlert] = useState(false);
+  const [validationType, setValidationType] = useState<'start' | 'end'>('start');
 
   // Check if user is authenticated
   useEffect(() => {
@@ -80,6 +89,12 @@ const DashboardPage = () => {
   };
 
   const confirmShiftStart = () => {
+    if (isStartSignatureEmpty || !managerName.trim()) {
+      setValidationType('start');
+      setShowValidationAlert(true);
+      return;
+    }
+    
     setIsStartSignatureOpen(false);
     setIsShiftActive(true);
     setStartTime(new Date());
@@ -89,9 +104,16 @@ const DashboardPage = () => {
     setTotalBreakDuration(0);
     setBreakStart(null);
     setIsBreakActive(false);
+    toast.success("Shift started successfully!");
   };
 
   const confirmShiftEnd = () => {
+    if (isEndSignatureEmpty || !endManagerName.trim()) {
+      setValidationType('end');
+      setShowValidationAlert(true);
+      return;
+    }
+    
     // If still on break, end it and add to total
     if (isBreakActive && breakStart) {
       const breakDuration = differenceInSeconds(new Date(), breakStart);
@@ -104,6 +126,7 @@ const DashboardPage = () => {
     setIsShiftActive(false);
     setEndTime(new Date());
     setIsShiftComplete(true);
+    toast.success("Shift ended successfully!");
   };
 
   // Calculate time worked in seconds
@@ -396,11 +419,14 @@ const DashboardPage = () => {
         </div>
       </main>
 
-      {/* Signature Dialogs */}
+      {/* Start Shift Dialog */}
       <Dialog open={isStartSignatureOpen} onOpenChange={setIsStartSignatureOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Manager Approval: Shift Start</DialogTitle>
+            <DialogDescription>
+              Manager approval is required to start a shift. Please enter manager's name and signature.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -418,22 +444,28 @@ const DashboardPage = () => {
               <label className="text-sm font-medium block mb-1">
                 Manager's Signature
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center p-4 bg-gray-50">
-                <p className="text-gray-500 text-center">Sign here to approve shift start</p>
-              </div>
+              <SignatureCanvas 
+                onSignatureChange={setIsStartSignatureEmpty}
+                width={isMobile ? 300 : 380} 
+                height={180}
+              />
             </div>
           </div>
           <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setIsStartSignatureOpen(false)}>Cancel</Button>
-            <Button onClick={confirmShiftStart} disabled={!managerName.trim()}>Confirm Start</Button>
+            <Button onClick={confirmShiftStart}>Confirm Start</Button>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* End Shift Dialog */}
       <Dialog open={isEndSignatureOpen} onOpenChange={setIsEndSignatureOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Manager Approval: Shift End</DialogTitle>
+            <DialogDescription>
+              Manager approval is required to end a shift. Please enter manager's name and signature.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -451,9 +483,11 @@ const DashboardPage = () => {
               <label className="text-sm font-medium block mb-1">
                 Manager's Signature
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center p-4 bg-gray-50">
-                <p className="text-gray-500 text-center">Sign here to approve shift end</p>
-              </div>
+              <SignatureCanvas 
+                onSignatureChange={setIsEndSignatureEmpty}
+                width={isMobile ? 300 : 380} 
+                height={180}
+              />
             </div>
             
             {startTime && (
@@ -472,10 +506,31 @@ const DashboardPage = () => {
           </div>
           <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setIsEndSignatureOpen(false)}>Cancel</Button>
-            <Button onClick={confirmShiftEnd} disabled={!endManagerName.trim()}>Confirm End</Button>
+            <Button onClick={confirmShiftEnd}>Confirm End</Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Validation Alert Dialog */}
+      <AlertDialog open={showValidationAlert} onOpenChange={setShowValidationAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Missing Information</AlertDialogTitle>
+            <AlertDialogDescription>
+              {validationType === 'start' 
+                ? "Please provide both manager's name and signature before starting the shift." 
+                : "Please provide both manager's name and signature before ending the shift."
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowValidationAlert(false)}>
+              <Check className="mr-2 h-4 w-4" />
+              Understand
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
