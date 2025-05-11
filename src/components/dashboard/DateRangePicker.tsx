@@ -27,108 +27,102 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onResetFilter,
   isLoading
 }) => {
+  // Format selected date range as text
+  const formatSelectedRange = () => {
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`;
+    }
+    return null;
+  };
+
+  const selectedRange = formatSelectedRange();
+
   return (
-    <div className="flex flex-col sm:flex-row gap-2 mb-4">
-      <div className="flex-1 flex flex-row gap-2">
-        {/* From Date Picker */}
-        <div className="flex-1">
-          <Popover>
-            <PopoverTrigger asChild>
+    <div className="flex flex-col items-start mb-4">
+      <div className="flex items-center gap-2 w-full justify-between">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "pl-3 flex gap-1 items-center",
+                dateRange.from && dateRange.to ? "text-foreground" : "text-muted-foreground"
+              )}
+              disabled={isLoading}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              <span>Filter by date</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              selected={{
+                from: dateRange.from,
+                to: dateRange.to
+              }}
+              onSelect={(range) => {
+                // Handle potential undefined case
+                const newRange = range || { from: undefined, to: undefined };
+                onDateRangeChange(newRange);
+              }}
+              numberOfMonths={1}
+              className={cn("p-3 pointer-events-auto")}
+            />
+            <div className="p-3 border-t border-border flex justify-between">
               <Button
                 variant="outline"
-                className={cn(
-                  "w-full justify-start text-left",
-                  !dateRange.from && "text-muted-foreground"
-                )}
-                disabled={isLoading}
+                size="sm"
+                onClick={onResetFilter}
+                disabled={isLoading || (!dateRange.from && !dateRange.to)}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.from ? (
-                  format(dateRange.from, "PPP")
+                Reset
+              </Button>
+              <Button
+                size="sm"
+                onClick={onApplyFilter}
+                disabled={isLoading || !dateRange.from || !dateRange.to}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Filtering...
+                  </>
                 ) : (
-                  <span>From date</span>
+                  "Apply Filter"
                 )}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="single"
-                selected={dateRange.from}
-                onSelect={(date) =>
-                  onDateRangeChange({ ...dateRange, from: date })
-                }
-                disabled={(date) =>
-                  dateRange.to ? date > dateRange.to : false
-                }
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-        {/* To Date Picker */}
-        <div className="flex-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left",
-                  !dateRange.to && "text-muted-foreground"
-                )}
-                disabled={isLoading}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.to ? (
-                  format(dateRange.to, "PPP")
-                ) : (
-                  <span>To date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="single"
-                selected={dateRange.to}
-                onSelect={(date) =>
-                  onDateRangeChange({ ...dateRange, to: date })
-                }
-                disabled={(date) =>
-                  dateRange.from ? date < dateRange.from : false
-                }
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        {isLoading && (
+          <div className="flex items-center">
+            <Loader2 className="h-4 w-4 animate-spin text-primary mr-2" />
+            <span className="text-sm text-muted-foreground">Filtering...</span>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-row gap-2">
-        <Button
-          onClick={onApplyFilter}
-          disabled={isLoading || !dateRange.from || !dateRange.to}
-          className="flex-1 sm:flex-none"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            "Apply Filter"
+      {selectedRange && !isLoading && (
+        <div className="mt-2 text-sm">
+          <span className="text-muted-foreground">Showing results for:</span>{" "}
+          <span className="font-medium">{selectedRange}</span>
+          {dateRange.from && dateRange.to && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onResetFilter} 
+              className="ml-2 h-6 px-2"
+              disabled={isLoading}
+            >
+              Clear
+            </Button>
           )}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onResetFilter}
-          disabled={isLoading || (!dateRange.from && !dateRange.to)}
-          className="flex-1 sm:flex-none"
-        >
-          Reset
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
