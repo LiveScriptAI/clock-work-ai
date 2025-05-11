@@ -6,15 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { Settings, FileText, DollarSign, MapPin, Clock, User } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [isShiftActive, setIsShiftActive] = useState(false);
   const [isBreakActive, setIsBreakActive] = useState(false);
   const [isStartSignatureOpen, setIsStartSignatureOpen] = useState(false);
   const [isEndSignatureOpen, setIsEndSignatureOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [language, setLanguage] = useState("english");
 
   // Check if user is authenticated
   useEffect(() => {
@@ -38,6 +42,7 @@ const DashboardPage = () => {
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    // Navigation to login happens via the auth state change listener
   };
 
   const handleStartShift = () => {
@@ -64,55 +69,126 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header */}
+      {/* Mobile-friendly Header with Hamburger Menu */}
       <header className="bg-white shadow-sm py-4 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-gray-500" />
+                  <span>Welcome, John Smith</span>
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-4">
+                <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
+                  <Settings className="h-4 w-4 text-gray-500" />
+                  <a href="#settings" className="text-sm">Settings</a>
+                </div>
+                <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <a href="#templates" className="text-sm">Work Templates</a>
+                </div>
+                <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <a href="#invoicing" className="text-sm">Invoicing</a>
+                </div>
+              </nav>
+              
+              <div className="mt-6">
+                <label htmlFor="mobile-language" className="text-sm font-medium block mb-1">Language</label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger id="mobile-language" className="w-full">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="spanish">Spanish</SelectItem>
+                    <SelectItem value="polish">Polish</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="mt-auto pt-6 border-t border-gray-200">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+          
+          {/* Desktop Header Content */}
+          <div className="hidden md:flex items-center gap-2">
             <User className="h-5 w-5 text-gray-500" />
             <h2 className="text-lg font-semibold">Welcome, John Smith</h2>
           </div>
+          
           <div className="flex items-center gap-4">
-            <Select defaultValue="english">
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="spanish">Spanish</SelectItem>
-                <SelectItem value="polish">Polish</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
+            {/* Language selector only shown on desktop */}
+            <div className="hidden md:block">
+              <Select defaultValue="english">
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="spanish">Spanish</SelectItem>
+                  <SelectItem value="polish">Polish</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Sign out button only shown on desktop */}
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
               Sign Out
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Navigation */}
-      <div className="bg-white border-b px-6 py-2">
-        <NavigationMenu className="max-w-7xl mx-auto">
-          <NavigationMenuList className="flex space-x-4">
-            <NavigationMenuItem>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#settings">
+      {/* Desktop Navigation */}
+      <div className="bg-white border-b px-6 py-2 hidden md:block">
+        <nav className="max-w-7xl mx-auto">
+          <ul className="flex space-x-4">
+            <li>
+              <a 
+                href="#settings" 
+                className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#templates">
+              </a>
+            </li>
+            <li>
+              <a 
+                href="#templates" 
+                className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Work Templates</span>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()} href="#invoicing">
+              </a>
+            </li>
+            <li>
+              <a 
+                href="#invoicing" 
+                className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              >
                 <DollarSign className="mr-2 h-4 w-4" />
                 <span>Invoicing</span>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
       {/* Main Content */}
