@@ -48,6 +48,11 @@ const DashboardPage = () => {
   const [totalBreakDuration, setTotalBreakDuration] = useState(0); // in seconds
   const [isShiftComplete, setIsShiftComplete] = useState(false);
   
+  // New form state variables
+  const [employerName, setEmployerName] = useState("");
+  const [payRate, setPayRate] = useState(HOURLY_RATE);
+  const [rateType, setRateType] = useState("Per Hour");
+
   // Signature validation states
   const [isStartSignatureEmpty, setIsStartSignatureEmpty] = useState(true);
   const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
@@ -152,7 +157,7 @@ const DashboardPage = () => {
   };
 
   const confirmShiftStart = () => {
-    if (isStartSignatureEmpty || !managerName.trim()) {
+    if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
       setValidationType('start');
       setShowValidationAlert(true);
       return;
@@ -197,7 +202,7 @@ const DashboardPage = () => {
     calculateTimeWorkedUtil(startTime, endTime, totalBreakDuration);
 
   const calculateEarnings = () => 
-    calculateEarningsUtil(calculateTimeWorked, HOURLY_RATE);
+    calculateEarningsUtil(calculateTimeWorked, payRate, rateType);
 
   const getBreakDuration = () => 
     getBreakDurationUtil(totalBreakDuration, isBreakActive, breakStart);
@@ -251,6 +256,9 @@ const DashboardPage = () => {
               isShiftActive={isShiftActive}
               isShiftComplete={isShiftComplete}
               isBreakActive={isBreakActive}
+              employerName={employerName}
+              rateType={rateType}
+              payRate={payRate}
             />
 
             {/* Location Map Component */}
@@ -268,6 +276,12 @@ const DashboardPage = () => {
         isSignatureEmpty={isStartSignatureEmpty}
         setIsSignatureEmpty={setIsStartSignatureEmpty}
         confirmShiftStart={confirmShiftStart}
+        employerName={employerName}
+        setEmployerName={setEmployerName}
+        payRate={payRate}
+        setPayRate={setPayRate}
+        rateType={rateType}
+        setRateType={setRateType}
       />
 
       <EndShiftDialog 

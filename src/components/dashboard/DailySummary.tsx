@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { User } from "lucide-react";
 
 type DailySummaryProps = {
   formatDuration: (seconds: number) => string;
@@ -10,6 +11,9 @@ type DailySummaryProps = {
   isShiftActive: boolean;
   isShiftComplete: boolean;
   isBreakActive: boolean;
+  employerName?: string;
+  rateType?: string;
+  payRate?: number;
 };
 
 const DailySummary: React.FC<DailySummaryProps> = ({
@@ -20,6 +24,9 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   isShiftActive,
   isShiftComplete,
   isBreakActive,
+  employerName = "",
+  rateType = "Per Hour",
+  payRate = 15,
 }) => {
   return (
     <Card>
@@ -28,6 +35,16 @@ const DailySummary: React.FC<DailySummaryProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {(isShiftActive || isShiftComplete) && employerName && (
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 flex items-center">
+                <User className="h-4 w-4 mr-1" />
+                Employer:
+              </span>
+              <span className="font-medium">{employerName}</span>
+            </div>
+          )}
+          
           <div className="flex justify-between">
             <span className="text-gray-600">Hours Worked:</span>
             <span className="font-medium">{formatDuration(calculateTimeWorked())}</span>
@@ -38,7 +55,10 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Estimated Earnings:</span>
-            <span className="font-medium">£{calculateEarnings()}</span>
+            <span className="font-medium">
+              £{calculateEarnings()}
+              <span className="text-xs text-gray-500 ml-1">({rateType})</span>
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Shift Status:</span>

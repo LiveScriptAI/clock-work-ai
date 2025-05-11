@@ -32,14 +32,40 @@ export const calculateTimeWorked = (
   return Math.max(0, totalSeconds - totalBreakDuration);
 };
 
-// Calculate earnings based on time worked
+// Calculate earnings based on time worked and rate type
 export const calculateEarnings = (
   calculateTimeWorked: () => number,
-  hourlyRate: number
+  payRate: number = 15,
+  rateType: string = "Per Hour"
 ): string => {
   const seconds = calculateTimeWorked();
   const hours = seconds / 3600;
-  return (hours * hourlyRate).toFixed(2);
+  
+  // Default to hourly rate if no rate is provided
+  const rate = payRate || 15;
+
+  // Convert different rate types to hourly equivalent for calculation
+  let earnings = 0;
+  switch (rateType) {
+    case "Per Day":
+      // Assuming 8-hour workday
+      earnings = hours * (rate / 8);
+      break;
+    case "Per Week":
+      // Assuming 40-hour workweek
+      earnings = hours * (rate / 40);
+      break;
+    case "Per Month":
+      // Assuming 160-hour work month (40 hours × 4 weeks)
+      earnings = hours * (rate / 160);
+      break;
+    case "Per Hour":
+    default:
+      earnings = hours * rate;
+      break;
+  }
+  
+  return earnings.toFixed(2);
 };
 
 // Format break duration for display
