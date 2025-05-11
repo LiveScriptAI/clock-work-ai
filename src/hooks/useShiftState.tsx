@@ -180,6 +180,8 @@ export function useShiftState() {
     setBreakStart,
     setTotalBreakDuration,
     setIsBreakActive,
+    setIsStartSignatureOpen,  // Added this setter
+    setIsEndSignatureOpen,    // Added this setter
     
     // Actions
     handleStartShift,
