@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { differenceInSeconds } from "date-fns";
+
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useShiftState } from "@/hooks/useShiftState";
+import { useBreakTime } from "@/hooks/useBreakTime";
 
 // Import components
 import Header from "@/components/dashboard/Header";
@@ -24,7 +24,6 @@ import {
   getBreakDuration as getBreakDurationUtil
 } from "@/components/dashboard/utils";
 
-const HOURLY_RATE = 15; // £15/hour placeholder rate
 const BREAK_DURATIONS = [
   { value: "15", label: "15 minutes" },
   { value: "30", label: "30 minutes" },
@@ -33,212 +32,29 @@ const BREAK_DURATIONS = [
 ];
 
 const DashboardPage = () => {
-  const navigate = useNavigate();
-  const [isShiftActive, setIsShiftActive] = useState(false);
-  const [isBreakActive, setIsBreakActive] = useState(false);
-  const [isStartSignatureOpen, setIsStartSignatureOpen] = useState(false);
-  const [isEndSignatureOpen, setIsEndSignatureOpen] = useState(false);
+  const { user, handleSignOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [language, setLanguage] = useState("english");
-  const [managerName, setManagerName] = useState("");
-  const [endManagerName, setEndManagerName] = useState("");
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [endTime, setEndTime] = useState<Date | null>(null);
-  const [breakStart, setBreakStart] = useState<Date | null>(null);
-  const [totalBreakDuration, setTotalBreakDuration] = useState(0); // in seconds
-  const [isShiftComplete, setIsShiftComplete] = useState(false);
   
-  // New form state variables
-  const [employerName, setEmployerName] = useState("");
-  const [payRate, setPayRate] = useState(HOURLY_RATE);
-  const [rateType, setRateType] = useState("Per Hour");
+  const shiftState = useShiftState();
+  const {
+    isShiftActive, isBreakActive, isStartSignatureOpen, isEndSignatureOpen, isShiftComplete,
+    managerName, endManagerName, startTime, endTime, breakStart, totalBreakDuration,
+    employerName, payRate, rateType, setManagerName, setEndManagerName,
+    setIsStartSignatureEmpty, setIsEndSignatureEmpty, showValidationAlert,
+    setShowValidationAlert, validationType,
+    handleStartShift, handleEndShift, confirmShiftStart, 
+    setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
+  } = shiftState;
 
-  // Signature validation states
-  const [isStartSignatureEmpty, setIsStartSignatureEmpty] = useState(true);
-  const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
-  const [showValidationAlert, setShowValidationAlert] = useState(false);
-  const [validationType, setValidationType] = useState<'start' | 'end'>('start');
-  
-  // Break duration selector and countdown
-  const [selectedBreakDuration, setSelectedBreakDuration] = useState("15"); // Default 15 minutes
-  const [remainingBreakTime, setRemainingBreakTime] = useState(0); // in seconds
-  const [breakMenuOpen, setBreakMenuOpen] = useState(false);
-
-  // New states for signature data and user
-  const [startSignatureData, setStartSignatureData] = useState<string | null>(null);
-  const [endSignatureData, setEndSignatureData] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-
-  // Check if user is authenticated
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-      } else {
-        setUser(session.user);
-      }
-    };
-    
-    checkSession();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        navigate("/login");
-      } else {
-        setUser(session.user);
-      }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  // Break countdown timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    
-    if (isBreakActive && breakStart && remainingBreakTime > 0) {
-      interval = setInterval(() => {
-        setRemainingBreakTime((prev) => {
-          if (prev <= 1) {
-            // Break time is up
-            handleBreakEnd();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isBreakActive, breakStart, remainingBreakTime]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    // Navigation to login happens via the auth state change listener
-  };
-
-  const handleStartShift = () => {
-    setIsStartSignatureOpen(true);
-  };
-
-  const handleEndShift = () => {
-    setIsEndSignatureOpen(true);
-  };
-
-  const handleBreakStart = () => {
-    const durationInMinutes = parseInt(selectedBreakDuration, 10);
-    const durationInSeconds = durationInMinutes * 60;
-    
-    setBreakStart(new Date());
-    setIsBreakActive(true);
-    setRemainingBreakTime(durationInSeconds);
-    
-    toast.info(`Break started for ${durationInMinutes} minutes`);
-  };
-
-  const handleBreakEnd = () => {
-    if (breakStart) {
-      const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration(prev => prev + breakDuration);
-    }
-    
-    setBreakStart(null);
-    setIsBreakActive(false);
-    setRemainingBreakTime(0);
-    
-    toast.success("Break ended");
-  };
-
-  const handleBreakToggle = () => {
-    if (isBreakActive) {
-      handleBreakEnd();
-    } else {
-      handleBreakStart();
-    }
-  };
-
-  const handleBreakDurationChange = (duration: string) => {
-    setSelectedBreakDuration(duration);
-    setBreakMenuOpen(false);
-  };
-
-  const confirmShiftStart = () => {
-    if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
-      setValidationType('start');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    setIsStartSignatureOpen(false);
-    setIsShiftActive(true);
-    setStartTime(new Date());
-    setIsShiftComplete(false);
-    // Reset any previous shift data
-    setEndTime(null);
-    setTotalBreakDuration(0);
-    setBreakStart(null);
-    setIsBreakActive(false);
-    toast.success("Shift started successfully!");
-  };
-
-  const confirmShiftEnd = async () => {
-    if (isEndSignatureEmpty || !endManagerName.trim()) {
-      setValidationType('end');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    // If still on break, end it and add to total
-    if (isBreakActive && breakStart) {
-      const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration(prev => prev + breakDuration);
-      setBreakStart(null);
-      setIsBreakActive(false);
-    }
-    
-    const currentEndTime = new Date();
-    setEndTime(currentEndTime);
-    
-    // Save to Supabase
-    if (startTime && user) {
-      try {
-        const { error } = await supabase
-          .from('shifts')
-          .insert([
-            {
-              user_id: user.id,
-              start_time: startTime.toISOString(),
-              end_time: currentEndTime.toISOString(),
-              break_duration: totalBreakDuration,
-              employer_name: employerName,
-              pay_rate: payRate,
-              rate_type: rateType,
-              manager_start_name: managerName,
-              manager_end_name: endManagerName,
-              manager_start_signature: startSignatureData,
-              manager_end_signature: endSignatureData
-            }
-          ]);
-        
-        if (error) {
-          console.error('Error saving shift:', error);
-          toast.error("Failed to save shift data. Please try again.");
-        } else {
-          toast.success("Shift ended and data saved successfully!");
-        }
-      } catch (error) {
-        console.error('Exception when saving shift:', error);
-        toast.error("An unexpected error occurred. Please try again.");
-      }
-    }
-    
-    setIsEndSignatureOpen(false);
-    setIsShiftActive(false);
-    setIsShiftComplete(true);
-  };
+  const breakTime = useBreakTime(
+    isBreakActive,
+    shiftState.setIsBreakActive,
+    breakStart,
+    shiftState.setBreakStart,
+    totalBreakDuration,
+    shiftState.setTotalBreakDuration
+  );
 
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 
@@ -249,6 +65,10 @@ const DashboardPage = () => {
 
   const getBreakDuration = () => 
     getBreakDurationUtil(totalBreakDuration, isBreakActive, breakStart);
+
+  const handleConfirmShiftEnd = () => {
+    shiftState.confirmShiftEnd(user?.id);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -277,15 +97,15 @@ const DashboardPage = () => {
             managerName={managerName}
             endManagerName={endManagerName}
             breakStart={breakStart}
-            remainingBreakTime={remainingBreakTime}
-            selectedBreakDuration={selectedBreakDuration}
-            breakMenuOpen={breakMenuOpen}
+            remainingBreakTime={breakTime.remainingBreakTime}
+            selectedBreakDuration={breakTime.selectedBreakDuration}
+            breakMenuOpen={breakTime.breakMenuOpen}
             BREAK_DURATIONS={BREAK_DURATIONS}
             handleStartShift={handleStartShift}
             handleEndShift={handleEndShift}
-            handleBreakToggle={handleBreakToggle}
-            handleBreakDurationChange={handleBreakDurationChange}
-            setBreakMenuOpen={setBreakMenuOpen}
+            handleBreakToggle={breakTime.handleBreakToggle}
+            handleBreakDurationChange={breakTime.handleBreakDurationChange}
+            setBreakMenuOpen={breakTime.setBreakMenuOpen}
             formatCountdown={formatCountdown}
           />
 
@@ -321,7 +141,7 @@ const DashboardPage = () => {
         onOpenChange={setIsStartSignatureOpen}
         managerName={managerName}
         setManagerName={setManagerName}
-        isSignatureEmpty={isStartSignatureEmpty}
+        isSignatureEmpty={shiftState.isStartSignatureEmpty}
         setIsSignatureEmpty={setIsStartSignatureEmpty}
         confirmShiftStart={confirmShiftStart}
         employerName={employerName}
@@ -338,9 +158,9 @@ const DashboardPage = () => {
         onOpenChange={setIsEndSignatureOpen}
         endManagerName={endManagerName}
         setEndManagerName={setEndManagerName}
-        isSignatureEmpty={isEndSignatureEmpty}
+        isSignatureEmpty={shiftState.isEndSignatureEmpty}
         setIsSignatureEmpty={setIsEndSignatureEmpty}
-        confirmShiftEnd={confirmShiftEnd}
+        confirmShiftEnd={handleConfirmShiftEnd}
         startTime={startTime}
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}

@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import DateRangePicker from "./DateRangePicker";
 import { Loader2 } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 // Mock data for the timesheet entries
 const mockShifts = [
@@ -134,13 +135,7 @@ const filterShiftsByDateRange = (
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
   const [isLoading, setIsLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined,
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateRangeActive, setIsDateRangeActive] = useState(false);
   
   // Get all shifts filtered by active tab
@@ -151,7 +146,7 @@ const TimesheetLog: React.FC = () => {
   
   // Filter shifts by date range if active
   const filteredShifts = useMemo(
-    () => isDateRangeActive 
+    () => isDateRangeActive && dateRange?.from && dateRange?.to
       ? filterShiftsByDateRange(mockShifts, dateRange.from, dateRange.to)
       : periodFilteredShifts,
     [isDateRangeActive, dateRange, periodFilteredShifts]
@@ -159,7 +154,7 @@ const TimesheetLog: React.FC = () => {
 
   // Handle applying the date range filter
   const handleApplyFilter = () => {
-    if (dateRange.from && dateRange.to) {
+    if (dateRange?.from && dateRange?.to) {
       setIsLoading(true);
       
       // Simulate loading delay for mock data
@@ -176,7 +171,7 @@ const TimesheetLog: React.FC = () => {
     
     // Simulate loading delay for mock data
     setTimeout(() => {
-      setDateRange({ from: undefined, to: undefined });
+      setDateRange(undefined);
       setIsDateRangeActive(false);
       setIsLoading(false);
     }, 500);
@@ -186,7 +181,7 @@ const TimesheetLog: React.FC = () => {
   useEffect(() => {
     if (isDateRangeActive) {
       setIsDateRangeActive(false);
-      setDateRange({ from: undefined, to: undefined });
+      setDateRange(undefined);
     }
   }, [activeTab]);
 
