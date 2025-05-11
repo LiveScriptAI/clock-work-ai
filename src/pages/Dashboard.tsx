@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
 import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { format } from "date-fns";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -19,6 +21,8 @@ const DashboardPage = () => {
   const [isEndSignatureOpen, setIsEndSignatureOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [language, setLanguage] = useState("english");
+  const [managerName, setManagerName] = useState("");
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -60,11 +64,13 @@ const DashboardPage = () => {
   const confirmShiftStart = () => {
     setIsStartSignatureOpen(false);
     setIsShiftActive(true);
+    setStartTime(new Date());
   };
 
   const confirmShiftEnd = () => {
     setIsEndSignatureOpen(false);
     setIsShiftActive(false);
+    setStartTime(null);
   };
 
   return (
@@ -203,6 +209,17 @@ const DashboardPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {startTime && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-800">
+                    <span className="font-medium">Clocked in at:</span> {format(startTime, "h:mm a 'on' MMMM d, yyyy")}
+                  </p>
+                  <p className="text-sm text-green-800 mt-1">
+                    <span className="font-medium">Manager:</span> {managerName}
+                  </p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button 
                   size="lg" 
@@ -210,7 +227,7 @@ const DashboardPage = () => {
                   onClick={handleStartShift}
                   disabled={isShiftActive}
                 >
-                  Start Shift
+                  {isShiftActive ? 'Shift Started' : 'Start Shift'}
                 </Button>
                 
                 <Button 
@@ -288,12 +305,30 @@ const DashboardPage = () => {
           <DialogHeader>
             <DialogTitle>Manager Approval: Shift Start</DialogTitle>
           </DialogHeader>
-          <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center mb-4">
-            <p className="text-gray-500">Sign here to approve shift start</p>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="managerName" className="text-sm font-medium block mb-1">
+                Manager's Name
+              </label>
+              <Input 
+                id="managerName" 
+                value={managerName} 
+                onChange={(e) => setManagerName(e.target.value)} 
+                placeholder="Enter manager's name" 
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">
+                Manager's Signature
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center p-4 bg-gray-50">
+                <p className="text-gray-500 text-center">Sign here to approve shift start</p>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setIsStartSignatureOpen(false)}>Cancel</Button>
-            <Button onClick={confirmShiftStart}>Confirm Start</Button>
+            <Button onClick={confirmShiftStart} disabled={!managerName.trim()}>Confirm Start</Button>
           </div>
         </DialogContent>
       </Dialog>
