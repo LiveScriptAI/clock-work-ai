@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Clock, BarChart3, Share2 } from "lucide-react";
+import { Clock, BarChart3, Share2, MapPin, DollarSign } from "lucide-react";
 
 const WelcomePage = () => {
   const containerVariants = {
@@ -31,17 +31,27 @@ const WelcomePage = () => {
     {
       icon: <Clock size={24} />,
       title: "Live Time Tracking",
-      description: "Track your shifts with start, end, and break timers."
+      description: "Track shifts with start, end, and break timers — all in real-time."
     },
     {
       icon: <BarChart3 size={24} />,
       title: "Smart Summaries",
-      description: "Get weekly reports of your hours and estimated earnings."
+      description: "View daily, weekly, or monthly work summaries including total hours worked."
     },
     {
       icon: <Share2 size={24} />,
       title: "Instant Sharing",
-      description: "Send your work summary via WhatsApp, Email, or Download."
+      description: "Send timesheets or summaries via WhatsApp, Email, or direct download."
+    },
+    {
+      icon: <MapPin size={24} />,
+      title: "GPS Safety Tracking",
+      description: "Log your live location during shifts for safety and accountability."
+    },
+    {
+      icon: <DollarSign size={24} />,
+      title: "Earnings Overview",
+      description: "Automatically calculate your estimated earnings based on hourly or day rates."
     }
   ];
 
@@ -64,14 +74,6 @@ const WelcomePage = () => {
           <p className="mt-2 text-gray-600">
             Smarter time tracking for workers, freelancers, and contractors.
           </p>
-        </motion.div>
-
-        {/* App Icon/Logo */}
-        <motion.div 
-          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg mb-10"
-          variants={itemVariants}
-        >
-          <Clock className="w-10 h-10 text-white" strokeWidth={1.5} />
         </motion.div>
 
         {/* Features List */}
