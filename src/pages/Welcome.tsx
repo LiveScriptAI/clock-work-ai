@@ -2,94 +2,125 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  Clock, 
-  CalendarDays, 
-  DollarSign, 
-  MapPin, 
-  Star, 
-  Mail 
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { Clock, BarChart3, Share2 } from "lucide-react";
 
 const WelcomePage = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
+  const features = [
+    {
+      icon: <Clock size={24} />,
+      title: "Live Time Tracking",
+      description: "Track your shifts with start, end, and break timers."
+    },
+    {
+      icon: <BarChart3 size={24} />,
+      title: "Smart Summaries",
+      description: "Get weekly reports of your hours and estimated earnings."
+    },
+    {
+      icon: <Share2 size={24} />,
+      title: "Instant Sharing",
+      description: "Send your work summary via WhatsApp, Email, or Download."
+    }
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 px-6 py-12">
-      {/* App Header */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-8 text-center">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="flex flex-col min-h-screen bg-gray-50 px-5 py-8">
+      <motion.div 
+        className="flex-1 flex flex-col items-center justify-center"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* App Header */}
+        <motion.div 
+          className="text-center mb-10"
+          variants={itemVariants}
+        >
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Clock Work AI
           </h1>
-          <p className="text-gray-600 text-lg font-medium">
-            Your personal time and shift manager
+          <p className="mt-2 text-gray-600">
+            Smarter time tracking for workers, freelancers, and contractors.
           </p>
-        </div>
+        </motion.div>
 
-        {/* App Icon/Logo Placeholder */}
-        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg mb-4">
-          <Clock className="w-12 h-12 text-white" strokeWidth={1.5} />
-        </div>
+        {/* App Icon/Logo */}
+        <motion.div 
+          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg mb-10"
+          variants={itemVariants}
+        >
+          <Clock className="w-10 h-10 text-white" strokeWidth={1.5} />
+        </motion.div>
 
         {/* Features List */}
-        <div className="w-full max-w-xs space-y-4 mt-8">
-          <h2 className="text-xl font-semibold text-gray-800">Key Features</h2>
-          
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-blue-100">
-                <Clock className="w-5 h-5 text-blue-600" />
+        <div className="w-full max-w-md space-y-4 mb-8">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              className="p-4 bg-white rounded-xl shadow-sm border border-gray-100"
+              variants={itemVariants}
+            >
+              <div className="flex items-start">
+                <div className="p-2 rounded-full bg-indigo-50 mr-3">
+                  {feature.icon}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
+                </div>
               </div>
-              <span className="text-gray-700">Track your hours and breaks</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-purple-100">
-                <CalendarDays className="w-5 h-5 text-purple-600" />
-              </div>
-              <span className="text-gray-700">Automatically generate timesheets</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-green-100">
-                <DollarSign className="w-5 h-5 text-green-600" />
-              </div>
-              <span className="text-gray-700">Calculate your weekly/monthly pay</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-red-100">
-                <MapPin className="w-5 h-5 text-red-600" />
-              </div>
-              <span className="text-gray-700">Share your live location during shifts</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-indigo-100">
-                <Star className="w-5 h-5 text-indigo-600" />
-              </div>
-              <span className="text-gray-700">AI assistant for planning shifts</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm">
-              <div className="p-2 rounded-full bg-teal-100">
-                <Mail className="w-5 h-5 text-teal-600" />
-              </div>
-              <span className="text-gray-700">Send work logs via email or WhatsApp</span>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* CTA Buttons */}
-      <div className="mt-8 space-y-3 w-full">
-        <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-6">
-          <Link to="/register">Create Account</Link>
-        </Button>
+      <motion.div 
+        className="w-full space-y-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
+          <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-6">
+            <Link to="/register">Create Account</Link>
+          </Button>
+        </motion.div>
         
-        <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium py-6">
-          <Link to="/login">Log In</Link>
-        </Button>
-      </div>
+        <motion.div 
+          className="text-center"
+          variants={itemVariants}
+        >
+          <Link 
+            to="/login" 
+            className="text-indigo-600 text-sm hover:underline"
+          >
+            Already have an account? Sign in
+          </Link>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
