@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,7 @@ import Navigation from "@/components/dashboard/Navigation";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import LocationMap from "@/components/dashboard/LocationMap";
+import TimesheetLog from "@/components/dashboard/TimesheetLog";
 import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
 import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
 import ValidationAlert from "@/components/dashboard/ValidationAlert";
@@ -289,7 +289,7 @@ const DashboardPage = () => {
             formatCountdown={formatCountdown}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Daily Summary Component */}
             <DailySummary 
               formatDuration={formatDuration}
@@ -306,6 +306,11 @@ const DashboardPage = () => {
 
             {/* Location Map Component */}
             <LocationMap />
+          </div>
+          
+          {/* Timesheet Log Component */}
+          <div className="mt-6">
+            <TimesheetLog />
           </div>
         </div>
       </main>
