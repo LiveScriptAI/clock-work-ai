@@ -12,6 +12,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
 
 // Import components
@@ -20,6 +21,7 @@ import ShiftsList from "./timesheet/ShiftsList";
 
 // Import utilities and data
 import { filterShiftsByPeriod, filterShiftsByDateRange } from "./timesheet/timesheet-utils";
+import { downloadCSV, downloadPDF } from "./timesheet/export-utils";
 import { mockShifts } from "./timesheet/mock-data";
 
 const TimesheetLog: React.FC = () => {
@@ -27,6 +29,7 @@ const TimesheetLog: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateRangeActive, setIsDateRangeActive] = useState(false);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
   
   // Get all shifts filtered by active tab
   const periodFilteredShifts = useMemo(
@@ -67,6 +70,23 @@ const TimesheetLog: React.FC = () => {
     }, 500);
   };
 
+  // Export handlers
+  const handleExportCSV = () => {
+    setIsExporting('csv');
+    setTimeout(() => {
+      downloadCSV(filteredShifts);
+      setIsExporting(null);
+    }, 500);
+  };
+
+  const handleExportPDF = () => {
+    setIsExporting('pdf');
+    setTimeout(() => {
+      downloadPDF(filteredShifts);
+      setIsExporting(null);
+    }, 500);
+  };
+
   // Reset date range filter when tab changes
   useEffect(() => {
     if (isDateRangeActive) {
@@ -77,8 +97,27 @@ const TimesheetLog: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Timesheet Log</CardTitle>
+        
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+          >
+            {isExporting === 'csv' ? 'Exporting...' : 'Download CSV'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPDF}
+            disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+          >
+            {isExporting === 'pdf' ? 'Exporting...' : 'Download PDF'}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Date Range Picker */}
