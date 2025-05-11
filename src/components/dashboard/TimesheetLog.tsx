@@ -17,7 +17,6 @@ import { DateRange } from "react-day-picker";
 // Import components
 import DateRangePicker from "./DateRangePicker";
 import ShiftsList from "./timesheet/ShiftsList";
-import ExportOptions from "./timesheet/ExportOptions";
 
 // Import utilities and data
 import { filterShiftsByPeriod, filterShiftsByDateRange } from "./timesheet/timesheet-utils";
@@ -78,9 +77,8 @@ const TimesheetLog: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle>Timesheet Log</CardTitle>
-        <ExportOptions shifts={filteredShifts} />
       </CardHeader>
       <CardContent>
         {/* Date Range Picker */}
