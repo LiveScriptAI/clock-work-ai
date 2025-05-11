@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Card, 
   CardContent, 
@@ -15,7 +15,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import DateRangePicker from "./DateRangePicker";
+import { Loader2 } from "lucide-react";
 
 // Mock data for the timesheet entries
 const mockShifts = [
@@ -113,9 +115,81 @@ const filterShiftsByPeriod = (shifts: typeof mockShifts, period: string) => {
   }
 };
 
+// Filter shifts by date range
+const filterShiftsByDateRange = (
+  shifts: typeof mockShifts,
+  fromDate: Date | undefined,
+  toDate: Date | undefined
+) => {
+  if (!fromDate || !toDate) return shifts;
+
+  return shifts.filter((shift) => {
+    const shiftDate = startOfDay(shift.date);
+    return isWithinInterval(shiftDate, {
+      start: startOfDay(fromDate),
+      end: endOfDay(toDate),
+    });
+  });
+};
+
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
-  const filteredShifts = filterShiftsByPeriod(mockShifts, activeTab);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [isDateRangeActive, setIsDateRangeActive] = useState(false);
+  
+  // Get all shifts filtered by active tab
+  const periodFilteredShifts = useMemo(
+    () => filterShiftsByPeriod(mockShifts, activeTab),
+    [activeTab]
+  );
+  
+  // Filter shifts by date range if active
+  const filteredShifts = useMemo(
+    () => isDateRangeActive 
+      ? filterShiftsByDateRange(mockShifts, dateRange.from, dateRange.to)
+      : periodFilteredShifts,
+    [isDateRangeActive, dateRange, periodFilteredShifts]
+  );
+
+  // Handle applying the date range filter
+  const handleApplyFilter = () => {
+    if (dateRange.from && dateRange.to) {
+      setIsLoading(true);
+      
+      // Simulate loading delay for mock data
+      setTimeout(() => {
+        setIsDateRangeActive(true);
+        setIsLoading(false);
+      }, 800);
+    }
+  };
+
+  // Handle resetting the date range filter
+  const handleResetFilter = () => {
+    setIsLoading(true);
+    
+    // Simulate loading delay for mock data
+    setTimeout(() => {
+      setDateRange({ from: undefined, to: undefined });
+      setIsDateRangeActive(false);
+      setIsLoading(false);
+    }, 500);
+  };
+
+  // Reset date range filter when tab changes
+  useEffect(() => {
+    if (isDateRangeActive) {
+      setIsDateRangeActive(false);
+      setDateRange({ from: undefined, to: undefined });
+    }
+  }, [activeTab]);
 
   return (
     <Card>
@@ -123,17 +197,30 @@ const TimesheetLog: React.FC = () => {
         <CardTitle>Timesheet Log</CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Date Range Picker */}
+        <DateRangePicker
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onApplyFilter={handleApplyFilter}
+          onResetFilter={handleResetFilter}
+          isLoading={isLoading}
+        />
+        
         <Tabs defaultValue="day" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 max-w-[300px] mb-4">
-            <TabsTrigger value="day">Day</TabsTrigger>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="day" disabled={isLoading}>Day</TabsTrigger>
+            <TabsTrigger value="week" disabled={isLoading}>Week</TabsTrigger>
+            <TabsTrigger value="month" disabled={isLoading}>Month</TabsTrigger>
           </TabsList>
           
           {["day", "week", "month"].map((period) => (
             <TabsContent key={period} value={period}>
               <ScrollArea className="h-[320px] w-full pr-4">
-                {filteredShifts.length > 0 ? (
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredShifts.length > 0 ? (
                   <div className="space-y-4">
                     {filteredShifts.map((shift) => (
                       <Card key={shift.id} className="p-4 border border-gray-200">
@@ -183,7 +270,9 @@ const TimesheetLog: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex justify-center items-center h-full text-muted-foreground">
-                    No timesheet entries found.
+                    {isDateRangeActive
+                      ? "No shifts found for selected dates."
+                      : "No timesheet entries found."}
                   </div>
                 )}
               </ScrollArea>
