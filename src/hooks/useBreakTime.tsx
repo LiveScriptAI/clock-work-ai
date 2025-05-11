@@ -23,6 +23,7 @@ export function useBreakTime(
     if (isBreakActive && breakStart && remainingBreakTime > 0) {
       interval = setInterval(() => {
         setRemainingBreakTime((prev) => {
+          // Fix: Use explicit number return type
           if (prev <= 1) {
             // Break time is up
             handleBreakEnd();

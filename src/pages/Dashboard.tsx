@@ -42,7 +42,7 @@ const DashboardPage = () => {
     managerName, endManagerName, startTime, endTime, breakStart, totalBreakDuration,
     employerName, payRate, rateType, setManagerName, setEndManagerName,
     setIsStartSignatureEmpty, setIsEndSignatureEmpty, showValidationAlert,
-    setShowValidationAlert, validationType,
+    setShowValidationAlert, validationType, setIsStartSignatureOpen, setIsEndSignatureOpen,
     handleStartShift, handleEndShift, confirmShiftStart, 
     setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
@@ -68,6 +68,19 @@ const DashboardPage = () => {
 
   const handleConfirmShiftEnd = () => {
     shiftState.confirmShiftEnd(user?.id);
+  };
+
+  // Type-safe handler for rate type changes
+  const handleRateTypeChange = (value: string) => {
+    // Check if value is a valid rate type and cast it
+    if (
+      value === "Per Hour" ||
+      value === "Per Day" ||
+      value === "Per Week" ||
+      value === "Per Month"
+    ) {
+      setRateType(value);
+    }
   };
 
   return (
@@ -149,7 +162,7 @@ const DashboardPage = () => {
         payRate={payRate}
         setPayRate={setPayRate}
         rateType={rateType}
-        setRateType={setRateType}
+        setRateType={handleRateTypeChange}
         setStartSignatureData={setStartSignatureData}
       />
 
