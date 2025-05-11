@@ -33,6 +33,57 @@ export type Database = {
         }
         Relationships: []
       }
+      shifts: {
+        Row: {
+          break_duration: number
+          created_at: string
+          employer_name: string
+          end_time: string
+          id: string
+          manager_end_name: string
+          manager_end_signature: string | null
+          manager_start_name: string
+          manager_start_signature: string | null
+          pay_rate: number
+          rate_type: string
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          break_duration: number
+          created_at?: string
+          employer_name: string
+          end_time: string
+          id?: string
+          manager_end_name: string
+          manager_end_signature?: string | null
+          manager_start_name: string
+          manager_start_signature?: string | null
+          pay_rate: number
+          rate_type: string
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          break_duration?: number
+          created_at?: string
+          employer_name?: string
+          end_time?: string
+          id?: string
+          manager_end_name?: string
+          manager_end_signature?: string | null
+          manager_start_name?: string
+          manager_start_signature?: string | null
+          pay_rate?: number
+          rate_type?: string
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

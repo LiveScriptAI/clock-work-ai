@@ -19,6 +19,7 @@ type EndShiftDialogProps = {
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
   getBreakDuration: () => string;
+  setEndSignatureData: (data: string | null) => void;
 };
 
 const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
@@ -33,6 +34,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
   formatDuration,
   calculateTimeWorked,
   getBreakDuration,
+  setEndSignatureData,
 }) => {
   const isMobile = useIsMobile();
   
@@ -65,6 +67,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
               onSignatureChange={setIsSignatureEmpty}
               width={isMobile ? 300 : 380} 
               height={180}
+              onSignatureCapture={setEndSignatureData}
             />
           </div>
           

@@ -8,6 +8,7 @@ interface SignatureCanvasProps {
   width?: number;
   height?: number;
   disabled?: boolean;
+  onSignatureCapture?: (signatureData: string | null) => void;
 }
 
 const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
@@ -15,6 +16,7 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   width = 320,
   height = 200,
   disabled = false,
+  onSignatureCapture,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -35,6 +37,19 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
       setCtx(context);
     }
   }, []);
+
+  // Method to get signature as base64 data
+  const getSignatureData = (): string | null => {
+    if (!canvasRef.current || !hasSignature) return null;
+    return canvasRef.current.toDataURL('image/png');
+  };
+
+  // Call the onSignatureCapture prop whenever the signature changes
+  useEffect(() => {
+    if (onSignatureCapture) {
+      onSignatureCapture(hasSignature ? getSignatureData() : null);
+    }
+  }, [hasSignature, onSignatureCapture]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (disabled) return;
@@ -104,6 +119,10 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSignature(false);
     onSignatureChange(true); // Is empty now
+    
+    if (onSignatureCapture) {
+      onSignatureCapture(null);
+    }
   };
 
   return (

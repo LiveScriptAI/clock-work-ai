@@ -64,12 +64,19 @@ const DashboardPage = () => {
   const [remainingBreakTime, setRemainingBreakTime] = useState(0); // in seconds
   const [breakMenuOpen, setBreakMenuOpen] = useState(false);
 
+  // New states for signature data and user
+  const [startSignatureData, setStartSignatureData] = useState<string | null>(null);
+  const [endSignatureData, setEndSignatureData] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
   // Check if user is authenticated
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/login");
+      } else {
+        setUser(session.user);
       }
     };
     
@@ -78,6 +85,8 @@ const DashboardPage = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         navigate("/login");
+      } else {
+        setUser(session.user);
       }
     });
     
@@ -175,7 +184,7 @@ const DashboardPage = () => {
     toast.success("Shift started successfully!");
   };
 
-  const confirmShiftEnd = () => {
+  const confirmShiftEnd = async () => {
     if (isEndSignatureEmpty || !endManagerName.trim()) {
       setValidationType('end');
       setShowValidationAlert(true);
@@ -190,11 +199,45 @@ const DashboardPage = () => {
       setIsBreakActive(false);
     }
     
+    const currentEndTime = new Date();
+    setEndTime(currentEndTime);
+    
+    // Save to Supabase
+    if (startTime && user) {
+      try {
+        const { error } = await supabase
+          .from('shifts')
+          .insert([
+            {
+              user_id: user.id,
+              start_time: startTime.toISOString(),
+              end_time: currentEndTime.toISOString(),
+              break_duration: totalBreakDuration,
+              employer_name: employerName,
+              pay_rate: payRate,
+              rate_type: rateType,
+              manager_start_name: managerName,
+              manager_end_name: endManagerName,
+              manager_start_signature: startSignatureData,
+              manager_end_signature: endSignatureData
+            }
+          ]);
+        
+        if (error) {
+          console.error('Error saving shift:', error);
+          toast.error("Failed to save shift data. Please try again.");
+        } else {
+          toast.success("Shift ended and data saved successfully!");
+        }
+      } catch (error) {
+        console.error('Exception when saving shift:', error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    }
+    
     setIsEndSignatureOpen(false);
     setIsShiftActive(false);
-    setEndTime(new Date());
     setIsShiftComplete(true);
-    toast.success("Shift ended successfully!");
   };
 
   // Utility wrapper functions that use component state
@@ -282,6 +325,7 @@ const DashboardPage = () => {
         setPayRate={setPayRate}
         rateType={rateType}
         setRateType={setRateType}
+        setStartSignatureData={setStartSignatureData}
       />
 
       <EndShiftDialog 
@@ -296,6 +340,7 @@ const DashboardPage = () => {
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}
         getBreakDuration={getBreakDuration}
+        setEndSignatureData={setEndSignatureData}
       />
 
       <ValidationAlert 

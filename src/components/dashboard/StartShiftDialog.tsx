@@ -21,6 +21,7 @@ type StartShiftDialogProps = {
   setPayRate: (rate: number) => void;
   rateType: string;
   setRateType: (type: string) => void;
+  setStartSignatureData: (data: string | null) => void;
 };
 
 const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
@@ -37,6 +38,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
   setPayRate,
   rateType,
   setRateType,
+  setStartSignatureData,
 }) => {
   const isMobile = useIsMobile();
   
@@ -112,6 +114,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               onSignatureChange={setIsSignatureEmpty}
               width={isMobile ? 300 : 380} 
               height={180}
+              onSignatureCapture={setStartSignatureData}
             />
           </div>
         </div>
