@@ -11,6 +11,7 @@ import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import LocationMap from "@/components/dashboard/LocationMap";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
+import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
 import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
 import ValidationAlert from "@/components/dashboard/ValidationAlert";
@@ -145,6 +146,9 @@ const DashboardPage = () => {
           <div className="mt-6">
             <TimesheetLog />
           </div>
+
+          {/* Invoice Form Component */}
+          <InvoiceForm />
         </div>
       </main>
 
