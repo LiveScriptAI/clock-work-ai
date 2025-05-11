@@ -97,15 +97,16 @@ const TimesheetLog: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <CardTitle>Timesheet Log</CardTitle>
         
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
             disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+            className="w-full sm:w-auto"
           >
             {isExporting === 'csv' ? 'Exporting...' : 'Download CSV'}
           </Button>
@@ -114,6 +115,7 @@ const TimesheetLog: React.FC = () => {
             size="sm"
             onClick={handleExportPDF}
             disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+            className="w-full sm:w-auto"
           >
             {isExporting === 'pdf' ? 'Exporting...' : 'Download PDF'}
           </Button>
