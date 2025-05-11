@@ -6,11 +6,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { DateRange } from "react-day-picker";
+import { DateRange as DayPickerDateRange } from "react-day-picker";
+
+// Update the DateRange type to match react-day-picker's DateRange
+type DateRange = {
+  from: Date | undefined;
+  to: Date | undefined;
+};
 
 interface DateRangePickerProps {
-  dateRange: DateRange | undefined;
-  onDateRangeChange: (range: DateRange | undefined) => void;
+  dateRange: DateRange;
+  onDateRangeChange: (range: DateRange) => void;
   onApplyFilter: () => void;
   onResetFilter: () => void;
   isLoading: boolean;
@@ -28,7 +34,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   // Format selected date range as text
   const formatSelectedRange = () => {
-    if (dateRange?.from && dateRange?.to) {
+    if (dateRange.from && dateRange.to) {
       return `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`;
     }
     return null;
@@ -58,7 +64,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
               size="sm"
               className={cn(
                 "pl-3 flex gap-1 items-center",
-                dateRange?.from && dateRange?.to ? "text-foreground" : "text-muted-foreground"
+                dateRange.from && dateRange.to ? "text-foreground" : "text-muted-foreground"
               )}
               disabled={isLoading}
             >
@@ -70,9 +76,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <DayPickerCalendar
               initialFocus
               mode="range"
-              selected={dateRange}
-              onSelect={(range: DateRange | undefined) => {
-                onDateRangeChange(range);
+              selected={{
+                from: dateRange.from,
+                to: dateRange.to
+              }}
+              onSelect={(range: DayPickerDateRange | undefined) => {
+                // Handle potential undefined case
+                const newRange = range || { from: undefined, to: undefined };
+                onDateRangeChange(newRange);
               }}
               numberOfMonths={1}
               className={cn("p-3 pointer-events-auto")}
@@ -82,14 +93,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleResetFilter}
-                disabled={isLoading || (!dateRange?.from && !dateRange?.to)}
+                disabled={isLoading || (!dateRange.from && !dateRange.to)}
               >
                 Reset
               </Button>
               <Button
                 size="sm"
                 onClick={handleApplyFilter}
-                disabled={isLoading || !dateRange?.from || !dateRange?.to}
+                disabled={isLoading || !dateRange.from || !dateRange.to}
               >
                 {isLoading ? (
                   <>
@@ -116,7 +127,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
         <div className="mt-2 text-sm">
           <span className="text-muted-foreground">Showing results for:</span>{" "}
           <span className="font-medium">{selectedRange}</span>
-          {dateRange?.from && dateRange?.to && (
+          {dateRange.from && dateRange.to && (
             <Button 
               variant="ghost" 
               size="sm" 
