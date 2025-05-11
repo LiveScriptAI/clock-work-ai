@@ -22,8 +22,7 @@ export function useBreakTime(
     
     if (isBreakActive && breakStart && remainingBreakTime > 0) {
       interval = setInterval(() => {
-        setRemainingBreakTime((prev) => {
-          // Fix: Convert the return value to a number explicitly
+        setRemainingBreakTime((prev: number) => {
           if (prev <= 1) {
             // Break time is up
             handleBreakEnd();
@@ -53,7 +52,7 @@ export function useBreakTime(
   const handleBreakEnd = () => {
     if (breakStart) {
       const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration(prev => prev + breakDuration);
+      setTotalBreakDuration((prev: number) => prev + breakDuration);
     }
     
     setBreakStart(null);
