@@ -1,12 +1,14 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as DayPickerCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Loader2 } from "lucide-react";
+import { DateRange as DayPickerDateRange } from "react-day-picker";
 
+// Update the DateRange type to match react-day-picker's DateRange
 type DateRange = {
   from: Date | undefined;
   to: Date | undefined;
@@ -27,6 +29,9 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onResetFilter,
   isLoading
 }) => {
+  // Add state to control popover open/close
+  const [isOpen, setIsOpen] = useState(false);
+
   // Format selected date range as text
   const formatSelectedRange = () => {
     if (dateRange.from && dateRange.to) {
@@ -35,12 +40,24 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     return null;
   };
 
+  // Handle apply filter and close popover
+  const handleApplyFilter = () => {
+    onApplyFilter();
+    setIsOpen(false); // Close the popover
+  };
+
+  // Handle reset filter
+  const handleResetFilter = () => {
+    onResetFilter();
+    // Don't close popover on reset to allow for new selection
+  };
+
   const selectedRange = formatSelectedRange();
 
   return (
     <div className="flex flex-col items-start mb-4">
       <div className="flex items-center gap-2 w-full justify-between">
-        <Popover>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -56,14 +73,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
+            <DayPickerCalendar
               initialFocus
               mode="range"
               selected={{
                 from: dateRange.from,
                 to: dateRange.to
               }}
-              onSelect={(range) => {
+              onSelect={(range: DayPickerDateRange | undefined) => {
                 // Handle potential undefined case
                 const newRange = range || { from: undefined, to: undefined };
                 onDateRangeChange(newRange);
@@ -75,14 +92,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onResetFilter}
+                onClick={handleResetFilter}
                 disabled={isLoading || (!dateRange.from && !dateRange.to)}
               >
                 Reset
               </Button>
               <Button
                 size="sm"
-                onClick={onApplyFilter}
+                onClick={handleApplyFilter}
                 disabled={isLoading || !dateRange.from || !dateRange.to}
               >
                 {isLoading ? (
