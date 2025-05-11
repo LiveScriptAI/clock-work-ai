@@ -7,15 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User, Check, X } from "lucide-react";
+import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User, Check, X, Timer } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, differenceInSeconds, differenceInMinutes, differenceInHours } from "date-fns";
 import SignatureCanvas from "@/components/SignatureCanvas";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 const HOURLY_RATE = 15; // £15/hour placeholder rate
+const BREAK_DURATIONS = [
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "45", label: "45 minutes" },
+  { value: "60", label: "60 minutes" },
+];
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -39,6 +47,11 @@ const DashboardPage = () => {
   const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
   const [showValidationAlert, setShowValidationAlert] = useState(false);
   const [validationType, setValidationType] = useState<'start' | 'end'>('start');
+  
+  // New states for break duration selector and countdown
+  const [selectedBreakDuration, setSelectedBreakDuration] = useState("15"); // Default 15 minutes
+  const [remainingBreakTime, setRemainingBreakTime] = useState(0); // in seconds
+  const [breakMenuOpen, setBreakMenuOpen] = useState(false);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -59,7 +72,29 @@ const DashboardPage = () => {
     
     return () => subscription.unsubscribe();
   }, [navigate]);
-  
+
+  // Break countdown timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isBreakActive && breakStart && remainingBreakTime > 0) {
+      interval = setInterval(() => {
+        setRemainingBreakTime((prev) => {
+          if (prev <= 1) {
+            // Break time is up
+            handleBreakEnd();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isBreakActive, breakStart, remainingBreakTime]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     // Navigation to login happens via the auth state change listener
@@ -73,19 +108,41 @@ const DashboardPage = () => {
     setIsEndSignatureOpen(true);
   };
 
+  const handleBreakStart = () => {
+    const durationInMinutes = parseInt(selectedBreakDuration, 10);
+    const durationInSeconds = durationInMinutes * 60;
+    
+    setBreakStart(new Date());
+    setIsBreakActive(true);
+    setRemainingBreakTime(durationInSeconds);
+    
+    toast.info(`Break started for ${durationInMinutes} minutes`);
+  };
+
+  const handleBreakEnd = () => {
+    if (breakStart) {
+      const breakDuration = differenceInSeconds(new Date(), breakStart);
+      setTotalBreakDuration(prev => prev + breakDuration);
+    }
+    
+    setBreakStart(null);
+    setIsBreakActive(false);
+    setRemainingBreakTime(0);
+    
+    toast.success("Break ended");
+  };
+
   const handleBreakToggle = () => {
     if (isBreakActive) {
-      // End break
-      if (breakStart) {
-        const breakDuration = differenceInSeconds(new Date(), breakStart);
-        setTotalBreakDuration(prev => prev + breakDuration);
-      }
-      setBreakStart(null);
+      handleBreakEnd();
     } else {
-      // Start break
-      setBreakStart(new Date());
+      handleBreakStart();
     }
-    setIsBreakActive(!isBreakActive);
+  };
+
+  const handleBreakDurationChange = (duration: string) => {
+    setSelectedBreakDuration(duration);
+    setBreakMenuOpen(false);
   };
 
   const confirmShiftStart = () => {
@@ -146,6 +203,14 @@ const DashboardPage = () => {
     const minutes = Math.floor((seconds % 3600) / 60);
     
     return `${hours}h ${minutes}m`;
+  };
+
+  // Format countdown time (minutes and seconds)
+  const formatCountdown = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   // Calculate earnings based on time worked
@@ -315,8 +380,10 @@ const DashboardPage = () => {
                   
                   {isBreakActive && breakStart && (
                     <div className="mt-2 pt-2 border-t border-green-200">
-                      <p className="text-sm text-amber-600 font-medium">
-                        On break since {format(breakStart, "h:mm a")}
+                      <p className="text-sm text-amber-600 font-medium flex items-center">
+                        <Timer className="h-4 w-4 mr-1" />
+                        On break: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime)}</span>
+                        <span className="ml-1">remaining</span>
                       </p>
                     </div>
                   )}
@@ -344,14 +411,49 @@ const DashboardPage = () => {
                   {isShiftActive ? 'Shift Started' : 'Start Shift'}
                 </Button>
                 
-                <Button 
-                  size="lg" 
-                  className={`${isBreakActive ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'}`} 
-                  onClick={handleBreakToggle}
-                  disabled={!isShiftActive || isShiftComplete}
-                >
-                  {isBreakActive ? 'End Break' : 'Start Break'}
-                </Button>
+                <div className="relative">
+                  <div className="flex space-x-2">
+                    <Popover open={breakMenuOpen} onOpenChange={setBreakMenuOpen}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="px-2"
+                          disabled={!isShiftActive || isShiftComplete || isBreakActive}
+                        >
+                          <Timer className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium px-2 py-1 text-gray-500">Break duration:</p>
+                          {BREAK_DURATIONS.map((duration) => (
+                            <Button
+                              key={duration.value}
+                              variant="ghost"
+                              className="justify-start"
+                              onClick={() => handleBreakDurationChange(duration.value)}
+                            >
+                              {duration.label}
+                              {selectedBreakDuration === duration.value && (
+                                <Check className="h-4 w-4 ml-2 text-green-500" />
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Button 
+                      size="lg" 
+                      className={`${isBreakActive ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'} flex-1`} 
+                      onClick={handleBreakToggle}
+                      disabled={!isShiftActive || isShiftComplete}
+                    >
+                      {isBreakActive ? 'End Break' : `Start ${selectedBreakDuration} min Break`}
+                    </Button>
+                  </div>
+                </div>
                 
                 <Button 
                   size="lg" 
