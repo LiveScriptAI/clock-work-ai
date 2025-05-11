@@ -35,6 +35,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
+import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
 
 interface LineItem {
   id: string;
@@ -47,7 +49,13 @@ interface LineItem {
 
 const InvoiceForm = () => {
   const today = new Date();
+  const [customer, setCustomer] = useState<string>("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
+  const [reference, setReference] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+  const [terms, setTerms] = useState<string>("Payment due within 30 days. Late payments are subject to a 2% monthly fee.");
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
       id: `item-${Date.now()}`,
@@ -107,6 +115,34 @@ const InvoiceForm = () => {
     return (subtotal + vat).toFixed(2);
   };
 
+  // Handler for Preview Invoice button
+  const handlePreviewInvoice = () => {
+    setIsPreviewOpen(true);
+  };
+
+  // Handler for Download PDF button
+  const handleDownloadPDF = () => {
+    const invoiceData = {
+      customer,
+      invoiceDate,
+      reference,
+      lineItems,
+      notes,
+      terms,
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal()
+    };
+    
+    downloadInvoicePDF(invoiceData);
+  };
+
+  // Handler for Send Invoice button
+  const handleSendInvoice = () => {
+    const customerEmail = customer ? `${customer.toLowerCase().replace(/\s/g, "")}@email.com` : "";
+    sendInvoice(customerEmail);
+  };
+
   return (
     <div className="my-8">
       {/* INVOICE FORM SECTION */}
@@ -123,6 +159,8 @@ const InvoiceForm = () => {
                 id="customer"
                 placeholder="Select or enter customer name"
                 className="w-full"
+                value={customer}
+                onChange={(e) => setCustomer(e.target.value)}
               />
             </div>
             
@@ -156,7 +194,13 @@ const InvoiceForm = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="reference">Invoice Reference (Optional)</Label>
-                <Input id="reference" placeholder="INV-001" className="w-full" />
+                <Input 
+                  id="reference" 
+                  placeholder="INV-001" 
+                  className="w-full"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -308,6 +352,8 @@ const InvoiceForm = () => {
                 id="notes"
                 placeholder="Additional notes to the customer..."
                 className="min-h-32"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -316,7 +362,8 @@ const InvoiceForm = () => {
                 id="terms"
                 placeholder="Payment terms and conditions..."
                 className="min-h-32"
-                defaultValue="Payment due within 30 days. Late payments are subject to a 2% monthly fee."
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
               />
             </div>
           </div>
@@ -337,11 +384,26 @@ const InvoiceForm = () => {
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end">
-          <Button variant="outline" className="w-full sm:w-auto">Preview Invoice</Button>
-          <Button variant="outline" className="w-full sm:w-auto">Download PDF</Button>
-          <Button variant="default" className="w-full sm:w-auto">Send Invoice</Button>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={handlePreviewInvoice}>Preview Invoice</Button>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPDF}>Download PDF</Button>
+          <Button variant="default" className="w-full sm:w-auto" onClick={handleSendInvoice}>Send Invoice</Button>
         </CardFooter>
       </Card>
+
+      {/* Invoice Preview Dialog */}
+      <PreviewInvoiceDialog
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        customer={customer}
+        invoiceDate={invoiceDate}
+        reference={reference}
+        lineItems={lineItems}
+        notes={notes}
+        terms={terms}
+        subtotal={calculateSubtotal()}
+        vat={calculateVAT()}
+        total={calculateTotal()}
+      />
     </div>
   );
 };
