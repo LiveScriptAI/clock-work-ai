@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FilePdf, FileSpreadsheet, Loader2 } from "lucide-react";
+import { FileText, File, Loader2 } from "lucide-react";
 import { downloadCSV, downloadPDF } from "./export-utils";
 import { ShiftEntry } from "./types";
 import {
@@ -70,11 +70,11 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuLabel>Export Options</DropdownMenuLabel>
           <DropdownMenuItem onClick={handleExportCSV} disabled={isExporting !== null}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            <File className="mr-2 h-4 w-4" />
             <span>CSV</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleExportPDF} disabled={isExporting !== null}>
-            <FilePdf className="mr-2 h-4 w-4" />
+            <FileText className="mr-2 h-4 w-4" />
             <span>PDF</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
