@@ -10,7 +10,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Input } from "@/components/ui/input";
 import { Menu, Clock, MapPin, Settings, FileText, DollarSign, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format } from "date-fns";
+import { format, differenceInSeconds, differenceInMinutes, differenceInHours } from "date-fns";
+
+const HOURLY_RATE = 15; // £15/hour placeholder rate
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -22,7 +24,12 @@ const DashboardPage = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [language, setLanguage] = useState("english");
   const [managerName, setManagerName] = useState("");
+  const [endManagerName, setEndManagerName] = useState("");
   const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
+  const [breakStart, setBreakStart] = useState<Date | null>(null);
+  const [totalBreakDuration, setTotalBreakDuration] = useState(0); // in seconds
+  const [isShiftComplete, setIsShiftComplete] = useState(false);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -58,6 +65,17 @@ const DashboardPage = () => {
   };
 
   const handleBreakToggle = () => {
+    if (isBreakActive) {
+      // End break
+      if (breakStart) {
+        const breakDuration = differenceInSeconds(new Date(), breakStart);
+        setTotalBreakDuration(prev => prev + breakDuration);
+      }
+      setBreakStart(null);
+    } else {
+      // Start break
+      setBreakStart(new Date());
+    }
     setIsBreakActive(!isBreakActive);
   };
 
@@ -65,12 +83,66 @@ const DashboardPage = () => {
     setIsStartSignatureOpen(false);
     setIsShiftActive(true);
     setStartTime(new Date());
+    setIsShiftComplete(false);
+    // Reset any previous shift data
+    setEndTime(null);
+    setTotalBreakDuration(0);
+    setBreakStart(null);
+    setIsBreakActive(false);
   };
 
   const confirmShiftEnd = () => {
+    // If still on break, end it and add to total
+    if (isBreakActive && breakStart) {
+      const breakDuration = differenceInSeconds(new Date(), breakStart);
+      setTotalBreakDuration(prev => prev + breakDuration);
+      setBreakStart(null);
+      setIsBreakActive(false);
+    }
+    
     setIsEndSignatureOpen(false);
     setIsShiftActive(false);
-    setStartTime(null);
+    setEndTime(new Date());
+    setIsShiftComplete(true);
+  };
+
+  // Calculate time worked in seconds
+  const calculateTimeWorked = () => {
+    if (!startTime) return 0;
+    
+    const end = endTime || new Date();
+    const totalSeconds = differenceInSeconds(end, startTime);
+    
+    // Subtract break time
+    return Math.max(0, totalSeconds - totalBreakDuration);
+  };
+
+  // Format duration for display (hours and minutes)
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Calculate earnings based on time worked
+  const calculateEarnings = () => {
+    const seconds = calculateTimeWorked();
+    const hours = seconds / 3600;
+    return (hours * HOURLY_RATE).toFixed(2);
+  };
+
+  // Format break duration for display
+  const getBreakDuration = () => {
+    let totalBreak = totalBreakDuration;
+    
+    // Add current break if active
+    if (isBreakActive && breakStart) {
+      totalBreak += differenceInSeconds(new Date(), breakStart);
+    }
+    
+    const minutes = Math.floor(totalBreak / 60);
+    return `${minutes} minutes`;
   };
 
   return (
@@ -217,6 +289,25 @@ const DashboardPage = () => {
                   <p className="text-sm text-green-800 mt-1">
                     <span className="font-medium">Manager:</span> {managerName}
                   </p>
+                  
+                  {isBreakActive && breakStart && (
+                    <div className="mt-2 pt-2 border-t border-green-200">
+                      <p className="text-sm text-amber-600 font-medium">
+                        On break since {format(breakStart, "h:mm a")}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {isShiftComplete && endTime && (
+                    <div className="mt-2 pt-2 border-t border-green-200">
+                      <p className="text-sm text-red-600">
+                        <span className="font-medium">Clocked out at:</span> {format(endTime, "h:mm a")}
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        <span className="font-medium">Approved by:</span> {endManagerName}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -225,7 +316,7 @@ const DashboardPage = () => {
                   size="lg" 
                   className={`${isShiftActive ? 'bg-gray-400 hover:bg-gray-500' : 'bg-green-600 hover:bg-green-700'}`} 
                   onClick={handleStartShift}
-                  disabled={isShiftActive}
+                  disabled={isShiftActive || isShiftComplete}
                 >
                   {isShiftActive ? 'Shift Started' : 'Start Shift'}
                 </Button>
@@ -234,7 +325,7 @@ const DashboardPage = () => {
                   size="lg" 
                   className={`${isBreakActive ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'}`} 
                   onClick={handleBreakToggle}
-                  disabled={!isShiftActive}
+                  disabled={!isShiftActive || isShiftComplete}
                 >
                   {isBreakActive ? 'End Break' : 'Start Break'}
                 </Button>
@@ -243,7 +334,7 @@ const DashboardPage = () => {
                   size="lg" 
                   className="bg-red-600 hover:bg-red-700" 
                   onClick={handleEndShift}
-                  disabled={!isShiftActive}
+                  disabled={!isShiftActive || isShiftComplete}
                 >
                   End Shift
                 </Button>
@@ -261,15 +352,21 @@ const DashboardPage = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Hours Worked:</span>
-                    <span className="font-medium">7.5 hours</span>
+                    <span className="font-medium">{formatDuration(calculateTimeWorked())}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Break Duration:</span>
-                    <span className="font-medium">45 minutes</span>
+                    <span className="font-medium">{getBreakDuration()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Estimated Earnings:</span>
-                    <span className="font-medium">$168.75</span>
+                    <span className="font-medium">£{calculateEarnings()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shift Status:</span>
+                    <span className={`font-medium ${isShiftActive ? 'text-green-600' : isShiftComplete ? 'text-red-600' : 'text-gray-600'}`}>
+                      {isShiftActive ? (isBreakActive ? 'On Break' : 'Active') : isShiftComplete ? 'Completed' : 'Not Started'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -338,12 +435,44 @@ const DashboardPage = () => {
           <DialogHeader>
             <DialogTitle>Manager Approval: Shift End</DialogTitle>
           </DialogHeader>
-          <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center mb-4">
-            <p className="text-gray-500">Sign here to approve shift end</p>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="endManagerName" className="text-sm font-medium block mb-1">
+                Manager's Name
+              </label>
+              <Input 
+                id="endManagerName" 
+                value={endManagerName} 
+                onChange={(e) => setEndManagerName(e.target.value)} 
+                placeholder="Enter manager's name" 
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">
+                Manager's Signature
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-md h-40 flex items-center justify-center p-4 bg-gray-50">
+                <p className="text-gray-500 text-center">Sign here to approve shift end</p>
+              </div>
+            </div>
+            
+            {startTime && (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                <p className="text-sm">
+                  <span className="font-medium">Shift started:</span> {format(startTime, "h:mm a")}
+                </p>
+                <p className="text-sm mt-1">
+                  <span className="font-medium">Total break time:</span> {getBreakDuration()}
+                </p>
+                <p className="text-sm mt-1">
+                  <span className="font-medium">Worked time:</span> {formatDuration(calculateTimeWorked())}
+                </p>
+              </div>
+            )}
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 mt-4">
             <Button variant="outline" onClick={() => setIsEndSignatureOpen(false)}>Cancel</Button>
-            <Button onClick={confirmShiftEnd}>Confirm End</Button>
+            <Button onClick={confirmShiftEnd} disabled={!endManagerName.trim()}>Confirm End</Button>
           </div>
         </DialogContent>
       </Dialog>
