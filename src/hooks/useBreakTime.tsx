@@ -52,7 +52,9 @@ export function useBreakTime(
   const handleBreakEnd = () => {
     if (breakStart) {
       const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration((prev: number) => prev + breakDuration);
+      // Fix: Calculate the new total first, then set it directly
+      const newTotalBreakDuration = totalBreakDuration + breakDuration;
+      setTotalBreakDuration(newTotalBreakDuration);
     }
     
     setBreakStart(null);
