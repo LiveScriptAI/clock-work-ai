@@ -2,8 +2,10 @@
 import { ShiftEntry } from "./types";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
-// Import properly to ensure the plugin is registered
+// Import the autotable plugin
 import 'jspdf-autotable';
+// Add the required type definitions to extend jsPDF with autoTable
+import 'jspdf-autotable/types';
 
 // Helper to format date for display
 const formatDate = (date: Date): string => {
@@ -118,10 +120,9 @@ export const downloadPDF = (shifts: ShiftEntry[]): void => {
       formatCurrency(shift.earnings),
       shift.status
     ]);
-    
-    // Generate the table
-    // Use correct type assertion for autoTable
-    (doc as any).autoTable({
+
+    // Use autoTable method - this is key for fixing the issue
+    doc.autoTable({
       head: [tableColumn],
       body: tableRows,
       startY: 35,
@@ -139,4 +140,3 @@ export const downloadPDF = (shifts: ShiftEntry[]): void => {
     throw error; // Re-throw to handle in the UI
   }
 };
-

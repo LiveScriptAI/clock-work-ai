@@ -66,13 +66,15 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
             description: "There are no shifts available to export.",
             variant: "destructive",
           });
-        } else {
-          downloadPDF(shifts);
-          toast({
-            title: "Export successful",
-            description: "PDF file has been downloaded.",
-          });
+          setIsExporting(null);
+          return;
         }
+        
+        downloadPDF(shifts);
+        toast({
+          title: "Export successful",
+          description: "PDF file has been downloaded.",
+        });
       } catch (error) {
         console.error("PDF export error:", error);
         toast({
@@ -94,6 +96,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
             variant="outline" 
             size="sm"
             className="flex items-center gap-2"
+            disabled={isExporting !== null}
           >
             {isExporting ? (
               <>
