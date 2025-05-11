@@ -34,12 +34,11 @@ export const calculateTimeWorked = (
 
 // Calculate earnings based on time worked and rate type
 export const calculateEarnings = (
-  calculateTimeWorked: () => number,
+  timeWorkedInSeconds: number,
   payRate: number = 15,
   rateType: string = "Per Hour"
 ): string => {
-  const seconds = calculateTimeWorked();
-  const hours = seconds / 3600;
+  const hours = timeWorkedInSeconds / 3600;
   
   // Default to hourly rate if no rate is provided
   const rate = payRate || 15;
