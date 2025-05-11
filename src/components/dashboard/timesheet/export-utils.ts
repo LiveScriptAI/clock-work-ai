@@ -2,7 +2,8 @@
 import { ShiftEntry } from "./types";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+// Import properly to ensure the plugin is registered
+import 'jspdf-autotable';
 
 // Helper to format date for display
 const formatDate = (date: Date): string => {
@@ -79,55 +80,63 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
 
 // Generate and download PDF
 export const downloadPDF = (shifts: ShiftEntry[]): void => {
-  // Initialize jsPDF
-  const doc = new jsPDF();
-  
-  // Add title
-  doc.setFontSize(18);
-  doc.text("Timesheet Report", 14, 22);
-  
-  // Add generation date
-  doc.setFontSize(11);
-  doc.text(`Generated: ${format(new Date(), "MMM dd, yyyy")}`, 14, 30);
-  
-  // Prepare table data
-  const tableColumn = [
-    "Date", 
-    "Employer", 
-    "Start", 
-    "End", 
-    "Break", 
-    "Hours", 
-    "Rate", 
-    "Type", 
-    "Earnings", 
-    "Status"
-  ];
-  
-  const tableRows = shifts.map(shift => [
-    formatDate(shift.date),
-    shift.employer,
-    formatTime(shift.startTime),
-    formatTime(shift.endTime),
-    formatBreakDuration(shift.breakDuration),
-    `${shift.hoursWorked.toFixed(2)}h`,
-    `$${shift.payRate}`,
-    shift.payType,
-    formatCurrency(shift.earnings),
-    shift.status
-  ]);
-  
-  // Generate the table
-  (doc as any).autoTable({
-    head: [tableColumn],
-    body: tableRows,
-    startY: 35,
-    theme: 'striped',
-    headStyles: { fillColor: [100, 100, 100] },
-    margin: { top: 40 },
-  });
-  
-  // Save the PDF
-  const today = format(new Date(), "yyyy-MM-dd");
-  doc.save(`timesheet_${today}.pdf`);
+  try {
+    // Initialize jsPDF
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Timesheet Report", 14, 22);
+    
+    // Add generation date
+    doc.setFontSize(11);
+    doc.text(`Generated: ${format(new Date(), "MMM dd, yyyy")}`, 14, 30);
+    
+    // Prepare table data
+    const tableColumn = [
+      "Date", 
+      "Employer", 
+      "Start", 
+      "End", 
+      "Break", 
+      "Hours", 
+      "Rate", 
+      "Type", 
+      "Earnings", 
+      "Status"
+    ];
+    
+    const tableRows = shifts.map(shift => [
+      formatDate(shift.date),
+      shift.employer,
+      formatTime(shift.startTime),
+      formatTime(shift.endTime),
+      formatBreakDuration(shift.breakDuration),
+      `${shift.hoursWorked.toFixed(2)}h`,
+      `$${shift.payRate}`,
+      shift.payType,
+      formatCurrency(shift.earnings),
+      shift.status
+    ]);
+    
+    // Generate the table
+    // Use correct type assertion for autoTable
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: 'striped',
+      headStyles: { fillColor: [100, 100, 100] },
+      margin: { top: 40 },
+    });
+    
+    // Save the PDF
+    const today = format(new Date(), "yyyy-MM-dd");
+    doc.save(`timesheet_${today}.pdf`);
+    
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    throw error; // Re-throw to handle in the UI
+  }
 };
+

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExportOptionsProps {
   shifts: ShiftEntry[];
@@ -19,6 +20,7 @@ interface ExportOptionsProps {
 
 const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
   const [isExporting, setIsExporting] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleExportCSV = () => {
     setIsExporting("csv");
@@ -26,7 +28,26 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
     // Small timeout to allow UI to update before potentially heavy operation
     setTimeout(() => {
       try {
-        downloadCSV(shifts);
+        if (shifts.length === 0) {
+          toast({
+            title: "No data to export",
+            description: "There are no shifts available to export.",
+            variant: "destructive",
+          });
+        } else {
+          downloadCSV(shifts);
+          toast({
+            title: "Export successful",
+            description: "CSV file has been downloaded.",
+          });
+        }
+      } catch (error) {
+        console.error("CSV export error:", error);
+        toast({
+          title: "Export failed",
+          description: "Failed to export CSV. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsExporting(null);
       }
@@ -39,7 +60,26 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
     // Small timeout to allow UI to update before potentially heavy operation
     setTimeout(() => {
       try {
-        downloadPDF(shifts);
+        if (shifts.length === 0) {
+          toast({
+            title: "No data to export",
+            description: "There are no shifts available to export.",
+            variant: "destructive",
+          });
+        } else {
+          downloadPDF(shifts);
+          toast({
+            title: "Export successful",
+            description: "PDF file has been downloaded.",
+          });
+        }
+      } catch (error) {
+        console.error("PDF export error:", error);
+        toast({
+          title: "Export failed",
+          description: "Failed to export PDF. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsExporting(null);
       }
