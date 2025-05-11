@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { FilePdf, FileSpreadsheet, Loader2 } from "lucide-react";
 import { downloadCSV, downloadPDF } from "./export-utils";
 import { ShiftEntry } from "./types";
+import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,29 +22,49 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
   const handleExportCSV = () => {
+    if (isExporting) return; // Prevent multiple clicks
+    
     setIsExporting("csv");
     
-    // Small timeout to allow UI to update before potentially heavy operation
-    setTimeout(() => {
-      try {
-        downloadCSV(shifts);
-      } finally {
-        setIsExporting(null);
-      }
-    }, 100);
+    try {
+      downloadCSV(shifts);
+      toast({
+        title: "Export successful",
+        description: "Your timesheet has been exported to CSV",
+      });
+    } catch (error) {
+      console.error("CSV export error:", error);
+      toast({
+        title: "Export failed",
+        description: "Could not export to CSV. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(null);
+    }
   };
 
   const handleExportPDF = () => {
+    if (isExporting) return; // Prevent multiple clicks
+    
     setIsExporting("pdf");
     
-    // Small timeout to allow UI to update before potentially heavy operation
-    setTimeout(() => {
-      try {
-        downloadPDF(shifts);
-      } finally {
-        setIsExporting(null);
-      }
-    }, 100);
+    try {
+      downloadPDF(shifts);
+      toast({
+        title: "Export successful",
+        description: "Your timesheet has been exported to PDF",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export failed",
+        description: "Could not export to PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(null);
+    }
   };
 
   return (
@@ -54,6 +75,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ shifts, className }) => {
             variant="outline" 
             size="sm"
             className="flex items-center gap-2"
+            disabled={isExporting !== null}
           >
             {isExporting ? (
               <>
