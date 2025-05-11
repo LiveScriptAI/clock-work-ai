@@ -4,8 +4,13 @@ import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 // Import the autotable plugin
 import 'jspdf-autotable';
-// Add the required type definitions to extend jsPDF with autoTable
-import 'jspdf-autotable/types';
+
+// Extend the jsPDF type definition to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 // Helper to format date for display
 const formatDate = (date: Date): string => {
