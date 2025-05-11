@@ -202,7 +202,7 @@ const DashboardPage = () => {
     calculateTimeWorkedUtil(startTime, endTime, totalBreakDuration);
 
   const calculateEarnings = () => 
-    calculateEarningsUtil(calculateTimeWorked, payRate, rateType);
+    calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
 
   const getBreakDuration = () => 
     getBreakDurationUtil(totalBreakDuration, isBreakActive, breakStart);
