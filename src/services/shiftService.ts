@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { startOfDay, endOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
@@ -102,4 +101,32 @@ function transformShiftData(shiftData: any): ShiftEntry {
     payType: shiftData.rate_type,
     status: "Completed" // Default status
   };
+}
+
+// Delete a shift by ID
+export async function deleteShift(shiftId: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session?.user) {
+      throw new Error("User not authenticated");
+    }
+
+    const { error } = await supabase
+      .from("shifts")
+      .delete()
+      .eq("id", shiftId)
+      .eq("user_id", session.session.user.id);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, error: null };
+  } catch (error: any) {
+    console.error("Error deleting shift:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to delete shift" 
+    };
+  }
 }

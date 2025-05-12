@@ -24,6 +24,10 @@ import { downloadCSV, downloadPDF } from "./timesheet/export-utils";
 import { fetchUserShifts, filterShiftsByPeriod, filterShiftsByDateRange } from "@/services/shiftService";
 import { ShiftEntry } from "./timesheet/types";
 import { toast } from "sonner";
+import { LineItem } from "./invoice/invoice-types";
+
+// Custom event for autofill invoice
+const AUTOFILL_INVOICE_EVENT = 'autofill-invoice';
 
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
@@ -48,23 +52,24 @@ const TimesheetLog: React.FC = () => {
     [isDateRangeActive, dateRange, periodFilteredShifts]
   );
 
+  // Function to load shifts data
+  const loadShifts = async () => {
+    setIsLoading(true);
+    try {
+      const userShifts = await fetchUserShifts();
+      setShifts(userShifts);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch shifts:", err);
+      setError("Failed to load shift data");
+      toast.error("Could not load your timesheet data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch shifts data on component mount
   useEffect(() => {
-    const loadShifts = async () => {
-      setIsLoading(true);
-      try {
-        const userShifts = await fetchUserShifts();
-        setShifts(userShifts);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch shifts:", err);
-        setError("Failed to load shift data");
-        toast.error("Could not load your timesheet data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadShifts();
   }, []);
 
@@ -118,6 +123,15 @@ const TimesheetLog: React.FC = () => {
     }
   }, [activeTab]);
 
+  // Handle autofill invoice
+  const handleAutofillInvoice = (lineItem: LineItem) => {
+    // Dispatch a custom event with the line item data
+    const autofillEvent = new CustomEvent(AUTOFILL_INVOICE_EVENT, { 
+      detail: { lineItem } 
+    });
+    window.dispatchEvent(autofillEvent);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -168,6 +182,8 @@ const TimesheetLog: React.FC = () => {
                 isLoading={isLoading}
                 isDateRangeActive={isDateRangeActive}
                 error={error}
+                onRefresh={loadShifts}
+                onAutofillInvoice={handleAutofillInvoice}
               />
             </TabsContent>
           ))}
