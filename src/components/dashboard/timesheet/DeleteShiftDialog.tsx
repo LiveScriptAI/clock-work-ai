@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteShift } from "@/services/shiftService";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface DeleteShiftDialogProps {
   isOpen: boolean;
@@ -26,19 +28,29 @@ const DeleteShiftDialog: React.FC<DeleteShiftDialogProps> = ({
   onClose,
   onDeleted,
 }) => {
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
   const handleDelete = async () => {
     if (!shiftId) return;
     
-    const result = await deleteShift(shiftId);
+    setIsDeleting(true);
     
-    if (result.success) {
-      toast.success("Shift deleted successfully");
-      onDeleted();
-    } else {
-      toast.error(result.error || "Failed to delete shift");
+    try {
+      const result = await deleteShift(shiftId);
+      
+      if (result.success) {
+        toast.success("Shift deleted successfully");
+        onDeleted(); // Notify parent component to update UI
+      } else {
+        toast.error(result.error || "Failed to delete shift");
+      }
+    } catch (error) {
+      console.error("Error deleting shift:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsDeleting(false);
+      onClose();
     }
-    
-    onClose();
   };
 
   return (
@@ -52,9 +64,20 @@ const DeleteShiftDialog: React.FC<DeleteShiftDialogProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Delete
+          <AlertDialogCancel onClick={onClose} disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDelete} 
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

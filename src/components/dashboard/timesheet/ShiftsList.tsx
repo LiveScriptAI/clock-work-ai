@@ -31,6 +31,12 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
   const [isAutofillDialogOpen, setIsAutofillDialogOpen] = useState(false);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftEntry | null>(null);
+  const [localShifts, setLocalShifts] = useState<ShiftEntry[]>(shifts);
+
+  // Update local shifts when props change
+  React.useEffect(() => {
+    setLocalShifts(shifts);
+  }, [shifts]);
 
   const handleDeleteClick = (shiftId: string) => {
     setSelectedShiftId(shiftId);
@@ -40,6 +46,15 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
   const handleAutofillClick = (shift: ShiftEntry) => {
     setSelectedShift(shift);
     setIsAutofillDialogOpen(true);
+  };
+
+  const handleShiftDeleted = () => {
+    // Update local state immediately after deletion
+    if (selectedShiftId) {
+      setLocalShifts(prevShifts => prevShifts.filter(shift => shift.id !== selectedShiftId));
+    }
+    // Also trigger the parent refresh function to update the backend data
+    onRefresh();
   };
 
   return (
@@ -53,9 +68,9 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
         <div className="flex justify-center items-center h-full">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : shifts.length > 0 ? (
+      ) : localShifts.length > 0 ? (
         <div className="space-y-4">
-          {shifts.map((shift) => (
+          {localShifts.map((shift) => (
             <ShiftCard 
               key={shift.id} 
               shift={shift} 
@@ -72,7 +87,7 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
         isOpen={isDeleteDialogOpen} 
         shiftId={selectedShiftId} 
         onClose={() => setIsDeleteDialogOpen(false)}
-        onDeleted={onRefresh}
+        onDeleted={handleShiftDeleted}
       />
 
       <AutofillInvoiceDialog
