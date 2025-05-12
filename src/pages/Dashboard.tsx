@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
+import { supabase } from "@/integrations/supabase/client";
 
 // Import components
 import Header from "@/components/dashboard/Header";
@@ -55,6 +57,19 @@ const DashboardPage = () => {
     totalBreakDuration,
     shiftState.setTotalBreakDuration
   );
+
+  // Check authentication state
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        // Redirect to login if not authenticated
+        window.location.href = "/login";
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 

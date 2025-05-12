@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
+import { saveShiftState, loadShiftState, clearShiftState } from "@/services/storageService";
 
 export type RateType = "Per Hour" | "Per Day" | "Per Week" | "Per Month";
 
@@ -59,6 +60,80 @@ export function useShiftState() {
   const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
   const [showValidationAlert, setShowValidationAlert] = useState(false);
   const [validationType, setValidationType] = useState<'start' | 'end'>('start');
+
+  // Load saved state on component mount
+  useEffect(() => {
+    const savedState = loadShiftState();
+    if (savedState) {
+      const now = new Date();
+
+      // Restore shift state
+      if (savedState.isShiftActive) {
+        setIsShiftActive(true);
+        setManagerName(savedState.managerName);
+        setEmployerName(savedState.employerName);
+        setPayRate(savedState.payRate);
+        setRateType(savedState.rateType as RateType);
+        setStartSignatureData(savedState.startSignatureData);
+        setIsStartSignatureEmpty(false);
+
+        // Restore timestamps
+        if (savedState.startTime) {
+          const parsedStartTime = new Date(savedState.startTime);
+          setStartTime(parsedStartTime);
+        }
+
+        // Restore break state
+        setIsBreakActive(savedState.isBreakActive);
+        setTotalBreakDuration(savedState.totalBreakDuration);
+
+        if (savedState.isBreakActive && savedState.breakStart) {
+          const parsedBreakStart = new Date(savedState.breakStart);
+          setBreakStart(parsedBreakStart);
+          
+          // Calculate elapsed break time since app was closed
+          if (parsedBreakStart) {
+            const elapsedBreakSeconds = differenceInSeconds(now, parsedBreakStart);
+            // Update total break duration with time elapsed during app closure
+            setTotalBreakDuration(prev => prev + elapsedBreakSeconds);
+            // Reset break start time to now
+            setBreakStart(now);
+          }
+        }
+
+        toast.info("Restored active shift from previous session");
+      }
+    }
+  }, []);
+
+  // Save state whenever relevant values change
+  useEffect(() => {
+    if (isShiftActive) {
+      saveShiftState({
+        isShiftActive,
+        isBreakActive,
+        startTime: startTime ? startTime.toISOString() : null,
+        breakStart: breakStart ? breakStart.toISOString() : null,
+        totalBreakDuration,
+        managerName,
+        employerName,
+        payRate,
+        rateType,
+        startSignatureData
+      });
+    }
+  }, [
+    isShiftActive, 
+    isBreakActive,
+    startTime,
+    breakStart,
+    totalBreakDuration,
+    managerName,
+    employerName,
+    payRate,
+    rateType,
+    startSignatureData
+  ]);
 
   const handleStartShift = () => {
     setIsStartSignatureOpen(true);
@@ -131,6 +206,8 @@ export function useShiftState() {
           toast.error("Failed to save shift data. Please try again.");
         } else {
           toast.success("Shift ended and data saved successfully!");
+          // Clear saved shift state
+          clearShiftState();
         }
       } catch (error) {
         console.error('Exception when saving shift:', error);
@@ -167,6 +244,7 @@ export function useShiftState() {
     validationType,
     
     // Setters
+    setIsShiftActive,
     setManagerName,
     setEndManagerName,
     setIsStartSignatureEmpty,
@@ -180,8 +258,8 @@ export function useShiftState() {
     setBreakStart,
     setTotalBreakDuration,
     setIsBreakActive,
-    setIsStartSignatureOpen,  // Added this setter
-    setIsEndSignatureOpen,    // Added this setter
+    setIsStartSignatureOpen,
+    setIsEndSignatureOpen,
     
     // Actions
     handleStartShift,

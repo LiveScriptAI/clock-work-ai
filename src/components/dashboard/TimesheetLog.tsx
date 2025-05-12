@@ -20,41 +20,64 @@ import DateRangePicker from "./DateRangePicker";
 import ShiftsList from "./timesheet/ShiftsList";
 
 // Import utilities and data
-import { filterShiftsByPeriod, filterShiftsByDateRange } from "./timesheet/timesheet-utils";
 import { downloadCSV, downloadPDF } from "./timesheet/export-utils";
-import { mockShifts } from "./timesheet/mock-data";
+import { fetchUserShifts, filterShiftsByPeriod, filterShiftsByDateRange } from "@/services/shiftService";
+import { ShiftEntry } from "./timesheet/types";
+import { toast } from "sonner";
 
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateRangeActive, setIsDateRangeActive] = useState(false);
   const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [shifts, setShifts] = useState<ShiftEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
   
   // Get all shifts filtered by active tab
   const periodFilteredShifts = useMemo(
-    () => filterShiftsByPeriod(mockShifts, activeTab),
-    [activeTab]
+    () => filterShiftsByPeriod(shifts, activeTab),
+    [shifts, activeTab]
   );
   
   // Filter shifts by date range if active
   const filteredShifts = useMemo(
     () => isDateRangeActive && dateRange?.from && dateRange?.to
-      ? filterShiftsByDateRange(mockShifts, dateRange.from, dateRange.to)
+      ? filterShiftsByDateRange(shifts, dateRange.from, dateRange.to)
       : periodFilteredShifts,
     [isDateRangeActive, dateRange, periodFilteredShifts]
   );
+
+  // Fetch shifts data on component mount
+  useEffect(() => {
+    const loadShifts = async () => {
+      setIsLoading(true);
+      try {
+        const userShifts = await fetchUserShifts();
+        setShifts(userShifts);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch shifts:", err);
+        setError("Failed to load shift data");
+        toast.error("Could not load your timesheet data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadShifts();
+  }, []);
 
   // Handle applying the date range filter
   const handleApplyFilter = () => {
     if (dateRange?.from && dateRange?.to) {
       setIsLoading(true);
       
-      // Simulate loading delay for mock data
+      // Simulate loading delay
       setTimeout(() => {
         setIsDateRangeActive(true);
         setIsLoading(false);
-      }, 800);
+      }, 300);
     }
   };
 
@@ -62,12 +85,12 @@ const TimesheetLog: React.FC = () => {
   const handleResetFilter = () => {
     setIsLoading(true);
     
-    // Simulate loading delay for mock data
+    // Simulate loading delay
     setTimeout(() => {
       setDateRange(undefined);
       setIsDateRangeActive(false);
       setIsLoading(false);
-    }, 500);
+    }, 200);
   };
 
   // Export handlers
@@ -144,6 +167,7 @@ const TimesheetLog: React.FC = () => {
                 shifts={filteredShifts}
                 isLoading={isLoading}
                 isDateRangeActive={isDateRangeActive}
+                error={error}
               />
             </TabsContent>
           ))}

@@ -1,4 +1,3 @@
-
 import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { ShiftEntry } from "./types";
 
