@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { ShiftEntry } from "./types";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import {
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 interface ShiftCardProps {
   shift: ShiftEntry;
@@ -32,6 +33,31 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
     setIsDeleting(true);
     await onDelete(shift.id);
     setIsDeleting(false);
+  };
+
+  const handleAddToInvoice = () => {
+    try {
+      if (window._pendingAutofill) {
+        window._pendingAutofill(shift);
+        toast({
+          title: "Success",
+          description: "Shift added to invoice",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Invoice form not ready. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding shift to invoice:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add shift to invoice",
+      });
+    }
   };
 
   return (
@@ -77,7 +103,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
           </div>
         </div>
 
-        <div className="mt-2">
+        <div className="mt-2 space-y-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
@@ -102,6 +128,33 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
                   Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full text-blue-500 border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+              >
+                <Plus size={14} className="mr-1" />
+                Add to Invoice
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Add to Invoice</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Do you want to add this shift to your invoice?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleAddToInvoice} className="bg-blue-500 hover:bg-blue-600">
+                  Confirm
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

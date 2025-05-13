@@ -15,11 +15,13 @@ import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
 import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
 import { LineItem } from "./invoice-types";
+import { ShiftEntry } from "../timesheet/types";
+import { toast } from "@/hooks/use-toast";
 
 // Get access to any pending autofill from TimesheetLog
 declare global {
   interface Window {
-    _pendingAutofill?: any;
+    _pendingAutofill?: (shiftData: ShiftEntry) => void;
   }
 }
 
@@ -46,12 +48,29 @@ const InvoiceForm = () => {
   // Effect to check for pending autofill when component mounts
   useEffect(() => {
     // Expose a method to add line items from external sources
-    window._pendingAutofill = (shiftData: any) => {
+    window._pendingAutofill = (shiftData: ShiftEntry) => {
       if (!shiftData) return;
+
+      // Check if we already have this shift in the line items
+      const shiftAlreadyAdded = lineItems.some(item => 
+        item.description?.includes(shiftData.employer) && 
+        item.date?.toDateString() === shiftData.date.toDateString() &&
+        Math.abs(item.quantity - shiftData.hoursWorked) < 0.01 &&
+        item.unitPrice === shiftData.payRate
+      );
+
+      if (shiftAlreadyAdded) {
+        toast({
+          title: "Already Added",
+          description: "This shift has already been added to the invoice",
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Create a new line item from the shift data
       const newItem: LineItem = {
-        id: `item-${Date.now()}`,
+        id: `item-${Date.now()}-${shiftData.id}`,
         date: shiftData.date,
         description: `${shiftData.employer} - Work on ${new Date(shiftData.date).toLocaleDateString('en-GB', { 
           year: 'numeric', 
@@ -63,13 +82,12 @@ const InvoiceForm = () => {
         unitPrice: shiftData.payRate,
       };
 
-      addLineItem();
+      // Add the new line item to the existing items
+      setLineItems(current => [...current, newItem]);
       
-      // Update the last line item with the new data
-      setLineItems(current => {
-        const updated = [...current];
-        updated[updated.length - 1] = newItem;
-        return updated;
+      toast({
+        title: "Success",
+        description: "Shift added to invoice"
       });
     };
 
@@ -77,7 +95,7 @@ const InvoiceForm = () => {
       // Cleanup
       delete window._pendingAutofill;
     };
-  }, []);
+  }, [lineItems]);
 
   const addLineItem = () => {
     setLineItems([
