@@ -20,6 +20,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { LineItem } from "./invoice-types";
+import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 
 interface LineItemRowProps {
   item: LineItem;
@@ -93,20 +94,9 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
         </Select>
       </TableCell>
       <TableCell>
-        <Input
-          type="number"
-          value={item.quantity.toString()}
-          onChange={(e) =>
-            updateLineItem(
-              item.id,
-              "quantity",
-              parseFloat(e.target.value) || 0
-            )
-          }
-          min="0"
-          step="0.01"
-          className="w-20"
-        />
+        <div className="px-2 py-1 bg-gray-50 rounded border border-gray-100 text-center">
+          {formatHoursAndMinutes(item.quantity)}
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex items-center">
