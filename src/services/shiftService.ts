@@ -29,6 +29,32 @@ export async function fetchUserShifts(): Promise<ShiftEntry[]> {
   }
 }
 
+// Delete a shift by ID
+export async function deleteShift(shiftId: string): Promise<boolean> {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session?.user) {
+      throw new Error("User not authenticated");
+    }
+    
+    const { error } = await supabase
+      .from("shifts")
+      .delete()
+      .eq("id", shiftId)
+      .eq("user_id", session.session.user.id); // Ensure user can only delete their own shifts
+    
+    if (error) {
+      console.error("Error deleting shift:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Exception when deleting shift:", error);
+    return false;
+  }
+}
+
 // Get shifts filtered by time period (day, week, month)
 export function filterShiftsByPeriod(shifts: ShiftEntry[], period: string): ShiftEntry[] {
   const now = new Date();

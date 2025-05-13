@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
+import { toast } from "@/components/ui/use-toast";
 
 // Import components
 import DateRangePicker from "./DateRangePicker";
@@ -21,9 +22,9 @@ import ShiftsList from "./timesheet/ShiftsList";
 
 // Import utilities and data
 import { downloadCSV, downloadPDF } from "./timesheet/export-utils";
-import { fetchUserShifts, filterShiftsByPeriod, filterShiftsByDateRange } from "@/services/shiftService";
+import { fetchUserShifts, filterShiftsByPeriod, filterShiftsByDateRange, deleteShift } from "@/services/shiftService";
 import { ShiftEntry } from "./timesheet/types";
-import { toast } from "sonner";
+import { formatHoursAndMinutes } from "./utils";
 
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
@@ -50,23 +51,107 @@ const TimesheetLog: React.FC = () => {
 
   // Fetch shifts data on component mount
   useEffect(() => {
-    const loadShifts = async () => {
-      setIsLoading(true);
-      try {
-        const userShifts = await fetchUserShifts();
-        setShifts(userShifts);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch shifts:", err);
-        setError("Failed to load shift data");
-        toast.error("Could not load your timesheet data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadShifts();
   }, []);
+
+  const loadShifts = async () => {
+    setIsLoading(true);
+    try {
+      const userShifts = await fetchUserShifts();
+      setShifts(userShifts);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch shifts:", err);
+      setError("Failed to load shift data");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not load your timesheet data",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle deleting a shift
+  const handleDeleteShift = async (shiftId: string) => {
+    try {
+      const success = await deleteShift(shiftId);
+      
+      if (success) {
+        // Update state to immediately remove the deleted shift from UI
+        setShifts(prevShifts => prevShifts.filter(shift => shift.id !== shiftId));
+        toast({
+          title: "Success",
+          description: "Shift deleted successfully",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete shift",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting shift:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred while deleting the shift",
+      });
+    }
+  };
+
+  // Handle autofill to invoice functionality
+  const handleAutofillInvoice = (shift: ShiftEntry) => {
+    // Get the invoice form elements that need to be filled
+    const descriptionField = document.querySelector("#description") as HTMLInputElement;
+    const quantityField = document.querySelector("#quantity") as HTMLInputElement;
+    const priceField = document.querySelector("#price") as HTMLInputElement;
+    
+    if (descriptionField && quantityField && priceField) {
+      // Format date for the description
+      const date = new Date(shift.date);
+      const dateString = date.toLocaleDateString('en-GB', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      // Autofill the fields
+      descriptionField.value = `${shift.employer} - Work on ${dateString}`;
+      
+      // Format the quantity as "Xh Ym" instead of decimal
+      quantityField.value = formatHoursAndMinutes(shift.hoursWorked);
+      
+      // Set the price field (rate)
+      priceField.value = shift.payRate.toString();
+      
+      // Simulate input events to trigger any listeners
+      const event = new Event('input', { bubbles: true });
+      descriptionField.dispatchEvent(event);
+      quantityField.dispatchEvent(event);
+      priceField.dispatchEvent(event);
+      
+      // Show success message
+      toast({
+        title: "Invoice Updated",
+        description: "Shift details have been added to the invoice",
+      });
+      
+      // Scroll to the invoice section
+      const invoiceSection = document.querySelector("#invoice-form");
+      if (invoiceSection) {
+        invoiceSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not find invoice form fields",
+      });
+    }
+  };
 
   // Handle applying the date range filter
   const handleApplyFilter = () => {
@@ -154,7 +239,7 @@ const TimesheetLog: React.FC = () => {
           isLoading={isLoading}
         />
         
-        <Tabs defaultValue="day" onValueChange={setActiveTab}>
+        <Tabs defaultValue="day" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 max-w-[300px] mb-4">
             <TabsTrigger value="day" disabled={isLoading}>Day</TabsTrigger>
             <TabsTrigger value="week" disabled={isLoading}>Week</TabsTrigger>
@@ -168,6 +253,8 @@ const TimesheetLog: React.FC = () => {
                 isLoading={isLoading}
                 isDateRangeActive={isDateRangeActive}
                 error={error}
+                onDeleteShift={handleDeleteShift}
+                onAutofillInvoice={handleAutofillInvoice}
               />
             </TabsContent>
           ))}

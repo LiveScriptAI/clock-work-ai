@@ -9,6 +9,14 @@ export const formatDuration = (seconds: number): string => {
   return `${hours}h ${minutes}m`;
 };
 
+// Format hours and minutes from decimal hours
+export const formatHoursAndMinutes = (hours: number): string => {
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.floor((hours - wholeHours) * 60);
+  
+  return `${wholeHours}h ${minutes}m`;
+};
+
 // Format countdown time (minutes and seconds)
 export const formatCountdown = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
