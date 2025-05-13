@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   Card, 
   CardContent, 
@@ -15,9 +15,6 @@ import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
 import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
 import { LineItem } from "./invoice-types";
-
-// Custom event name for autofill invoice
-const AUTOFILL_INVOICE_EVENT = 'autofill-invoice';
 
 const InvoiceForm = () => {
   const today = new Date();
@@ -38,22 +35,6 @@ const InvoiceForm = () => {
       unitPrice: 0,
     },
   ]);
-
-  // Listen for autofill events from TimesheetLog
-  useEffect(() => {
-    const handleAutofill = (event: CustomEvent) => {
-      const { lineItem } = event.detail;
-      if (lineItem) {
-        setLineItems(prevItems => [...prevItems, lineItem]);
-      }
-    };
-
-    window.addEventListener(AUTOFILL_INVOICE_EVENT, handleAutofill as EventListener);
-    
-    return () => {
-      window.removeEventListener(AUTOFILL_INVOICE_EVENT, handleAutofill as EventListener);
-    };
-  }, []);
 
   const addLineItem = () => {
     setLineItems([
