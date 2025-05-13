@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -15,6 +15,13 @@ import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
 import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
 import { LineItem } from "./invoice-types";
+
+// Get access to any pending autofill from TimesheetLog
+declare global {
+  interface Window {
+    _pendingAutofill?: any;
+  }
+}
 
 const InvoiceForm = () => {
   const today = new Date();
@@ -35,6 +42,42 @@ const InvoiceForm = () => {
       unitPrice: 0,
     },
   ]);
+
+  // Effect to check for pending autofill when component mounts
+  useEffect(() => {
+    // Expose a method to add line items from external sources
+    window._pendingAutofill = (shiftData: any) => {
+      if (!shiftData) return;
+
+      // Create a new line item from the shift data
+      const newItem: LineItem = {
+        id: `item-${Date.now()}`,
+        date: shiftData.date,
+        description: `${shiftData.employer} - Work on ${new Date(shiftData.date).toLocaleDateString('en-GB', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}`,
+        rateType: shiftData.payType || "Per Hour",
+        quantity: shiftData.hoursWorked,
+        unitPrice: shiftData.payRate,
+      };
+
+      addLineItem();
+      
+      // Update the last line item with the new data
+      setLineItems(current => {
+        const updated = [...current];
+        updated[updated.length - 1] = newItem;
+        return updated;
+      });
+    };
+
+    return () => {
+      // Cleanup
+      delete window._pendingAutofill;
+    };
+  }, []);
 
   const addLineItem = () => {
     setLineItems([
@@ -113,7 +156,7 @@ const InvoiceForm = () => {
   };
 
   return (
-    <div className="my-8">
+    <div className="my-8" id="invoice-form">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
@@ -130,13 +173,15 @@ const InvoiceForm = () => {
           />
 
           {/* Line Items Table */}
-          <LineItemsTable 
-            lineItems={lineItems}
-            updateLineItem={updateLineItem}
-            removeLineItem={removeLineItem}
-            addLineItem={addLineItem}
-            calculateLineTotal={calculateLineTotal}
-          />
+          <div data-testid="line-items-container">
+            <LineItemsTable 
+              lineItems={lineItems}
+              updateLineItem={updateLineItem}
+              removeLineItem={removeLineItem}
+              addLineItem={addLineItem}
+              calculateLineTotal={calculateLineTotal}
+            />
+          </div>
 
           {/* Notes and Terms */}
           <NotesAndTerms 

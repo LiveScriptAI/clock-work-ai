@@ -26,6 +26,9 @@ import { fetchUserShifts, filterShiftsByPeriod, filterShiftsByDateRange, deleteS
 import { ShiftEntry } from "./timesheet/types";
 import { formatHoursAndMinutes } from "./utils";
 
+// Global store for autofill data
+let pendingAutofill: ShiftEntry | null = null;
+
 const TimesheetLog: React.FC = () => {
   const [activeTab, setActiveTab] = useState("day");
   const [isLoading, setIsLoading] = useState(true);
@@ -104,12 +107,60 @@ const TimesheetLog: React.FC = () => {
 
   // Handle autofill to invoice functionality
   const handleAutofillInvoice = (shift: ShiftEntry) => {
-    // Get the invoice form elements that need to be filled
-    const descriptionField = document.querySelector("#description") as HTMLInputElement;
-    const quantityField = document.querySelector("#quantity") as HTMLInputElement;
-    const priceField = document.querySelector("#price") as HTMLInputElement;
+    // Store the shift data for autofill
+    pendingAutofill = shift;
     
-    if (descriptionField && quantityField && priceField) {
+    // Try to find the invoice form component
+    const invoiceForm = document.querySelector("#invoice-form");
+    
+    if (!invoiceForm) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Invoice form not found. Please make sure you're on the right page.",
+      });
+      return;
+    }
+    
+    try {
+      // Find our line items component by looking for its container
+      const lineItemsContainer = document.querySelector('[data-testid="line-items-container"]');
+      
+      if (!lineItemsContainer) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not locate line items container. Please scroll to the invoice section.",
+        });
+        
+        // Try to scroll to invoice form anyway as a fallback
+        invoiceForm.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      
+      // Try to find the form fields
+      const descriptionField = document.querySelector('[data-testid="line-item-description"]') as HTMLInputElement;
+      const quantityField = document.querySelector('[data-testid="line-item-quantity"]') as HTMLInputElement;
+      const priceField = document.querySelector('[data-testid="line-item-price"]') as HTMLInputElement;
+      
+      if (!descriptionField || !quantityField || !priceField) {
+        console.error("Form fields not found:", {
+          descriptionField: !!descriptionField,
+          quantityField: !!quantityField,
+          priceField: !!priceField
+        });
+        
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not find invoice form fields. Please try again after scrolling to the invoice section.",
+        });
+        
+        // Try to scroll to invoice form anyway
+        invoiceForm.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      
       // Format date for the description
       const date = new Date(shift.date);
       const dateString = date.toLocaleDateString('en-GB', { 
@@ -121,8 +172,8 @@ const TimesheetLog: React.FC = () => {
       // Autofill the fields
       descriptionField.value = `${shift.employer} - Work on ${dateString}`;
       
-      // Format the quantity as "Xh Ym" instead of decimal
-      quantityField.value = formatHoursAndMinutes(shift.hoursWorked);
+      // Use the raw hours worked value (as a number) for the quantity
+      quantityField.value = shift.hoursWorked.toString();
       
       // Set the price field (rate)
       priceField.value = shift.payRate.toString();
@@ -140,15 +191,13 @@ const TimesheetLog: React.FC = () => {
       });
       
       // Scroll to the invoice section
-      const invoiceSection = document.querySelector("#invoice-form");
-      if (invoiceSection) {
-        invoiceSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
+      invoiceForm.scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+      console.error("Error during autofill:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Could not find invoice form fields",
+        title: "Autofill Failed",
+        description: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     }
   };
