@@ -13,7 +13,6 @@ interface ShiftsListProps {
   isDateRangeActive: boolean;
   error: string | null;
   onDeleteShift: (shiftId: string) => Promise<void>;
-  onAutofillInvoice?: (shift: ShiftEntry) => void;
 }
 
 const ShiftsList: React.FC<ShiftsListProps> = ({ 
@@ -21,8 +20,7 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
   isLoading, 
   isDateRangeActive,
   error,
-  onDeleteShift,
-  onAutofillInvoice
+  onDeleteShift
 }) => {
   return (
     <ScrollArea className="h-[320px] w-full pr-4">
@@ -42,7 +40,6 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
               key={shift.id} 
               shift={shift} 
               onDelete={onDeleteShift}
-              onAutofill={onAutofillInvoice}
             />
           ))}
         </div>

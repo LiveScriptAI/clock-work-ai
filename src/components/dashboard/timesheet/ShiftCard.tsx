@@ -23,10 +23,9 @@ import {
 interface ShiftCardProps {
   shift: ShiftEntry;
   onDelete: (shiftId: string) => Promise<void>;
-  onAutofill?: (shift: ShiftEntry) => void;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete, onAutofill }) => {
+const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleDelete = async () => {
@@ -78,18 +77,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete, onAutofill }) =>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 mt-2">
-          {onAutofill && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onAutofill(shift)}
-              className="w-full"
-            >
-              Autofill to Invoice
-            </Button>
-          )}
-          
+        <div className="mt-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
