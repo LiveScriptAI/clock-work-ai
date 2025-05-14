@@ -28,7 +28,8 @@ const ShiftManager: React.FC<ShiftManagerProps> = ({
     setIsStartSignatureOpen, setIsEndSignatureOpen,
     confirmShiftStart, confirmShiftEnd, 
     employerName, setEmployerName, payRate, setPayRate, 
-    rateType, setRateType, setStartSignatureData, setEndSignatureData
+    rateType, setRateType, setStartSignatureData, setEndSignatureData,
+    isStartSignatureEmpty, isEndSignatureEmpty
   } = useShiftState();
 
   const handleConfirmShiftEnd = () => {
@@ -55,7 +56,7 @@ const ShiftManager: React.FC<ShiftManagerProps> = ({
         onOpenChange={setIsStartSignatureOpen}
         managerName={managerName}
         setManagerName={setManagerName}
-        isSignatureEmpty={setIsStartSignatureEmpty}
+        isSignatureEmpty={isStartSignatureEmpty}
         setIsSignatureEmpty={setIsStartSignatureEmpty}
         confirmShiftStart={confirmShiftStart}
         employerName={employerName}
@@ -72,7 +73,7 @@ const ShiftManager: React.FC<ShiftManagerProps> = ({
         onOpenChange={setIsEndSignatureOpen}
         endManagerName={endManagerName}
         setEndManagerName={setEndManagerName}
-        isSignatureEmpty={setIsEndSignatureEmpty}
+        isSignatureEmpty={isEndSignatureEmpty}
         setIsSignatureEmpty={setIsEndSignatureEmpty}
         confirmShiftEnd={handleConfirmShiftEnd}
         startTime={startTime}
