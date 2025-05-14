@@ -7,7 +7,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   
-  const isActive = (path: string) => currentPath.includes(path);
+  const isActive = (path: string) => currentPath === path;
 
   return (
     <div className="bg-white border-b px-6 py-2 hidden md:block">
@@ -17,7 +17,7 @@ const Navigation: React.FC = () => {
             <Link 
               to="/invoicing" 
               className={`flex items-center px-3 py-2 text-sm rounded-md ${
-                isActive("/invoic") ? "bg-gray-100" : "hover:bg-gray-100"
+                isActive("/invoicing") ? "bg-gray-100" : "hover:bg-gray-100"
               }`}
             >
               <FileText className="mr-2 h-4 w-4" />
