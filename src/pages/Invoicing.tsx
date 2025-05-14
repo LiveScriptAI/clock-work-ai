@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Eye, Edit, Trash2, Loader, Save } from "lucide-react";
+import { Edit, Trash2, Loader, Save } from "lucide-react";
 import { 
   Card, 
   CardHeader, 
@@ -387,13 +386,6 @@ const InvoicingPage: React.FC = () => {
                       <TableCell>{recipient.vat_number || "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleView(recipient)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
