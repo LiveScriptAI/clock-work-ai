@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -51,19 +50,19 @@ export async function fetchInvoiceRecipients(): Promise<InvoiceRecipient[]> {
 /**
  * Add a new invoice recipient
  */
-export async function addInvoiceRecipient(
-  data: Omit<InvoiceRecipient, "id" | "created_at" | "updated_at" | "user_id">
-): Promise<boolean> {
+export async function addInvoiceRecipient(data: {
+  user_id: string;
+  company_name: string;
+  contact_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  vat_number?: string | null;
+}): Promise<boolean> {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session?.user) {
-      throw new Error("No authenticated user found");
-    }
-
-    const { error } = await supabase.from("invoice_recipients").insert({
-      ...data,
-      user_id: session.session.user.id,
-    });
+    const { error } = await supabase
+      .from("invoice_recipients")
+      .insert(data); // Pass the object directly, not [data]
 
     if (error) {
       console.error("Error adding invoice recipient:", error);
