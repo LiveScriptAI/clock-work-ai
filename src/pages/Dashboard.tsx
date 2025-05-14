@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
+import Navigation from "@/components/dashboard/Navigation";
 
 // Import components
 import Header from "@/components/dashboard/Header";
@@ -106,6 +108,9 @@ const DashboardPage = () => {
         setSheetOpen={setSheetOpen}
         sheetOpen={sheetOpen}
       />
+
+      {/* Navigation Component - Added below header */}
+      <Navigation />
 
       {/* Main Content */}
       <main className="flex-1 px-6 py-8">

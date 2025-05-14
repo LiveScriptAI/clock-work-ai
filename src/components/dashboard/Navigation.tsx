@@ -1,13 +1,9 @@
 
 import React from "react";
 import { FileText } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const Navigation: React.FC = () => {
-  const { pathname } = useLocation();
-  
-  if (!pathname.startsWith("/dashboard") && pathname !== "/invoicing") return null;
-  
   return (
     <div className="bg-white border-b px-6 py-2 hidden md:block">
       <nav className="max-w-7xl mx-auto">

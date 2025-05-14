@@ -10,7 +10,6 @@ import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import DashboardPage from "./pages/Dashboard";
 import InvoicingPage from "./pages/Invoicing";
-import Navigation from "@/components/dashboard/Navigation"; // Add Navigation import
 
 const queryClient = new QueryClient();
 
@@ -20,7 +19,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navigation /> {/* Add Navigation component here */}
         <Routes>
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />

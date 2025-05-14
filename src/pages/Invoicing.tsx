@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Edit, Trash2, Loader, Save } from "lucide-react";
+import Navigation from "@/components/dashboard/Navigation";
 import { 
   Card, 
   CardHeader, 
@@ -214,6 +216,9 @@ const InvoicingPage: React.FC = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Navigation Component - Added at the top of the page */}
+      <Navigation />
+      
       <Card>
         <CardHeader>
           <CardTitle>
