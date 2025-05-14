@@ -52,12 +52,6 @@ const Navigation: React.FC = () => {
               >
                 Create Invoice
               </Link>
-              <Link 
-                to="/dashboard/invoice/settings" 
-                className="block px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Recipient Settings
-              </Link>
             </div>
           </li>
         </ul>
