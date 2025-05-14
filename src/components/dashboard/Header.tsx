@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Settings, FileText, DollarSign } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type HeaderProps = {
@@ -42,18 +42,8 @@ const Header: React.FC<HeaderProps> = ({
               </SheetTitle>
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-4">
-              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
-                <Settings className="h-4 w-4 text-gray-500" />
-                <a href="#settings" className="text-sm">Settings</a>
-              </div>
-              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
-                <FileText className="h-4 w-4 text-gray-500" />
-                <a href="#templates" className="text-sm">Work Templates</a>
-              </div>
-              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
-                <DollarSign className="h-4 w-4 text-gray-500" />
-                <a href="#invoicing" className="text-sm">Invoicing</a>
-              </div>
+              {/* All placeholder navigation links have been removed */}
+              {/* The navigation structure is maintained for future additions */}
             </nav>
             
             <div className="mt-6">
