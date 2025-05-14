@@ -1,9 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, Edit, Trash2, Eye } from "lucide-react";
+import { Save, Edit, Trash2, Eye, Loader } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -20,9 +20,6 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -31,114 +28,148 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { 
+  fetchInvoiceRecipients, 
+  addInvoiceRecipient, 
+  deleteInvoiceRecipient,
+  InvoiceRecipient 
+} from "@/services/invoiceService";
 
 const formSchema = z.object({
-  companyName: z.string().min(1, "Company name is required"),
-  contactName: z.string().min(1, "Contact name is required"),
+  company_name: z.string().min(1, "Company name is required"),
+  contact_name: z.string().min(1, "Contact name is required"),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  vatNumber: z.string().optional()
+  phone_number: z.string().min(1, "Phone number is required"),
+  address: z.string().min(1, "Address is required"),
+  vat_number: z.string().optional()
 });
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
 
-// Define the company type to match what's expected
-interface Company {
-  id: number;
-  companyName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  address: string;
-  vatNumber?: string;
-}
-
-// Updated placeholder company data with all required fields
-const initialCompanies: Company[] = [
-  {
-    id: 1,
-    companyName: "Acme Inc.",
-    contactName: "John Doe",
-    email: "john@acme.com",
-    phone: "123-456-7890",
-    address: "123 Main St, City",
-    vatNumber: "VAT123456"
-  },
-  {
-    id: 2,
-    companyName: "Tech Solutions",
-    contactName: "Jane Smith",
-    email: "jane@techsolutions.com",
-    phone: "987-654-3210",
-    address: "456 Tech Ave, Town",
-    vatNumber: "VAT654321"
-  }
-];
-
 const InvoicingPage: React.FC = () => {
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [companies, setCompanies] = useState<InvoiceRecipient[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      companyName: "",
-      contactName: "",
+      company_name: "",
+      contact_name: "",
       email: "",
-      phone: "",
+      phone_number: "",
       address: "",
-      vatNumber: ""
+      vat_number: ""
     }
   });
 
-  const onSubmit = (data: InvoiceFormValues) => {
-    console.log(data);
-    toast({
-      title: "Invoice settings saved",
-      description: "Your invoice settings have been saved successfully.",
+  // Fetch companies when the component mounts
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    
+    async function loadCompanies() {
+      setIsLoading(true);
+      try {
+        const data = await fetchInvoiceRecipients();
+        setCompanies(data);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadCompanies();
+  }, [user, navigate]);
+
+  const onSubmit = async (data: InvoiceFormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save company information.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Show loading toast
+    const loadingToast = toast({
+      title: "Saving...",
+      description: "Saving your company information.",
     });
     
-    // Ensure all required fields have values when adding a new company
-    const newCompany: Company = {
-      id: companies.length + 1,
-      companyName: data.companyName,
-      contactName: data.contactName,
+    const success = await addInvoiceRecipient({
+      company_name: data.company_name,
+      contact_name: data.contact_name,
       email: data.email,
-      phone: data.phone || "", // Convert optional string to empty string if undefined
-      address: data.address || "", // Convert optional string to empty string if undefined
-      vatNumber: data.vatNumber // This can remain optional
-    };
+      phone_number: data.phone_number,
+      address: data.address,
+      vat_number: data.vat_number || null
+    });
     
-    // Add the new company to the list
-    setCompanies([...companies, newCompany]);
-    
-    // Reset form after submission
-    form.reset();
+    if (success) {
+      toast({
+        title: "Success",
+        description: "Your company information has been saved successfully.",
+      });
+      
+      // Refresh the companies list
+      const updatedCompanies = await fetchInvoiceRecipients();
+      setCompanies(updatedCompanies);
+      
+      // Reset form after submission
+      form.reset();
+    }
   };
 
-  const handleView = (id: number) => {
+  const handleView = (id: string) => {
     console.log("View company", id);
     toast({
       title: "View Company",
       description: `Viewing company with ID: ${id}`,
     });
+    // Placeholder for view functionality
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     console.log("Edit company", id);
     toast({
       title: "Edit Company",
       description: `Editing company with ID: ${id}`,
     });
+    // Placeholder for edit functionality
   };
 
-  const handleDelete = (id: number) => {
-    console.log("Delete company", id);
-    toast({
-      title: "Delete Company",
-      description: `Deleting company with ID: ${id}`,
-    });
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this company?");
+    if (!confirmDelete) return;
+    
+    const success = await deleteInvoiceRecipient(id);
+    if (success) {
+      toast({
+        title: "Company Deleted",
+        description: "The company has been deleted successfully.",
+      });
+      
+      // Update local state without refetching
+      setCompanies(companies.filter(company => company.id !== id));
+    }
   };
+
+  if (!user) {
+    return (
+      <div className="container mx-auto py-8 px-4 md:px-6 text-center">
+        <p>Please log in to access this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
@@ -157,7 +188,7 @@ const InvoicingPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="companyName"
+                  name="company_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Company Name *</FormLabel>
@@ -171,7 +202,7 @@ const InvoicingPage: React.FC = () => {
                 
                 <FormField
                   control={form.control}
-                  name="contactName"
+                  name="contact_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Contact Name *</FormLabel>
@@ -199,10 +230,10 @@ const InvoicingPage: React.FC = () => {
                 
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="phone_number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>Phone Number *</FormLabel>
                       <FormControl>
                         <Input placeholder="Phone number" {...field} />
                       </FormControl>
@@ -217,7 +248,7 @@ const InvoicingPage: React.FC = () => {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>Address *</FormLabel>
                     <FormControl>
                       <Input placeholder="Company address" {...field} />
                     </FormControl>
@@ -228,7 +259,7 @@ const InvoicingPage: React.FC = () => {
               
               <FormField
                 control={form.control}
-                name="vatNumber"
+                name="vat_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>VAT Number</FormLabel>
@@ -242,19 +273,20 @@ const InvoicingPage: React.FC = () => {
               
               <CardFooter className="flex justify-between px-0">
                 <div className="flex gap-2">
-                  <Button type="submit" variant="default">
-                    <Save className="mr-2 h-4 w-4" />
-                    Save
-                  </Button>
-                  <Button type="button" variant="outline">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
+                  <Button type="submit" variant="default" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? (
+                      <>
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save
+                      </>
+                    )}
                   </Button>
                 </div>
-                <Button type="button" variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
               </CardFooter>
             </form>
           </Form>
@@ -270,7 +302,11 @@ const InvoicingPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {companies.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : companies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               You haven't saved any companies yet.
             </div>
@@ -283,6 +319,7 @@ const InvoicingPage: React.FC = () => {
                     <TableHead>Contact</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
+                    <TableHead>Address</TableHead>
                     <TableHead>VAT Number</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -290,24 +327,25 @@ const InvoicingPage: React.FC = () => {
                 <TableBody>
                   {companies.map((company) => (
                     <TableRow key={company.id}>
-                      <TableCell className="font-medium">{company.companyName}</TableCell>
-                      <TableCell>{company.contactName}</TableCell>
+                      <TableCell className="font-medium">{company.company_name}</TableCell>
+                      <TableCell>{company.contact_name}</TableCell>
                       <TableCell>{company.email}</TableCell>
-                      <TableCell>{company.phone || "-"}</TableCell>
-                      <TableCell>{company.vatNumber || "-"}</TableCell>
+                      <TableCell>{company.phone_number}</TableCell>
+                      <TableCell className="max-w-[150px] truncate">{company.address}</TableCell>
+                      <TableCell>{company.vat_number || "-"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleView(company.id)}
+                            onClick={() => handleView(company.id as string)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEdit(company.id)}
+                            onClick={() => handleEdit(company.id as string)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -315,7 +353,7 @@ const InvoicingPage: React.FC = () => {
                             variant="outline"
                             size="sm"
                             className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => handleDelete(company.id)}
+                            onClick={() => handleDelete(company.id as string)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
