@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 
 interface LineItem {
   id: string;
@@ -90,7 +91,7 @@ const PreviewInvoiceDialog = ({
                       <TableHead>Date</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead className="hidden sm:table-cell">Rate Type</TableHead>
-                      <TableHead>Quantity</TableHead>
+                      <TableHead>Hours Worked</TableHead>
                       <TableHead>Unit Price</TableHead>
                       <TableHead>Total</TableHead>
                     </TableRow>
@@ -101,7 +102,7 @@ const PreviewInvoiceDialog = ({
                         <TableCell>{item.date ? format(item.date, "dd/MM/yyyy") : "N/A"}</TableCell>
                         <TableCell>{item.description || "N/A"}</TableCell>
                         <TableCell className="hidden sm:table-cell">{item.rateType}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>{formatHoursAndMinutes(item.quantity)}</TableCell>
                         <TableCell>£{item.unitPrice.toFixed(2)}</TableCell>
                         <TableCell>£{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
                       </TableRow>

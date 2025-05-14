@@ -2,6 +2,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
+import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 
 interface LineItem {
   id: string;
@@ -65,14 +66,14 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
       item.date ? item.date.toLocaleDateString() : "N/A",
       item.description || "N/A",
       item.rateType,
-      item.quantity.toString(),
+      formatHoursAndMinutes(item.quantity),
       `£${item.unitPrice.toFixed(2)}`,
       `£${(item.quantity * item.unitPrice).toFixed(2)}`
     ]);
     
     autoTable(doc, {
       startY: 65,
-      head: [["Date", "Description", "Rate Type", "Quantity", "Unit Price", "Total"]],
+      head: [["Date", "Description", "Rate Type", "Hours Worked", "Unit Price", "Total"]],
       body: tableData,
       theme: 'striped',
       styles: { fontSize: 9 },
