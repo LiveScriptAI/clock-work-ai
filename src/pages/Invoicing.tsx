@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,8 +43,19 @@ const formSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
 
+// Define the company type to match what's expected
+interface Company {
+  id: number;
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  address: string;
+  vatNumber?: string;
+}
+
 // Updated placeholder company data with all required fields
-const initialCompanies = [
+const initialCompanies: Company[] = [
   {
     id: 1,
     companyName: "Acme Inc.",
@@ -65,7 +77,7 @@ const initialCompanies = [
 ];
 
 const InvoicingPage: React.FC = () => {
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
   
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -86,15 +98,19 @@ const InvoicingPage: React.FC = () => {
       description: "Your invoice settings have been saved successfully.",
     });
     
-    // In a real application, we would save to the backend here
-    // For now, we'll just update the local state to show in the list
-    setCompanies([
-      ...companies,
-      {
-        id: companies.length + 1,
-        ...data
-      }
-    ]);
+    // Ensure all required fields have values when adding a new company
+    const newCompany: Company = {
+      id: companies.length + 1,
+      companyName: data.companyName,
+      contactName: data.contactName,
+      email: data.email,
+      phone: data.phone || "", // Convert optional string to empty string if undefined
+      address: data.address || "", // Convert optional string to empty string if undefined
+      vatNumber: data.vatNumber // This can remain optional
+    };
+    
+    // Add the new company to the list
+    setCompanies([...companies, newCompany]);
     
     // Reset form after submission
     form.reset();
