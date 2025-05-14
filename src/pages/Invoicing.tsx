@@ -105,17 +105,19 @@ const InvoicingPage: React.FC = () => {
         return;
       }
       
-      // Add user_id to the form data
-      const dataWithUserId = {
-        ...formData,
-        user_id: user.id
-      };
-      
       if (editingRecipient) {
         // Update existing recipient
         const { error } = await supabase
           .from("invoice_recipients")
-          .update(dataWithUserId)
+          .update({
+            user_id: user.id,
+            company_name: formData.company_name,
+            contact_name: formData.contact_name,
+            email: formData.email,
+            phone_number: formData.phone_number,
+            address: formData.address,
+            vat_number: formData.vat_number || null
+          })
           .eq("id", editingRecipient.id);
 
         if (error) throw new Error(error.message);
@@ -123,7 +125,7 @@ const InvoicingPage: React.FC = () => {
         setInvoiceRecipients(prev => 
           prev.map(item => 
             item.id === editingRecipient.id 
-              ? { ...item, ...dataWithUserId, id: editingRecipient.id } 
+              ? { ...item, ...formData, id: editingRecipient.id, user_id: user.id } 
               : item
           )
         );
@@ -133,7 +135,15 @@ const InvoicingPage: React.FC = () => {
         // Add new recipient
         const { data, error } = await supabase
           .from("invoice_recipients")
-          .insert([dataWithUserId])
+          .insert({
+            user_id: user.id,
+            company_name: formData.company_name,
+            contact_name: formData.contact_name,
+            email: formData.email,
+            phone_number: formData.phone_number,
+            address: formData.address,
+            vat_number: formData.vat_number || null
+          })
           .select();
 
         if (error) throw new Error(error.message);
