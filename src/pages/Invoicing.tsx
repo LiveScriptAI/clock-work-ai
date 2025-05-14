@@ -1,9 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, Edit, Trash2 } from "lucide-react";
+import { Save, Edit, Trash2, Eye } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -23,6 +23,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const formSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
@@ -35,7 +43,31 @@ const formSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
 
+// Placeholder company data
+const initialCompanies = [
+  {
+    id: 1,
+    companyName: "Acme Inc.",
+    contactName: "John Doe",
+    email: "john@acme.com",
+    phone: "123-456-7890",
+    address: "123 Main St, City",
+    vatNumber: "VAT123456"
+  },
+  {
+    id: 2,
+    companyName: "Tech Solutions",
+    contactName: "Jane Smith",
+    email: "jane@techsolutions.com",
+    phone: "987-654-3210",
+    address: "456 Tech Ave, Town",
+    vatNumber: "VAT654321"
+  }
+];
+
 const InvoicingPage: React.FC = () => {
+  const [companies, setCompanies] = useState(initialCompanies);
+  
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,13 +86,50 @@ const InvoicingPage: React.FC = () => {
       title: "Invoice settings saved",
       description: "Your invoice settings have been saved successfully.",
     });
+    
+    // In a real application, we would save to the backend here
+    // For now, we'll just update the local state to show in the list
+    setCompanies([
+      ...companies,
+      {
+        id: companies.length + 1,
+        ...data
+      }
+    ]);
+    
+    // Reset form after submission
+    form.reset();
+  };
+
+  const handleView = (id: number) => {
+    console.log("View company", id);
+    toast({
+      title: "View Company",
+      description: `Viewing company with ID: ${id}`,
+    });
+  };
+
+  const handleEdit = (id: number) => {
+    console.log("Edit company", id);
+    toast({
+      title: "Edit Company",
+      description: `Editing company with ID: ${id}`,
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    console.log("Delete company", id);
+    toast({
+      title: "Delete Company",
+      description: `Deleting company with ID: ${id}`,
+    });
   };
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
       <h1 className="text-2xl font-bold mb-6">Invoice Settings</h1>
       
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-2xl mx-auto mb-8">
         <CardHeader>
           <CardTitle>Company Information</CardTitle>
           <CardDescription>
@@ -174,6 +243,75 @@ const InvoicingPage: React.FC = () => {
               </CardFooter>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+      
+      {/* Company List Section */}
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Company List</CardTitle>
+          <CardDescription>
+            Your saved companies for invoicing
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {companies.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              You haven't saved any companies yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>VAT Number</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies.map((company) => (
+                    <TableRow key={company.id}>
+                      <TableCell className="font-medium">{company.companyName}</TableCell>
+                      <TableCell>{company.contactName}</TableCell>
+                      <TableCell>{company.email}</TableCell>
+                      <TableCell>{company.phone || "-"}</TableCell>
+                      <TableCell>{company.vatNumber || "-"}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleView(company.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(company.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => handleDelete(company.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
