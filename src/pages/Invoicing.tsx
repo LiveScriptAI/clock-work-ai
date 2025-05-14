@@ -1,18 +1,20 @@
 
 import React, { useEffect, useState } from "react";
-import Navigation from "@/components/dashboard/Navigation";
+import { useAuth } from "@/hooks/useAuth";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { 
   Card, 
   CardHeader, 
   CardTitle, 
   CardContent
 } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
 import CompanyForm, { InvoiceRecipient } from "@/components/invoicing/CompanyForm";
 import CompanyTable from "@/components/invoicing/CompanyTable";
 import { fetchInvoiceRecipients, deleteInvoiceRecipient } from "@/services/invoiceRecipientService";
 
 const InvoicingPage: React.FC = () => {
+  const { handleSignOut } = useAuth();
+  const [language, setLanguage] = useState("english");
   const [invoiceRecipients, setInvoiceRecipients] = useState<InvoiceRecipient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingRecipient, setEditingRecipient] = useState<InvoiceRecipient | null>(null);
@@ -58,40 +60,43 @@ const InvoicingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Navigation Component */}
-      <Navigation />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {editingRecipient ? "Edit Company Information" : "Company Information"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CompanyForm
-            editingRecipient={editingRecipient}
-            setEditingRecipient={setEditingRecipient}
-            onCompanyAdded={handleCompanyAdded}
-            onCompanyUpdated={handleCompanyUpdated}
-          />
-        </CardContent>
-      </Card>
+    <DashboardLayout
+      language={language}
+      setLanguage={setLanguage}
+      handleSignOut={handleSignOut}
+    >
+      <div className="container mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {editingRecipient ? "Edit Company Information" : "Company Information"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CompanyForm
+              editingRecipient={editingRecipient}
+              setEditingRecipient={setEditingRecipient}
+              onCompanyAdded={handleCompanyAdded}
+              onCompanyUpdated={handleCompanyUpdated}
+            />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Company List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CompanyTable
-            invoiceRecipients={invoiceRecipients}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </CardContent>
-      </Card>
-    </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Company List</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CompanyTable
+              invoiceRecipients={invoiceRecipients}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 };
 
