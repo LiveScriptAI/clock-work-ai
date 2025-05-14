@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 
 // Form schema with validation
-const companyFormSchema = z.object({
+const settingsFormSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   contactName: z.string().min(1, "Contact name is required"),
   phoneNumber: z.string().optional(),
@@ -22,11 +22,11 @@ const companyFormSchema = z.object({
   vatNumber: z.string().optional()
 });
 
-type CompanyFormValues = z.infer<typeof companyFormSchema>;
+type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
-const AddCompanyForm: React.FC = () => {
-  const form = useForm<CompanyFormValues>({
-    resolver: zodResolver(companyFormSchema),
+const InvoiceSettingsForm: React.FC = () => {
+  const form = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsFormSchema),
     defaultValues: {
       companyName: "",
       contactName: "",
@@ -37,11 +37,11 @@ const AddCompanyForm: React.FC = () => {
     }
   });
 
-  function onSubmit(data: CompanyFormValues) {
+  function onSubmit(data: SettingsFormValues) {
     // This is just a UI placeholder - no actual submission will happen yet
     toast({
-      title: "Company Added (UI Only)",
-      description: "This is just a UI demonstration. Backend functionality will be added later.",
+      title: "Form Submitted",
+      description: "Your invoice settings have been saved (UI only).",
     });
     
     console.log("Form data (UI only):", data);
@@ -51,7 +51,7 @@ const AddCompanyForm: React.FC = () => {
   return (
     <Card className="w-full mb-6">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Add New Company</CardTitle>
+        <CardTitle className="text-2xl font-bold">Invoice Settings</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -167,7 +167,7 @@ const AddCompanyForm: React.FC = () => {
 
             <CardFooter className="px-0 pt-4">
               <Button type="submit" className="ml-auto">
-                Add Company
+                Save Settings
               </Button>
             </CardFooter>
           </form>
@@ -177,4 +177,4 @@ const AddCompanyForm: React.FC = () => {
   );
 };
 
-export default AddCompanyForm;
+export default InvoiceSettingsForm;

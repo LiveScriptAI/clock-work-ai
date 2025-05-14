@@ -1,5 +1,5 @@
 import React from "react";
-import AddCompanyForm from "@/components/dashboard/invoice/AddCompanyForm";
+import InvoiceSettingsForm from "@/components/invoice/InvoiceSettingsForm";
 import { useAuth } from "@/hooks/useAuth";
 
 const InvoicingPage: React.FC = () => {
@@ -12,8 +12,8 @@ const InvoicingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Invoicing</h1>
           
-          {/* Add New Company Form */}
-          <AddCompanyForm />
+          {/* Invoice Settings Form */}
+          <InvoiceSettingsForm />
           
           {/* Other invoicing content can be added here in the future */}
         </div>

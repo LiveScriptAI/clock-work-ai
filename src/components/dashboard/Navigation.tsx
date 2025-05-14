@@ -37,7 +37,7 @@ const Navigation: React.FC = () => {
           </li>
           <li className="relative group">
             <Link 
-              to="/dashboard/invoicing" 
+              to="/invoicing" 
               className={`flex items-center px-3 py-2 text-sm rounded-md ${
                 isActive("/invoic") ? "bg-gray-100" : "hover:bg-gray-100"
               }`}
@@ -47,10 +47,10 @@ const Navigation: React.FC = () => {
             </Link>
             <div className="absolute hidden group-hover:block bg-white border shadow-lg rounded-md min-w-[180px] mt-1 py-1 z-50">
               <Link 
-                to="/dashboard/invoicing" 
+                to="/invoicing" 
                 className="block px-4 py-2 text-sm hover:bg-gray-100"
               >
-                Create Invoice
+                Invoice Settings
               </Link>
             </div>
           </li>
