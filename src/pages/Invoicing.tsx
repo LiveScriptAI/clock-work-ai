@@ -53,6 +53,7 @@ type InvoiceRecipient = {
   phone_number: string | null;
   address: string | null;
   vat_number: string | null;
+  user_id: string; // Added user_id to match database schema
 };
 
 const InvoicingPage: React.FC = () => {
@@ -96,11 +97,25 @@ const InvoicingPage: React.FC = () => {
   const addInvoiceRecipient = async (formData: FormValues) => {
     setIsSubmitting(true);
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to add a company");
+        return;
+      }
+      
+      // Add user_id to the form data
+      const dataWithUserId = {
+        ...formData,
+        user_id: user.id
+      };
+      
       if (editingRecipient) {
         // Update existing recipient
         const { error } = await supabase
           .from("invoice_recipients")
-          .update(formData)
+          .update(dataWithUserId)
           .eq("id", editingRecipient.id);
 
         if (error) throw new Error(error.message);
@@ -108,7 +123,7 @@ const InvoicingPage: React.FC = () => {
         setInvoiceRecipients(prev => 
           prev.map(item => 
             item.id === editingRecipient.id 
-              ? { ...item, ...formData } 
+              ? { ...item, ...dataWithUserId, id: editingRecipient.id } 
               : item
           )
         );
@@ -118,7 +133,7 @@ const InvoicingPage: React.FC = () => {
         // Add new recipient
         const { data, error } = await supabase
           .from("invoice_recipients")
-          .insert([formData])
+          .insert([dataWithUserId])
           .select();
 
         if (error) throw new Error(error.message);
