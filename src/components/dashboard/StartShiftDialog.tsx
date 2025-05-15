@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,8 +42,15 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
+  useEffect(() => {
+    console.log("🪪 StartShiftDialog - isOpen changed to:", isOpen);
+  }, [isOpen]);
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log("🪪 Dialog onOpenChange called with:", open);
+      onOpenChange(open);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Manager Approval: Shift Start</DialogTitle>
@@ -119,8 +126,14 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
           </div>
         </div>
         <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={confirmShiftStart}>Confirm Start</Button>
+          <Button variant="outline" onClick={() => {
+            console.log("🪪 Cancel button clicked");
+            onOpenChange(false);
+          }}>Cancel</Button>
+          <Button onClick={() => {
+            console.log("🪪 Confirm Start button clicked");
+            confirmShiftStart();
+          }}>Confirm Start</Button>
         </div>
       </DialogContent>
     </Dialog>

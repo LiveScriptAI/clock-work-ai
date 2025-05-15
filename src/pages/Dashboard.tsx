@@ -30,6 +30,11 @@ const DashboardPage = () => {
     setIsBreakActive, setBreakStart, setTotalBreakDuration
   } = shiftState;
 
+  // Log the current state of isStartSignatureOpen from shiftState
+  useEffect(() => {
+    console.log("📊 Dashboard - shiftState.isStartSignatureOpen:", shiftState.isStartSignatureOpen);
+  }, [shiftState.isStartSignatureOpen]);
+
   // Check authentication state
   useEffect(() => {
     const checkAuth = async () => {
@@ -76,7 +81,10 @@ const DashboardPage = () => {
         calculateTimeWorked={calculateTimeWorked}
         getBreakDuration={getBreakDuration}
         calculateEarnings={calculateEarnings}
-        handleStartShift={handleStartShift}
+        handleStartShift={() => {
+          console.log("📱 Dashboard - handleStartShift button clicked");
+          handleStartShift();
+        }}
         handleEndShift={handleEndShift}
         setIsBreakActive={setIsBreakActive}
         setBreakStart={setBreakStart}

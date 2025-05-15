@@ -97,7 +97,10 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
           <Button 
             size="lg" 
             className={`${isShiftActive ? 'bg-gray-400 hover:bg-gray-500' : 'bg-green-600 hover:bg-green-700'}`} 
-            onClick={handleStartShift}
+            onClick={() => {
+              console.log("⏱️ TimeTracking - Start Shift button clicked");
+              handleStartShift();
+            }}
             disabled={isShiftActive || isShiftComplete}
           >
             {isShiftActive ? 'Shift Started' : 'Start Shift'}

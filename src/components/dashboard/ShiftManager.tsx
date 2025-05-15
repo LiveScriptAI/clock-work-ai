@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
 import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
 import ValidationAlert from "@/components/dashboard/ValidationAlert";
@@ -31,6 +31,10 @@ const ShiftManager: React.FC<ShiftManagerProps> = ({
     rateType, setRateType, setStartSignatureData, setEndSignatureData,
     isStartSignatureEmpty, isEndSignatureEmpty
   } = useShiftState();
+
+  useEffect(() => {
+    console.log("🔄 ShiftManager - isStartSignatureOpen:", isStartSignatureOpen);
+  }, [isStartSignatureOpen]);
 
   const handleConfirmShiftEnd = () => {
     confirmShiftEnd(userId);
