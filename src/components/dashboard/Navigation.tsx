@@ -1,5 +1,5 @@
-
 import React from "react";
+import { NavLink } from "react-router-dom";
 import { Settings, FileText, DollarSign } from "lucide-react";
 
 const Navigation: React.FC = () => {
@@ -26,13 +26,17 @@ const Navigation: React.FC = () => {
             </a>
           </li>
           <li>
-            <a 
-              href="#invoicing" 
-              className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+            <NavLink
+              to="/invoicing"
+              className={({ isActive }) =>
+                `flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100 ${
+                  isActive ? "text-indigo-600 font-semibold" : "text-gray-700"
+                }`
+              }
             >
               <DollarSign className="mr-2 h-4 w-4" />
               <span>Invoicing</span>
-            </a>
+            </NavLink>
           </li>
         </ul>
       </nav>
@@ -41,3 +45,4 @@ const Navigation: React.FC = () => {
 };
 
 export default Navigation;
+
