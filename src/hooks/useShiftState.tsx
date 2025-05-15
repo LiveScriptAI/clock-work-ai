@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -135,10 +136,7 @@ export function useShiftState() {
   ]);
 
   const handleStartShift = () => {
-    console.log("🔔 handleStartShift called");
-    console.log("Previous isStartSignatureOpen:", isStartSignatureOpen);
     setIsStartSignatureOpen(true);
-    console.log("New isStartSignatureOpen:", true);
   };
 
   const handleEndShift = () => {
@@ -146,19 +144,12 @@ export function useShiftState() {
   };
 
   const confirmShiftStart = () => {
-    console.log("🔍 confirmShiftStart called");
-    console.log("ValidationCheck - isStartSignatureEmpty:", isStartSignatureEmpty);
-    console.log("ValidationCheck - managerName:", managerName);
-    console.log("ValidationCheck - employerName:", employerName);
-    
     if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
-      console.log("❌ Validation failed, showing alert");
       setValidationType('start');
       setShowValidationAlert(true);
       return;
     }
     
-    console.log("✅ Validation passed, proceeding with shift start");
     setIsStartSignatureOpen(false);
     setIsShiftActive(true);
     setStartTime(new Date());

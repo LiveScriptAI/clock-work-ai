@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, FileText } from "lucide-react";
+import { Menu, Settings, FileText, DollarSign } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
 
 type HeaderProps = {
   language: string;
@@ -43,14 +42,18 @@ const Header: React.FC<HeaderProps> = ({
               </SheetTitle>
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-4">
-              <Link 
-                to="/invoicing"
-                className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100"
-                onClick={() => setSheetOpen(false)}
-              >
+              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
+                <Settings className="h-4 w-4 text-gray-500" />
+                <a href="#settings" className="text-sm">Settings</a>
+              </div>
+              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
                 <FileText className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">Invoice</span>
-              </Link>
+                <a href="#templates" className="text-sm">Work Templates</a>
+              </div>
+              <div className="flex items-center gap-2 px-1 py-2 rounded-md hover:bg-gray-100">
+                <DollarSign className="h-4 w-4 text-gray-500" />
+                <a href="#invoicing" className="text-sm">Invoicing</a>
+              </div>
             </nav>
             
             <div className="mt-6">
