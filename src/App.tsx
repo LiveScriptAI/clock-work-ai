@@ -9,7 +9,7 @@ import WelcomePage from "./pages/Welcome";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import DashboardPage from "./pages/Dashboard";
-import InvoiceForm from "@/components/dashboard/InvoiceForm";
+import InvoiceForm from "./components/dashboard/InvoiceForm";
 
 const queryClient = new QueryClient();
 
