@@ -10,7 +10,7 @@ import WelcomePage from "./pages/Welcome";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import DashboardPage from "./pages/Dashboard";
-import InvoiceForm from "./components/dashboard/InvoiceForm";
+import InvoicingPage from "./pages/Invoicing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,7 +28,7 @@ const App: React.FC = () => (
           <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* ← This is the invoicing route */}
-          <Route path="/invoicing" element={<InvoiceForm />} />
+         <Route path="/invoicing" element={<InvoicingPage />} />
 
           {/* redirect root to welcome */}
           <Route path="/" element={<Navigate to="/welcome" replace />} />
