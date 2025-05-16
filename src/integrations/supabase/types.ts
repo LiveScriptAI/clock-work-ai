@@ -13,10 +13,15 @@ export type Database = {
         Row: {
           account_number: string | null
           address: string | null
+          address1: string | null
+          address2: string | null
           bank_account_name: string | null
           bic_swift: string | null
+          city: string | null
           company_name: string
           contact_name: string
+          country: string | null
+          county: string | null
           created_at: string
           credit_terms: number | null
           email: string
@@ -25,6 +30,7 @@ export type Database = {
           notes: string | null
           payment_terms: string | null
           phone_number: string | null
+          postcode: string | null
           sort_code: string | null
           terms_conditions: string | null
           updated_at: string
@@ -34,10 +40,15 @@ export type Database = {
         Insert: {
           account_number?: string | null
           address?: string | null
+          address1?: string | null
+          address2?: string | null
           bank_account_name?: string | null
           bic_swift?: string | null
+          city?: string | null
           company_name: string
           contact_name: string
+          country?: string | null
+          county?: string | null
           created_at?: string
           credit_terms?: number | null
           email: string
@@ -46,6 +57,7 @@ export type Database = {
           notes?: string | null
           payment_terms?: string | null
           phone_number?: string | null
+          postcode?: string | null
           sort_code?: string | null
           terms_conditions?: string | null
           updated_at?: string
@@ -55,10 +67,15 @@ export type Database = {
         Update: {
           account_number?: string | null
           address?: string | null
+          address1?: string | null
+          address2?: string | null
           bank_account_name?: string | null
           bic_swift?: string | null
+          city?: string | null
           company_name?: string
           contact_name?: string
+          country?: string | null
+          county?: string | null
           created_at?: string
           credit_terms?: number | null
           email?: string
@@ -67,6 +84,7 @@ export type Database = {
           notes?: string | null
           payment_terms?: string | null
           phone_number?: string | null
+          postcode?: string | null
           sort_code?: string | null
           terms_conditions?: string | null
           updated_at?: string

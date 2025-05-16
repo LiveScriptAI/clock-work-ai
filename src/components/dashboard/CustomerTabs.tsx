@@ -1,4 +1,3 @@
-
 import React from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -30,7 +29,12 @@ const formSchema = z.object({
   businessName: z.string().min(1, { message: "Business name is required" }),
   contactName: z.string().min(1, { message: "Contact name is required" }),
   email: z.string().email({ message: "Invalid email address" }),
-  address: z.string().optional(),
+  address1: z.string().optional(),
+  address2: z.string().optional(),
+  city: z.string().optional(),
+  county: z.string().optional(),
+  postcode: z.string().optional(),
+  country: z.string().optional(),
   phoneNumber: z.string().optional(),
   vatNumber: z.string().optional(),
   // Payment Details Tab fields
@@ -59,7 +63,13 @@ const CustomerTabs = () => {
       businessName: "",
       contactName: "",
       email: "",
-      address: "",
+      // New address fields
+      address1: "",
+      address2: "",
+      city: "",
+      county: "",
+      postcode: "",
+      country: "",
       phoneNumber: "",
       vatNumber: "",
       // Payment Details defaults
@@ -99,7 +109,14 @@ const CustomerTabs = () => {
         company_name: data.businessName,
         contact_name: data.contactName,
         email: data.email,
-        address: data.address || null,
+        // Map granular address fields
+        address1: data.address1 || null,
+        address2: data.address2 || null,
+        city: data.city || null,
+        county: data.county || null,
+        postcode: data.postcode || null,
+        country: data.country || null,
+        // Keep other fields
         phone_number: data.phoneNumber || null,
         vat_number: data.vatNumber || null,
         // Payment Details fields
@@ -241,15 +258,95 @@ const CustomerTabs = () => {
                   )}
                 />
                 
-                {/* Address */}
+                {/* Address Line 1 */}
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="address1"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Address Line 1</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter address" {...field} />
+                        <Input placeholder="Enter address line 1" {...field} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Address Line 2 */}
+                <FormField
+                  control={form.control}
+                  name="address2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address Line 2</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter address line 2" {...field} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* City */}
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter city" {...field} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* County */}
+                <FormField
+                  control={form.control}
+                  name="county"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>County/State</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter county or state" {...field} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Postcode */}
+                <FormField
+                  control={form.control}
+                  name="postcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postcode/ZIP</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter postcode or ZIP code" {...field} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Country */}
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter country" {...field} />
                       </FormControl>
                       <FormDescription>Optional</FormDescription>
                       <FormMessage />

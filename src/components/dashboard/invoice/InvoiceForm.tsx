@@ -35,6 +35,14 @@ const InvoiceForm = () => {
   const [terms, setTerms] = useState<string>("Payment due within 30 days. Late payments are subject to a 2% monthly fee.");
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   
+  // Add state for address fields
+  const [address1, setAddress1] = useState<string>("");
+  const [address2, setAddress2] = useState<string>("");
+  const [city, setCity] = useState<string>("");
+  const [county, setCounty] = useState<string>("");
+  const [postcode, setPostcode] = useState<string>("");
+  const [country, setCountry] = useState<string>("");
+  
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
       id: `item-${Date.now()}`,
@@ -52,6 +60,14 @@ const InvoiceForm = () => {
     
     // Update invoice form fields with company data
     setCustomer(companyData.company_name || "");
+    
+    // Update address fields
+    setAddress1(companyData.address1 || "");
+    setAddress2(companyData.address2 || "");
+    setCity(companyData.city || "");
+    setCounty(companyData.county || "");
+    setPostcode(companyData.postcode || "");
+    setCountry(companyData.country || "");
     
     // If there are notes from the company, update the notes field
     if (companyData.notes) {
@@ -190,7 +206,14 @@ const InvoiceForm = () => {
       terms,
       subtotal: calculateSubtotal(),
       vat: calculateVAT(),
-      total: calculateTotal()
+      total: calculateTotal(),
+      // Add address information
+      address1,
+      address2,
+      city,
+      county,
+      postcode,
+      country
     };
     
     downloadInvoicePDF(invoiceData);
@@ -220,6 +243,18 @@ const InvoiceForm = () => {
             setInvoiceDate={setInvoiceDate}
             reference={reference}
             setReference={setReference}
+            address1={address1}
+            setAddress1={setAddress1}
+            address2={address2}
+            setAddress2={setAddress2}
+            city={city}
+            setCity={setCity}
+            county={county}
+            setCounty={setCounty}
+            postcode={postcode}
+            setPostcode={setPostcode}
+            country={country}
+            setCountry={setCountry}
           />
 
           {/* Line Items Table */}
@@ -269,6 +304,12 @@ const InvoiceForm = () => {
         subtotal={calculateSubtotal()}
         vat={calculateVAT()}
         total={calculateTotal()}
+        address1={address1}
+        address2={address2}
+        city={city}
+        county={county}
+        postcode={postcode}
+        country={country}
       />
     </div>
   );
