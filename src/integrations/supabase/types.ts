@@ -11,37 +11,64 @@ export type Database = {
     Tables: {
       invoice_recipients: {
         Row: {
+          account_number: string | null
           address: string | null
+          bank_account_name: string | null
+          bic_swift: string | null
           company_name: string
           contact_name: string
           created_at: string
+          credit_terms: number | null
           email: string
+          iban: string | null
           id: string
+          notes: string | null
+          payment_terms: string | null
           phone_number: string | null
+          sort_code: string | null
+          terms_conditions: string | null
           updated_at: string
           user_id: string
           vat_number: string | null
         }
         Insert: {
+          account_number?: string | null
           address?: string | null
+          bank_account_name?: string | null
+          bic_swift?: string | null
           company_name: string
           contact_name: string
           created_at?: string
+          credit_terms?: number | null
           email: string
+          iban?: string | null
           id?: string
+          notes?: string | null
+          payment_terms?: string | null
           phone_number?: string | null
+          sort_code?: string | null
+          terms_conditions?: string | null
           updated_at?: string
           user_id: string
           vat_number?: string | null
         }
         Update: {
+          account_number?: string | null
           address?: string | null
+          bank_account_name?: string | null
+          bic_swift?: string | null
           company_name?: string
           contact_name?: string
           created_at?: string
+          credit_terms?: number | null
           email?: string
+          iban?: string | null
           id?: string
+          notes?: string | null
+          payment_terms?: string | null
           phone_number?: string | null
+          sort_code?: string | null
+          terms_conditions?: string | null
           updated_at?: string
           user_id?: string
           vat_number?: string | null
