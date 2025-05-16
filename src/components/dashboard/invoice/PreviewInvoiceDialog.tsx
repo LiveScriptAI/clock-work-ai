@@ -27,6 +27,13 @@ interface PreviewInvoiceDialogProps {
   subtotal: string;
   vat: string;
   total: string;
+  // New address fields
+  address1: string;
+  address2: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
 }
 
 const PreviewInvoiceDialog = ({
@@ -41,6 +48,13 @@ const PreviewInvoiceDialog = ({
   subtotal,
   vat,
   total,
+  // New address fields
+  address1,
+  address2,
+  city,
+  county,
+  postcode,
+  country,
 }: PreviewInvoiceDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -76,7 +90,17 @@ const PreviewInvoiceDialog = ({
               <div>
                 <h4 className="font-semibold mb-2">To</h4>
                 <p>{customer || "Client Name"}</p>
-                <p>Client Address</p>
+                {/* Display formatted address using the new props */}
+                {address1 && <p>{address1}</p>}
+                {address2 && <p>{address2}</p>}
+                <p>
+                  {[
+                    city,
+                    county,
+                    postcode
+                  ].filter(Boolean).join(", ")}
+                </p>
+                {country && <p>{country}</p>}
                 <p>{customer ? `${customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com"}</p>
               </div>
             </div>
