@@ -1,43 +1,9 @@
 
 import React from "react";
-import { Settings, FileText, DollarSign } from "lucide-react";
 
+// Completely empty navigation component since we no longer need it
 const Navigation: React.FC = () => {
-  return (
-    <div className="bg-white border-b px-6 py-2 hidden md:block">
-      <nav className="max-w-7xl mx-auto">
-        <ul className="flex space-x-4">
-          <li>
-            <a 
-              href="#settings" 
-              className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </a>
-          </li>
-          <li>
-            <a 
-              href="#templates" 
-              className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              <span>Work Templates</span>
-            </a>
-          </li>
-          <li>
-            <a 
-              href="#invoicing" 
-              className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-            >
-              <DollarSign className="mr-2 h-4 w-4" />
-              <span>Invoicing</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  );
+  return null;
 };
 
 export default Navigation;

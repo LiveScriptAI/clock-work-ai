@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
@@ -7,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Import components
 import Header from "@/components/dashboard/Header";
-import Navigation from "@/components/dashboard/Navigation";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import LocationMap from "@/components/dashboard/LocationMap";
@@ -109,10 +107,7 @@ const DashboardPage = () => {
         sheetOpen={sheetOpen}
       />
 
-      {/* Navigation Component */}
-      <Navigation />
-
-      {/* Main Content */}
+      {/* Main Content - Note: Navigation component removed */}
       <main className="flex-1 px-6 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Time Tracking Component */}
