@@ -17,6 +17,7 @@ import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
 import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
 import { toast } from "@/hooks/use-toast";
+import CompanySelector from "./CompanySelector";
 
 // Get access to any pending autofill from TimesheetLog
 declare global {
@@ -44,6 +45,34 @@ const InvoiceForm = () => {
       unitPrice: 0,
     },
   ]);
+
+  // Handle company selection
+  const handleCompanySelect = (companyData: any) => {
+    if (!companyData) return;
+    
+    // Update invoice form fields with company data
+    setCustomer(companyData.company_name || "");
+    
+    // If there are notes from the company, update the notes field
+    if (companyData.notes) {
+      setNotes(companyData.notes);
+    }
+    
+    // If there are terms from the company, update the terms field
+    if (companyData.terms_conditions) {
+      setTerms(companyData.terms_conditions);
+    }
+    
+    // Add reference with company name if empty
+    if (!reference) {
+      setReference(`Invoice for ${companyData.company_name}`);
+    }
+    
+    toast({
+      title: "Company Loaded",
+      description: `Invoice details updated with ${companyData.company_name}`,
+    });
+  };
 
   // Effect to check for pending autofill when component mounts
   useEffect(() => {
@@ -180,6 +209,9 @@ const InvoiceForm = () => {
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Company Selector */}
+          <CompanySelector onSelect={handleCompanySelect} />
+          
           {/* Header Section */}
           <InvoiceHeader 
             customer={customer}
