@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import LanguageSelector from "@/components/ui/LanguageSelector";
+import { useTranslation } from "react-i18next";
 
 type HeaderProps = {
   handleSignOut: () => void;
@@ -19,6 +20,7 @@ const Header: React.FC<HeaderProps> = ({
   sheetOpen
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   return (
     <header className="bg-white shadow-sm py-4 px-6">
@@ -34,12 +36,12 @@ const Header: React.FC<HeaderProps> = ({
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
-                <span>Welcome, John Smith</span>
+                <span>{t('welcome')}, John Smith</span>
               </SheetTitle>
             </SheetHeader>
             
             <div className="mt-6">
-              <label htmlFor="mobile-language" className="text-sm font-medium block mb-1">Language</label>
+              <label htmlFor="mobile-language" className="text-sm font-medium block mb-1">{t('language')}</label>
               <LanguageSelector />
             </div>
             
@@ -49,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
                 className="w-full justify-start" 
                 onClick={handleSignOut}
               >
-                Sign Out
+                {t('signOut')}
               </Button>
             </div>
           </SheetContent>
@@ -57,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
         
         <div className="hidden md:flex items-center gap-2">
           <User className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold">Welcome, John Smith</h2>
+          <h2 className="text-lg font-semibold">{t('welcome')}, John Smith</h2>
         </div>
         
         <div className="flex items-center gap-4">
@@ -66,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           
           <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
-            Sign Out
+            {t('signOut')}
           </Button>
         </div>
       </div>
