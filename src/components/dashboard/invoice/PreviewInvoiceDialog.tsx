@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LineItem {
   id: string;
@@ -56,15 +57,17 @@ const PreviewInvoiceDialog = ({
   postcode,
   country,
 }: PreviewInvoiceDialogProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-[90vw] max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-3xl w-[90vw] max-h-[90vh] overflow-auto flex flex-col">
         <DialogHeader>
           <DialogTitle>Invoice Preview</DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow pr-4">
-          <div className="space-y-6 pb-4">
+        <div className="flex-grow overflow-auto max-h-[80vh]">
+          <div className="space-y-6 pb-6 px-1">
             {/* Invoice Header */}
             <div className="border-b pb-4">
               <div className="flex justify-between flex-wrap gap-4">
@@ -172,7 +175,7 @@ const PreviewInvoiceDialog = ({
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
