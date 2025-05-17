@@ -2,22 +2,18 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import LanguageSelector from "@/components/ui/LanguageSelector";
 
 type HeaderProps = {
-  language: string;
-  setLanguage: (value: string) => void;
   handleSignOut: () => void;
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
 
 const Header: React.FC<HeaderProps> = ({
-  language,
-  setLanguage,
   handleSignOut,
   setSheetOpen,
   sheetOpen
@@ -44,16 +40,7 @@ const Header: React.FC<HeaderProps> = ({
             
             <div className="mt-6">
               <label htmlFor="mobile-language" className="text-sm font-medium block mb-1">Language</label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger id="mobile-language" className="w-full">
-                  <SelectValue placeholder="Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="spanish">Spanish</SelectItem>
-                  <SelectItem value="polish">Polish</SelectItem>
-                </SelectContent>
-              </Select>
+              <LanguageSelector />
             </div>
             
             <div className="mt-auto pt-6 border-t border-gray-200">
@@ -75,16 +62,7 @@ const Header: React.FC<HeaderProps> = ({
         
         <div className="flex items-center gap-4">
           <div className="hidden md:block">
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="spanish">Spanish</SelectItem>
-                <SelectItem value="polish">Polish</SelectItem>
-              </SelectContent>
-            </Select>
+            <LanguageSelector />
           </div>
           
           <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">

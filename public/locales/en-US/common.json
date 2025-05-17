@@ -1,0 +1,58 @@
+
+{
+  "welcome": "Welcome",
+  "signOut": "Sign Out",
+  "language": "Language",
+  "timeTracking": {
+    "startShift": "Start Shift",
+    "endShift": "End Shift",
+    "startBreak": "Start Break",
+    "endBreak": "End Break",
+    "shiftStarted": "Shift Started",
+    "shiftEnded": "Shift Ended",
+    "shiftComplete": "Shift Complete",
+    "activeBreak": "Active Break",
+    "breakRemaining": "Break Remaining"
+  },
+  "dailySummary": {
+    "title": "Daily Summary",
+    "timeWorked": "Time Worked",
+    "breaks": "Breaks",
+    "earnings": "Earnings",
+    "employer": "Employer",
+    "rate": "Rate"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidSignature": "Valid signature is required",
+    "invalidRate": "Valid rate is required"
+  },
+  "shiftDialog": {
+    "startTitle": "Start Shift",
+    "endTitle": "End Shift",
+    "managerName": "Manager Name",
+    "employerName": "Employer Name",
+    "payRate": "Pay Rate",
+    "rateType": "Rate Type",
+    "signature": "Signature",
+    "clearSignature": "Clear",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "timesheetLog": {
+    "title": "Timesheet Log",
+    "noShifts": "No shifts recorded",
+    "date": "Date",
+    "employer": "Employer",
+    "duration": "Duration",
+    "actions": "Actions"
+  },
+  "invoice": {
+    "title": "Invoice",
+    "createInvoice": "Create Invoice",
+    "customer": "Customer",
+    "addItem": "Add Item",
+    "preview": "Preview",
+    "download": "Download"
+  }
+}

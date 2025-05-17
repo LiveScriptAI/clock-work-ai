@@ -35,7 +35,6 @@ const BREAK_DURATIONS = [
 const DashboardPage = () => {
   const { user, handleSignOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [language, setLanguage] = useState("english");
   
   const shiftState = useShiftState();
   const {
@@ -101,14 +100,12 @@ const DashboardPage = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header Component */}
       <Header 
-        language={language}
-        setLanguage={setLanguage}
         handleSignOut={handleSignOut}
         setSheetOpen={setSheetOpen}
         sheetOpen={sheetOpen}
       />
 
-      {/* Main Content - Note: Navigation component removed */}
+      {/* Main Content */}
       <main className="flex-1 px-6 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Time Tracking Component */}

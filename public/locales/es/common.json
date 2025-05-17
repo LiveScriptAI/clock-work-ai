@@ -1,0 +1,58 @@
+
+{
+  "welcome": "Bienvenido",
+  "signOut": "Cerrar Sesión",
+  "language": "Idioma",
+  "timeTracking": {
+    "startShift": "Iniciar Turno",
+    "endShift": "Finalizar Turno",
+    "startBreak": "Iniciar Descanso",
+    "endBreak": "Finalizar Descanso",
+    "shiftStarted": "Turno Iniciado",
+    "shiftEnded": "Turno Finalizado",
+    "shiftComplete": "Turno Completado",
+    "activeBreak": "Descanso Activo",
+    "breakRemaining": "Tiempo Restante"
+  },
+  "dailySummary": {
+    "title": "Resumen Diario",
+    "timeWorked": "Tiempo Trabajado",
+    "breaks": "Descansos",
+    "earnings": "Ganancias",
+    "employer": "Empleador",
+    "rate": "Tarifa"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidSignature": "Se requiere una firma válida",
+    "invalidRate": "Se requiere una tarifa válida"
+  },
+  "shiftDialog": {
+    "startTitle": "Iniciar Turno",
+    "endTitle": "Finalizar Turno",
+    "managerName": "Nombre del Gerente",
+    "employerName": "Nombre del Empleador",
+    "payRate": "Tarifa de Pago",
+    "rateType": "Tipo de Tarifa",
+    "signature": "Firma",
+    "clearSignature": "Borrar",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
+  },
+  "timesheetLog": {
+    "title": "Registro de Tiempo",
+    "noShifts": "No hay turnos registrados",
+    "date": "Fecha",
+    "employer": "Empleador",
+    "duration": "Duración",
+    "actions": "Acciones"
+  },
+  "invoice": {
+    "title": "Factura",
+    "createInvoice": "Crear Factura",
+    "customer": "Cliente",
+    "addItem": "Añadir Item",
+    "preview": "Vista Previa",
+    "download": "Descargar"
+  }
+}
