@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/dashboard/Header";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
-import LocationMap from "@/components/dashboard/LocationMap";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
@@ -134,7 +133,7 @@ const DashboardPage = () => {
             formatCountdown={formatCountdown}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 mb-6">
             {/* Daily Summary Component */}
             <DailySummary 
               formatDuration={formatDuration}
@@ -148,9 +147,6 @@ const DashboardPage = () => {
               rateType={rateType}
               payRate={payRate}
             />
-
-            {/* Location Map Component */}
-            <LocationMap />
           </div>
           
           {/* Timesheet Log Component */}
