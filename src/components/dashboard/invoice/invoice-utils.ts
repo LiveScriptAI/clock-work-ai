@@ -23,6 +23,13 @@ interface InvoiceData {
   subtotal: string;
   vat: string;
   total: string;
+  // Add granular address fields
+  address1: string;
+  address2: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
 }
 
 export const downloadInvoicePDF = (invoice: InvoiceData): void => {
@@ -58,8 +65,42 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
     doc.text("To:", 110, 35);
     doc.setFontSize(10);
     doc.text(invoice.customer || "Client Name", 110, 42);
-    doc.text("Client Address", 110, 49);
-    doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, 56);
+    
+    // Format the customer address using granular fields
+    let currentY = 49;
+    
+    // Address line 1
+    if (invoice.address1) {
+      doc.text(invoice.address1, 110, currentY);
+      currentY += 7;
+    }
+    
+    // Address line 2
+    if (invoice.address2) {
+      doc.text(invoice.address2, 110, currentY);
+      currentY += 7;
+    }
+    
+    // City, County, Postcode combined
+    const cityCountyPostcode = [
+      invoice.city,
+      invoice.county,
+      invoice.postcode
+    ].filter(Boolean).join(", ");
+    
+    if (cityCountyPostcode) {
+      doc.text(cityCountyPostcode, 110, currentY);
+      currentY += 7;
+    }
+    
+    // Country
+    if (invoice.country) {
+      doc.text(invoice.country, 110, currentY);
+      currentY += 7;
+    }
+    
+    // Email (based on customer name)
+    doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, currentY);
     
     // Line items table
     const tableData = invoice.lineItems.map(item => [
@@ -122,10 +163,22 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
   }
 };
 
-// Function to send an invoice (placeholder)
-export const sendInvoice = (customerEmail: string): void => {
+// Function to send an invoice with granular address fields
+export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
   // This is just a placeholder function that would normally connect to a backend
-  const email = customerEmail || "customer@email.com";
+  const email = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "customer@email.com";
+  
+  // Log the full invoice data being sent (in a real implementation, this would go to an API)
+  console.log("Sending invoice with address details:", {
+    customer: invoice.customer,
+    email,
+    address1: invoice.address1,
+    address2: invoice.address2,
+    city: invoice.city,
+    county: invoice.county,
+    postcode: invoice.postcode,
+    country: invoice.country
+  });
   
   // Show success toast with the customer email
   toast.success(`Invoice sent successfully to ${email}`);

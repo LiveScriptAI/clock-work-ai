@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -190,6 +189,29 @@ const InvoiceForm = () => {
     return (subtotal + vat).toFixed(2);
   };
 
+  // Handler for Send Invoice button
+  const handleSendInvoice = () => {
+    const invoiceData = {
+      customer,
+      invoiceDate,
+      reference,
+      notes,
+      terms,
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal(),
+      // Include address information in the payload
+      address1,
+      address2,
+      city,
+      county,
+      postcode,
+      country
+    };
+    
+    sendInvoice(invoiceData);
+  };
+
   // Handler for Preview Invoice button
   const handlePreviewInvoice = () => {
     setIsPreviewOpen(true);
@@ -217,12 +239,6 @@ const InvoiceForm = () => {
     };
     
     downloadInvoicePDF(invoiceData);
-  };
-
-  // Handler for Send Invoice button
-  const handleSendInvoice = () => {
-    const customerEmail = customer ? `${customer.toLowerCase().replace(/\s/g, "")}@email.com` : "";
-    sendInvoice(customerEmail);
   };
 
   return (

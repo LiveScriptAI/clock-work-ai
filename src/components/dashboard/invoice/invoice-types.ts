@@ -18,4 +18,11 @@ export interface InvoiceData {
   subtotal: string;
   vat: string;
   total: string;
+  // Add granular address fields
+  address1: string;
+  address2: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
 }
