@@ -1,10 +1,11 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Clock, Check, X, Timer } from "lucide-react";
+import { Clock, Check, Timer } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useTranslation } from "react-i18next";
 
 type BreakDuration = {
   value: string;
@@ -52,30 +53,32 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   setBreakMenuOpen,
   formatCountdown,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center">
           <Clock className="mr-2 h-5 w-5" />
-          Time Tracking
+          {t('Time Tracking')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {startTime && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-800">
-              <span className="font-medium">Clocked in at:</span> {format(startTime, "h:mm a 'on' MMMM d, yyyy")}
+              <span className="font-medium">{t('Clocked in at')}:</span> {format(startTime, "h:mm a 'on' MMMM d, yyyy")}
             </p>
             <p className="text-sm text-green-800 mt-1">
-              <span className="font-medium">Manager:</span> {managerName}
+              <span className="font-medium">{t('Manager')}:</span> {managerName}
             </p>
             
             {isBreakActive && breakStart && (
               <div className="mt-2 pt-2 border-t border-green-200">
                 <p className="text-sm text-amber-600 font-medium flex items-center">
                   <Timer className="h-4 w-4 mr-1" />
-                  On break: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime)}</span>
-                  <span className="ml-1">remaining</span>
+                  {t('On break')}: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime)}</span>
+                  <span className="ml-1">{t('remaining')}</span>
                 </p>
               </div>
             )}
@@ -83,10 +86,10 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             {isShiftComplete && endTime && (
               <div className="mt-2 pt-2 border-t border-green-200">
                 <p className="text-sm text-red-600">
-                  <span className="font-medium">Clocked out at:</span> {format(endTime, "h:mm a")}
+                  <span className="font-medium">{t('Clocked out at')}:</span> {format(endTime, "h:mm a")}
                 </p>
                 <p className="text-sm text-red-600 mt-1">
-                  <span className="font-medium">Approved by:</span> {endManagerName}
+                  <span className="font-medium">{t('Approved by')}:</span> {endManagerName}
                 </p>
               </div>
             )}
@@ -100,7 +103,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             onClick={handleStartShift}
             disabled={isShiftActive || isShiftComplete}
           >
-            {isShiftActive ? 'Shift Started' : 'Start Shift'}
+            {isShiftActive ? t('Shift Started') : t('Start Shift')}
           </Button>
           
           <div className="relative">
@@ -118,7 +121,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
                 </PopoverTrigger>
                 <PopoverContent className="w-48 p-2">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium px-2 py-1 text-gray-500">Break duration:</p>
+                    <p className="text-sm font-medium px-2 py-1 text-gray-500">{t('Break duration')}:</p>
                     {BREAK_DURATIONS.map((duration) => (
                       <Button
                         key={duration.value}
@@ -142,7 +145,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
                 onClick={handleBreakToggle}
                 disabled={!isShiftActive || isShiftComplete}
               >
-                {isBreakActive ? 'End Break' : `Start ${selectedBreakDuration} min Break`}
+                {isBreakActive ? t('End Break') : `${t('Start')} ${selectedBreakDuration} ${t('min Break')}`}
               </Button>
             </div>
           </div>
@@ -153,7 +156,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             onClick={handleEndShift}
             disabled={!isShiftActive || isShiftComplete}
           >
-            End Shift
+            {t('End Shift')}
           </Button>
         </div>
       </CardContent>

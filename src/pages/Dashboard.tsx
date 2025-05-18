@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 // Import components
 import Header from "@/components/dashboard/Header";
@@ -33,6 +33,7 @@ const BREAK_DURATIONS = [
 ];
 
 const DashboardPage = () => {
+  const { t } = useTranslation();
   const { user, handleSignOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
   

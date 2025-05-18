@@ -5,6 +5,7 @@ import { User } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "react-i18next";
 
 type HeaderProps = {
   handleSignOut: () => void;
@@ -17,6 +18,7 @@ const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
 }) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   return (
@@ -33,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
-                <span>Welcome, John Smith</span>
+                <span>{t('Welcome')}, John Smith</span>
               </SheetTitle>
             </SheetHeader>
             
@@ -43,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({
                 className="w-full justify-start" 
                 onClick={handleSignOut}
               >
-                Sign Out
+                {t('Sign Out')}
               </Button>
             </div>
           </SheetContent>
@@ -51,12 +53,12 @@ const Header: React.FC<HeaderProps> = ({
         
         <div className="hidden md:flex items-center gap-2">
           <User className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold">Welcome, John Smith</h2>
+          <h2 className="text-lg font-semibold">{t('Welcome')}, John Smith</h2>
         </div>
         
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
-            Sign Out
+            {t('Sign Out')}
           </Button>
         </div>
       </div>
