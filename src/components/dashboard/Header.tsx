@@ -72,15 +72,15 @@ const Header: React.FC<HeaderProps> = ({
             value={i18n.language}
             onValueChange={(lng) => i18n.changeLanguage(lng)}
           >
-            <SelectTrigger className="ml-4 flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <SelectTrigger className="ml-4 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-100 h-8">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en" className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <SelectItem value="en" className="flex items-center gap-2 p-1 text-sm">
                 <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
                 <span>English</span>
               </SelectItem>
-              <SelectItem value="es" className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <SelectItem value="es" className="flex items-center gap-2 p-1 text-sm">
                 <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
                 <span>Español</span>
               </SelectItem>
