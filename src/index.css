@@ -99,3 +99,7 @@
     @apply bg-background text-foreground;
   }
 }
+/* Hide the built-in SelectItemIndicator checkmarks */
+[data-radix-select-item-indicator] {
+  display: none;
+}
