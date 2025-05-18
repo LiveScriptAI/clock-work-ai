@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Check } from "lucide-react";
+import { User, Menu, } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,6 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-+  SelectItemIndicator,
 } from '@/components/ui/select';
 
 type HeaderProps = {
@@ -88,9 +87,6 @@ const Header: React.FC<HeaderProps> = ({
       <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
       English
     </div>
-+   <SelectItemIndicator>
-+     <Check className="h-4 w-4 text-indigo-600" />
-+   </SelectItemIndicator>
   </SelectItem>
 
              <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
@@ -98,9 +94,6 @@ const Header: React.FC<HeaderProps> = ({
     <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
     Español
   </div>
-  <SelectItemIndicator>
-    <Check className="h-4 w-4 text-indigo-600" />
-  </SelectItemIndicator>
 </SelectItem>
 
             </SelectContent>
