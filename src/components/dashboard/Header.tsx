@@ -1,9 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
+import { User, Menu, Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
 import ReactCountryFlag from "react-country-flag";
@@ -72,17 +71,23 @@ const Header: React.FC<HeaderProps> = ({
             value={i18n.language}
             onValueChange={(lng) => i18n.changeLanguage(lng)}
           >
-            <SelectTrigger className="ml-4 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-100 h-8">
+            <SelectTrigger className="ml-4 flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 h-10">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en" className="flex items-center gap-2 p-1 text-sm">
-                <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
-                <span>English</span>
+              <SelectItem value="en" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 flex-1">
+                  <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
+                  English
+                </div>
+                {i18n.language === 'en' && <Check className="ml-auto h-4 w-4 text-indigo-600" />}
               </SelectItem>
-              <SelectItem value="es" className="flex items-center gap-2 p-1 text-sm">
-                <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
-                <span>Español</span>
+              <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 flex-1">
+                  <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
+                  Español
+                </div>
+                {i18n.language === 'es' && <Check className="ml-auto h-4 w-4 text-indigo-600" />}
               </SelectItem>
             </SelectContent>
           </Select>
