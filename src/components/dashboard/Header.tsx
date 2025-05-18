@@ -107,4 +107,3 @@ const { user } = useAuth();
 };
 
 export default Header;
-fix: show real user name in header (David Young)
