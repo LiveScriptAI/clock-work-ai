@@ -6,6 +6,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
+import ReactCountryFlag from "react-country-flag";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 type HeaderProps = {
   handleSignOut: () => void;
@@ -60,14 +68,30 @@ const Header: React.FC<HeaderProps> = ({
           <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
             {t('Sign Out')}
           </Button>
-          <select
+          <Select
             value={i18n.language}
-            onChange={e => i18n.changeLanguage(e.target.value)}
-            className="border rounded p-1 ml-4"
+            onValueChange={(lng) => i18n.changeLanguage(lng)}
+            className="ml-4"
           >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-          </select>
+            <SelectTrigger className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <ReactCountryFlag
+                countryCode={i18n.language === 'es' ? 'ES' : 'GB'}
+                svg
+                style={{ width: '1em', height: '1em' }}
+              />
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en" className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
+                <span>English</span>
+              </SelectItem>
+              <SelectItem value="es" className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
+                <span>Español</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </header>
