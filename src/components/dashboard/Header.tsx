@@ -71,9 +71,8 @@ const Header: React.FC<HeaderProps> = ({
           <Select
             value={i18n.language}
             onValueChange={(lng) => i18n.changeLanguage(lng)}
-            className="ml-4"
           >
-            <SelectTrigger className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <SelectTrigger className="ml-4 flex items-center space-x-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
               <ReactCountryFlag
                 countryCode={i18n.language === 'es' ? 'ES' : 'GB'}
                 svg
