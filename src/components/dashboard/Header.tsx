@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
 
   return (
@@ -60,6 +60,14 @@ const Header: React.FC<HeaderProps> = ({
           <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
             {t('Sign Out')}
           </Button>
+          <select
+            value={i18n.language}
+            onChange={e => i18n.changeLanguage(e.target.value)}
+            className="border rounded p-1 ml-4"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
         </div>
       </div>
     </header>
