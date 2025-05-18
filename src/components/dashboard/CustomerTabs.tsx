@@ -236,7 +236,7 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter phone number" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
+                
                       <FormMessage />
                     </FormItem>
                   )}
