@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
 import ReactCountryFlag from "react-country-flag";
+import { useAuth } from '@/hooks/useAuth';
 import {
   Select,
   SelectTrigger,
@@ -25,8 +26,9 @@ const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
 }) => {
-  const { t, i18n } = useTranslation();
-  const isMobile = useIsMobile();
+const { t, i18n } = useTranslation();
+const isMobile = useIsMobile();
+const { user } = useAuth();
 
   return (
     <header className="bg-white shadow-sm py-4 px-6">
@@ -42,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
-                <span>{t('Welcome')}, John Smith</span>
+               {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
               </SheetTitle>
             </SheetHeader>
             
@@ -60,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({
         
         <div className="hidden md:flex items-center gap-2">
           <User className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold">{t('Welcome')}, John Smith</h2>
+         {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
         </div>
         
         <div className="flex items-center gap-4">
@@ -105,3 +107,4 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
+fix: show real user name in header (David Young)
