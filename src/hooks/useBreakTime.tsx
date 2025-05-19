@@ -1,132 +1,127 @@
-// src/hooks/useBreakTime.tsx
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { differenceInSeconds } from "date-fns";
 import { toast } from "sonner";
-import {
-  saveBreakState,
-  loadBreakState,
-  clearBreakState
-} from "@/services/storageService";
+import { saveBreakState, loadBreakState, clearBreakState } from "@/services/storageService";
 
-export function useBreakTime() {
-  // Load previously saved break data (if any)
-  const saved = loadBreakState(); 
-  // saved shape: {
-  //   isBreakActive: boolean,
-  //   selectedBreakDuration: string,
-  //   breakStartTime: string | null,
-  //   totalBreakDuration: number
-  // }
+export function useBreakTime(
+  isBreakActive: boolean, 
+  setIsBreakActive: (active: boolean) => void,
+  breakStart: Date | null,
+  setBreakStart: (date: Date | null) => void,
+  totalBreakDuration: number,
+  setTotalBreakDuration: (duration: number) => void
+) {
+  // Break time states
+  const [selectedBreakDuration, setSelectedBreakDuration] = useState("15"); // Default 15 minutes
+  const [remainingBreakTime, setRemainingBreakTime] = useState(0); // in seconds
+  const [breakMenuOpen, setBreakMenuOpen] = useState(false);
 
-  // State initialization
-  const [selectedBreakDuration, setSelectedBreakDuration] = useState<string>(
-    saved?.selectedBreakDuration ?? "15"
-  );
-  const [isBreakActive, setIsBreakActive] = useState<boolean>(
-    saved?.isBreakActive ?? false
-  );
-  const [breakStart, setBreakStart] = useState<Date | null>(
-    saved?.breakStartTime ? new Date(saved.breakStartTime) : null
-  );
-  const [totalBreakDuration, setTotalBreakDuration] = useState<number>(
-    saved?.totalBreakDuration ?? 0
-  );
-  const [remainingBreakTime, setRemainingBreakTime] = useState<number>(() => {
-    // If reloading mid-break, compute leftover
-    if (saved?.isBreakActive && saved.breakStartTime) {
-      const elapsed = differenceInSeconds(
-        new Date(),
-        new Date(saved.breakStartTime)
-      );
-      const original = parseInt(
-        saved.selectedBreakDuration,
-        10
-      ) * 60;
-      return Math.max(0, original - elapsed);
+  // Load saved break state on component mount
+  useEffect(() => {
+    const savedBreakState = loadBreakState();
+    
+    if (savedBreakState) {
+      setSelectedBreakDuration(savedBreakState.selectedBreakDuration);
+      
+      if (savedBreakState.breakStartTime && isBreakActive) {
+        const now = new Date();
+        const savedBreakStart = new Date(savedBreakState.breakStartTime);
+        const elapsedTime = differenceInSeconds(now, savedBreakStart);
+        const originalDuration = parseInt(savedBreakState.selectedBreakDuration, 10) * 60;
+        
+        // Calculate correct remaining time
+        const newRemainingTime = Math.max(0, originalDuration - elapsedTime);
+        setRemainingBreakTime(newRemainingTime);
+      }
     }
-    // Otherwise show full duration
-    return parseInt(saved?.selectedBreakDuration ?? "15", 10) * 60;
-  });
-  const [breakMenuOpen, setBreakMenuOpen] = useState<boolean>(false);
+  }, [isBreakActive]);
 
-  // Persist all break state on any change
+  // Break countdown timer
   useEffect(() => {
-    saveBreakState({
-      isBreakActive,
-      selectedBreakDuration,
-      breakStartTime: breakStart?.toISOString() ?? null,
-      totalBreakDuration,
-    });
-  }, [
-    isBreakActive,
-    selectedBreakDuration,
-    breakStart,
-    totalBreakDuration,
-  ]);
-
-  // Countdown ticker
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isBreakActive && remainingBreakTime > 0) {
-      timer = setInterval(() => {
-        setRemainingBreakTime((prev) => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isBreakActive && breakStart && remainingBreakTime > 0) {
+      interval = setInterval(() => {
+        setRemainingBreakTime((prev: number) => {
           if (prev <= 1) {
-            handleBreakEnd(); // Auto-end break when time’s up
+            // Break time is up
+            handleBreakEnd();
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
+      
+      // Save break state whenever these values change
+      saveBreakState({
+        selectedBreakDuration,
+        breakStartTime: breakStart ? breakStart.toISOString() : null,
+        remainingBreakTime
+      });
     }
-    return () => clearInterval(timer);
-  }, [isBreakActive, remainingBreakTime]);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isBreakActive, breakStart, remainingBreakTime, selectedBreakDuration]);
 
-  // Start a break
-  const handleBreakStart = useCallback(() => {
+  const handleBreakStart = () => {
+    const durationInMinutes = parseInt(selectedBreakDuration, 10);
+    const durationInSeconds = durationInMinutes * 60;
+    
     const now = new Date();
-    const durationSec = parseInt(selectedBreakDuration, 10) * 60;
     setBreakStart(now);
     setIsBreakActive(true);
-    setRemainingBreakTime(durationSec);
-    toast.info(`Break started for ${selectedBreakDuration} minutes`);
-  }, [selectedBreakDuration]);
+    setRemainingBreakTime(durationInSeconds);
+    
+    toast.info(`Break started for ${durationInMinutes} minutes`);
+    
+    // Save initial break state
+    saveBreakState({
+      selectedBreakDuration,
+      breakStartTime: now.toISOString(),
+      remainingBreakTime: durationInSeconds
+    });
+  };
 
-  // End a break
-  const handleBreakEnd = useCallback(() => {
+  const handleBreakEnd = () => {
     if (breakStart) {
-      const elapsed = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration((prev) => prev + elapsed);
+      const breakDuration = differenceInSeconds(new Date(), breakStart);
+      // Calculate the new total first, then set it directly
+      const newTotalBreakDuration = totalBreakDuration + breakDuration;
+      setTotalBreakDuration(newTotalBreakDuration);
     }
-    setIsBreakActive(false);
+    
     setBreakStart(null);
+    setIsBreakActive(false);
     setRemainingBreakTime(0);
+    
+    // Clear break state from storage
     clearBreakState();
+    
     toast.success("Break ended");
-  }, [breakStart]);
+  };
 
-  // Toggle start/end from a single handler
-  const handleBreakToggle = useCallback(() => {
-    isBreakActive ? handleBreakEnd() : handleBreakStart();
-  }, [isBreakActive, handleBreakStart, handleBreakEnd]);
+  const handleBreakToggle = () => {
+    if (isBreakActive) {
+      handleBreakEnd();
+    } else {
+      handleBreakStart();
+    }
+  };
 
-  // When user picks a new duration from your menu
-  const handleBreakDurationChange = useCallback((duration: string) => {
+  const handleBreakDurationChange = (duration: string) => {
     setSelectedBreakDuration(duration);
-    setRemainingBreakTime(parseInt(duration, 10) * 60);
     setBreakMenuOpen(false);
-  }, []);
+  };
 
-  // What your UI needs
   return {
-    selectedBreakDuration,   // "15", "30", etc.
-    remainingBreakTime,      // seconds left
+    selectedBreakDuration,
+    remainingBreakTime,
     breakMenuOpen,
     setBreakMenuOpen,
-    isBreakActive,
-    totalBreakDuration,      // seconds accrued across all breaks
     handleBreakToggle,
-    handleBreakDurationChange,
+    handleBreakDurationChange
   };
 }
-
