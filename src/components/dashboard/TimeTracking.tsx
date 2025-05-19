@@ -24,14 +24,22 @@ type TimeTrackingProps = {
   remainingBreakTime: number;
   selectedBreakDuration: string;
   breakMenuOpen: boolean;
-  BREAK_DURATIONS: BreakDuration[];
+  BREAK_DURATIONS?: BreakDuration[];
   handleStartShift: () => void;
   handleEndShift: () => void;
   handleBreakToggle: () => void;
   handleBreakDurationChange: (duration: string) => void;
   setBreakMenuOpen: (open: boolean) => void;
   formatCountdown: (seconds: number) => string;
+  getBreakDuration?: () => string;
 };
+
+const BREAK_DURATIONS = [
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "45", label: "45 minutes" },
+  { value: "60", label: "60 minutes" },
+];
 
 const TimeTracking: React.FC<TimeTrackingProps> = ({
   startTime,
@@ -45,7 +53,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   remainingBreakTime,
   selectedBreakDuration,
   breakMenuOpen,
-  BREAK_DURATIONS,
+  BREAK_DURATIONS: customBreakDurations,
   handleStartShift,
   handleEndShift,
   handleBreakToggle,
@@ -54,6 +62,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   formatCountdown,
 }) => {
   const { t } = useTranslation();
+  const breakDurations = customBreakDurations || BREAK_DURATIONS;
   
   return (
     <Card className="mb-6">
@@ -122,7 +131,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
                 <PopoverContent className="w-48 p-2">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium px-2 py-1 text-gray-500">{t('Break duration')}:</p>
-                    {BREAK_DURATIONS.map((duration) => (
+                    {breakDurations.map((duration) => (
                       <Button
                         key={duration.value}
                         variant="ghost"

@@ -21,6 +21,8 @@ export interface StoredBreakState {
   selectedBreakDuration: string;
   breakStartTime: string | null;
   remainingBreakTime: number;
+  isBreakActive: boolean;
+  totalBreakDuration: number;
 }
 
 // Save active shift state to localStorage

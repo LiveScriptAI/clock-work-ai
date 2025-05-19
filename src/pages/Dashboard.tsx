@@ -40,8 +40,8 @@ const DashboardPage = () => {
   
   const shiftState = useShiftState();
   const {
-    isShiftActive, isBreakActive, isStartSignatureOpen, isEndSignatureOpen, isShiftComplete,
-    managerName, endManagerName, startTime, endTime, breakStart, totalBreakDuration,
+    isShiftActive, isStartSignatureOpen, isEndSignatureOpen, isShiftComplete,
+    managerName, endManagerName, startTime, endTime,
     employerName, payRate, rateType, setManagerName, setEndManagerName,
     setIsStartSignatureEmpty, setIsEndSignatureEmpty, showValidationAlert,
     setShowValidationAlert, validationType, setIsStartSignatureOpen, setIsEndSignatureOpen,
@@ -49,14 +49,18 @@ const DashboardPage = () => {
     setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
 
-  const breakTime = useBreakTime(
+  const breakTime = useBreakTime();
+  const {
     isBreakActive,
-    shiftState.setIsBreakActive,
     breakStart,
-    shiftState.setBreakStart,
     totalBreakDuration,
-    shiftState.setTotalBreakDuration
-  );
+    remainingBreakTime,
+    selectedBreakDuration,
+    breakMenuOpen,
+    setBreakMenuOpen,
+    handleBreakToggle,
+    handleBreakDurationChange,
+  } = breakTime;
 
   // Check authentication state
   useEffect(() => {
@@ -120,15 +124,16 @@ const DashboardPage = () => {
             managerName={managerName}
             endManagerName={endManagerName}
             breakStart={breakStart}
-            remainingBreakTime={breakTime.remainingBreakTime}
-            selectedBreakDuration={breakTime.selectedBreakDuration}
-            breakMenuOpen={breakTime.breakMenuOpen}
+            remainingBreakTime={remainingBreakTime}
+            selectedBreakDuration={selectedBreakDuration}
+            breakMenuOpen={breakMenuOpen}
             BREAK_DURATIONS={BREAK_DURATIONS}
             handleStartShift={handleStartShift}
             handleEndShift={handleEndShift}
-            handleBreakToggle={breakTime.handleBreakToggle}
-            handleBreakDurationChange={breakTime.handleBreakDurationChange}
-            setBreakMenuOpen={breakTime.setBreakMenuOpen}
+            handleBreakToggle={handleBreakToggle}
+            handleBreakDurationChange={handleBreakDurationChange}
+            setBreakMenuOpen={setBreakMenuOpen}
+            getBreakDuration={getBreakDuration}
             formatCountdown={formatCountdown}
           />
 
