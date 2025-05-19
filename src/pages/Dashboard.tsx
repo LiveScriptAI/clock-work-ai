@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +6,7 @@ import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 
-// Components
+// Import components
 import Header from "@/components/dashboard/Header";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
@@ -18,150 +17,154 @@ import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
 import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
 import ValidationAlert from "@/components/dashboard/ValidationAlert";
 
-// Utils
-import {
-  formatDuration,
-  formatCountdown,
+// Import utility functions
+import { 
+  formatDuration, 
+  formatCountdown, 
   calculateTimeWorked as calculateTimeWorkedUtil,
   calculateEarnings as calculateEarningsUtil,
-  getBreakDuration as getBreakDurationUtil,
+  getBreakDuration as getBreakDurationUtil
 } from "@/components/dashboard/utils";
 
-const DashboardPage: React.FC = () => {
+const BREAK_DURATIONS = [
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "45", label: "45 minutes" },
+  { value: "60", label: "60 minutes" },
+];
+
+const DashboardPage = () => {
   const { t } = useTranslation();
   const { user, handleSignOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  // Shift state
+  
   const shiftState = useShiftState();
   const {
-    isShiftActive,
-    isStartSignatureOpen,
-    isEndSignatureOpen,
-    isShiftComplete,
-    managerName,
-    endManagerName,
-    startTime,
-    endTime,
-    employerName,
-    payRate,
-    rateType,
-    setManagerName,
-    setEndManagerName,
-    setIsStartSignatureEmpty,
-    setIsEndSignatureEmpty,
-    showValidationAlert,
-    setShowValidationAlert,
-    validationType,
-    setIsStartSignatureOpen,
-    setIsEndSignatureOpen,
-    handleStartShift,
-    handleEndShift,
-    confirmShiftStart,
-    setEmployerName,
-    setPayRate,
-    setRateType,
-    setStartSignatureData,
-    setEndSignatureData,
+    isShiftActive, isBreakActive, isStartSignatureOpen, isEndSignatureOpen, isShiftComplete,
+    managerName, endManagerName, startTime, endTime, breakStart, totalBreakDuration,
+    employerName, payRate, rateType, setManagerName, setEndManagerName,
+    setIsStartSignatureEmpty, setIsEndSignatureEmpty, showValidationAlert,
+    setShowValidationAlert, validationType, setIsStartSignatureOpen, setIsEndSignatureOpen,
+    handleStartShift, handleEndShift, confirmShiftStart, 
+    setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
 
-  // Break state
-  const {
-    isBreakActive: btActive,
-    breakStart: btStart,
-    totalBreakDuration: btTotal,
-    remainingBreakTime,
-    selectedBreakDuration,
-    breakMenuOpen,
-    setBreakMenuOpen,
-    handleBreakToggle,
-    handleBreakDurationChange,
-  } = useBreakTime();
+  const breakTime = useBreakTime(
+    isBreakActive,
+    shiftState.setIsBreakActive,
+    breakStart,
+    shiftState.setBreakStart,
+    totalBreakDuration,
+    shiftState.setTotalBreakDuration
+  );
 
-  // Auth check
+  // Check authentication state
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) window.location.href = "/login";
-    });
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        // Redirect to login if not authenticated
+        window.location.href = "/login";
+      }
+    };
+    
+    checkAuth();
   }, []);
 
-  // Helpers using break total
-  const calculateTimeWorked = () =>
-    calculateTimeWorkedUtil(startTime, endTime, btTotal);
-  const calculateEarnings = () =>
+  // Utility wrapper functions that use component state
+  const calculateTimeWorked = () => 
+    calculateTimeWorkedUtil(startTime, endTime, totalBreakDuration);
+
+  const calculateEarnings = () => 
     calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
-  const getBreakDuration = () =>
-    getBreakDurationUtil(btTotal, btActive, btStart);
+
+  const getBreakDuration = () => 
+    getBreakDurationUtil(totalBreakDuration, isBreakActive, breakStart);
 
   const handleConfirmShiftEnd = () => {
     shiftState.confirmShiftEnd(user?.id);
   };
 
+  // Type-safe handler for rate type changes
   const handleRateTypeChange = (value: string) => {
+    // Check if value is a valid rate type and cast it
     if (
-      ["Per Hour", "Per Day", "Per Week", "Per Month"].includes(value)
+      value === "Per Hour" ||
+      value === "Per Day" ||
+      value === "Per Week" ||
+      value === "Per Month"
     ) {
-      setRateType(value as any);
+      setRateType(value);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header
+      {/* Header Component */}
+      <Header 
         handleSignOut={handleSignOut}
         setSheetOpen={setSheetOpen}
         sheetOpen={sheetOpen}
       />
 
+      {/* Main Content */}
       <main className="flex-1 px-6 py-8">
         <div className="max-w-7xl mx-auto">
-          <TimeTracking
+          {/* Time Tracking Component */}
+          <TimeTracking 
             startTime={startTime}
             endTime={endTime}
             isShiftActive={isShiftActive}
             isShiftComplete={isShiftComplete}
-            isBreakActive={btActive}
+            isBreakActive={isBreakActive}
             managerName={managerName}
             endManagerName={endManagerName}
-            breakStart={btStart}
-            totalBreakDuration={btTotal}
-            remainingBreakTime={remainingBreakTime}
-            selectedBreakDuration={selectedBreakDuration}
-            breakMenuOpen={breakMenuOpen}
-            handleBreakToggle={handleBreakToggle}
-            handleBreakDurationChange={handleBreakDurationChange}
-            setBreakMenuOpen={setBreakMenuOpen}
+            breakStart={breakStart}
+            remainingBreakTime={breakTime.remainingBreakTime}
+            selectedBreakDuration={breakTime.selectedBreakDuration}
+            breakMenuOpen={breakTime.breakMenuOpen}
+            BREAK_DURATIONS={BREAK_DURATIONS}
+            handleStartShift={handleStartShift}
+            handleEndShift={handleEndShift}
+            handleBreakToggle={breakTime.handleBreakToggle}
+            handleBreakDurationChange={breakTime.handleBreakDurationChange}
+            setBreakMenuOpen={breakTime.setBreakMenuOpen}
             formatCountdown={formatCountdown}
           />
 
           <div className="grid grid-cols-1 mb-6">
-            <DailySummary
+            {/* Daily Summary Component */}
+            <DailySummary 
               formatDuration={formatDuration}
               calculateTimeWorked={calculateTimeWorked}
               getBreakDuration={getBreakDuration}
               calculateEarnings={calculateEarnings}
               isShiftActive={isShiftActive}
               isShiftComplete={isShiftComplete}
-              isBreakActive={btActive}
+              isBreakActive={isBreakActive}
               employerName={employerName}
               rateType={rateType}
               payRate={payRate}
             />
           </div>
-
+          
+          {/* Timesheet Log Component */}
           <div className="mt-6">
             <TimesheetLog />
           </div>
 
+          {/* Invoice Form Component */}
           <InvoiceForm />
-
+          
+          {/* Customer Tabs Component */}
           <div className="mt-6">
             <CustomerTabs />
           </div>
         </div>
       </main>
 
-      <StartShiftDialog
+      {/* Dialogs and Alerts */}
+      <StartShiftDialog 
         isOpen={isStartSignatureOpen}
         onOpenChange={setIsStartSignatureOpen}
         managerName={managerName}
@@ -178,7 +181,7 @@ const DashboardPage: React.FC = () => {
         setStartSignatureData={setStartSignatureData}
       />
 
-      <EndShiftDialog
+      <EndShiftDialog 
         isOpen={isEndSignatureOpen}
         onOpenChange={setIsEndSignatureOpen}
         endManagerName={endManagerName}
@@ -193,7 +196,7 @@ const DashboardPage: React.FC = () => {
         setEndSignatureData={setEndSignatureData}
       />
 
-      <ValidationAlert
+      <ValidationAlert 
         showValidationAlert={showValidationAlert}
         setShowValidationAlert={setShowValidationAlert}
         validationType={validationType}
@@ -203,4 +206,3 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
-
