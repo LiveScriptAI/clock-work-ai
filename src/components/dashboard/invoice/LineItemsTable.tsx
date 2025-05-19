@@ -27,6 +27,9 @@ const LineItemsTable: React.FC<LineItemsTableProps> = ({
   addLineItem,
   calculateLineTotal,
 }) => {
+  // Ensure lineItems is always an array, even if undefined is passed
+  const safeLineItems = Array.isArray(lineItems) ? lineItems : [];
+  
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto">
@@ -44,13 +47,13 @@ const LineItemsTable: React.FC<LineItemsTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lineItems.map((item) => (
+            {safeLineItems.map((item) => (
               <LineItemRow
                 key={item.id}
                 item={item}
                 updateLineItem={updateLineItem}
                 removeLineItem={removeLineItem}
-                isRemoveDisabled={lineItems.length === 1}
+                isRemoveDisabled={safeLineItems.length === 1}
                 calculateLineTotal={calculateLineTotal}
               />
             ))}

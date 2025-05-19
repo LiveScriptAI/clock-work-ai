@@ -37,15 +37,21 @@ const TimesheetLog: React.FC = () => {
   
   // Get all shifts filtered by active tab
   const periodFilteredShifts = useMemo(
-    () => filterShiftsByPeriod(shifts, activeTab),
+    () => filterShiftsByPeriod(shifts || [], activeTab),
     [shifts, activeTab]
   );
   
   // Filter shifts by date range if active
   const filteredShifts = useMemo(
-    () => isDateRangeActive && dateRange?.from && dateRange?.to
-      ? filterShiftsByDateRange(shifts, dateRange.from, dateRange.to)
-      : periodFilteredShifts,
+    () => {
+      if (!Array.isArray(periodFilteredShifts)) {
+        return [];
+      }
+      
+      return isDateRangeActive && dateRange?.from && dateRange?.to
+        ? filterShiftsByDateRange(periodFilteredShifts, dateRange.from, dateRange.to)
+        : periodFilteredShifts;
+    },
     [isDateRangeActive, dateRange, periodFilteredShifts]
   );
 
@@ -58,7 +64,7 @@ const TimesheetLog: React.FC = () => {
     setIsLoading(true);
     try {
       const userShifts = await fetchUserShifts();
-      setShifts(userShifts);
+      setShifts(userShifts || []);
       setError(null);
     } catch (err) {
       console.error("Failed to fetch shifts:", err);
@@ -129,6 +135,8 @@ const TimesheetLog: React.FC = () => {
 
   // Export handlers
   const handleExportCSV = () => {
+    if (!filteredShifts || filteredShifts.length === 0) return;
+    
     setIsExporting('csv');
     setTimeout(() => {
       downloadCSV(filteredShifts);
@@ -137,6 +145,8 @@ const TimesheetLog: React.FC = () => {
   };
 
   const handleExportPDF = () => {
+    if (!filteredShifts || filteredShifts.length === 0) return;
+    
     setIsExporting('pdf');
     setTimeout(() => {
       downloadPDF(filteredShifts);
@@ -162,7 +172,7 @@ const TimesheetLog: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+            disabled={isLoading || isExporting !== null || !filteredShifts || filteredShifts.length === 0}
             className="w-full sm:w-auto"
           >
             {isExporting === 'csv' ? 'Exporting...' : 'Download CSV'}
@@ -171,7 +181,7 @@ const TimesheetLog: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleExportPDF}
-            disabled={isLoading || isExporting !== null || filteredShifts.length === 0}
+            disabled={isLoading || isExporting !== null || !filteredShifts || filteredShifts.length === 0}
             className="w-full sm:w-auto"
           >
             {isExporting === 'pdf' ? 'Exporting...' : 'Download PDF'}
@@ -198,7 +208,7 @@ const TimesheetLog: React.FC = () => {
           {["day", "week", "month"].map((period) => (
             <TabsContent key={period} value={period}>
               <ShiftsList
-                shifts={filteredShifts}
+                shifts={filteredShifts || []}
                 isLoading={isLoading}
                 isDateRangeActive={isDateRangeActive}
                 error={error}

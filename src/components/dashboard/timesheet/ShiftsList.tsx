@@ -22,6 +22,9 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
   error,
   onDeleteShift
 }) => {
+  // Ensure shifts is always an array, even if undefined is passed
+  const safeShifts = Array.isArray(shifts) ? shifts : [];
+  
   return (
     <ScrollArea className="h-[320px] w-full pr-4">
       {error ? (
@@ -33,9 +36,9 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
         <div className="flex justify-center items-center h-full">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : shifts.length > 0 ? (
+      ) : safeShifts.length > 0 ? (
         <div className="space-y-4">
-          {shifts.map((shift) => (
+          {safeShifts.map((shift) => (
             <ShiftCard 
               key={shift.id} 
               shift={shift} 
