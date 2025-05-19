@@ -268,7 +268,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter address line 1" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -284,7 +283,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter address line 2" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -300,7 +298,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter city" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -316,7 +313,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter county or state" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -332,7 +328,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter postcode or ZIP code" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -348,7 +343,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter country" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -369,7 +363,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="e.g., Net 30" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -385,7 +378,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter credit limit" type="number" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -401,7 +393,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter bank account name" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -417,7 +408,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="e.g., 12-34-56" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -433,7 +423,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter account number" {...field} />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -485,7 +474,6 @@ const CustomerTabs = () => {
                           {...field} 
                         />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -510,7 +498,6 @@ const CustomerTabs = () => {
                           {...field} 
                         />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
