@@ -183,7 +183,7 @@ export function useShiftState() {
     if (startTime && userId) {
       try {
         // Make sure totalBreakDuration is properly calculated before saving
-        const finalBreakDuration = totalBreakDuration;
+        let finalBreakDuration = totalBreakDuration;
         
         const { error } = await supabase
           .from('shifts')
