@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
-import { saveShiftState, loadShiftState, clearShiftState } from "@/services/storageService";
+import { saveShiftState, loadShiftState, clearShiftState, clearBreakState } from "@/services/storageService";
 
 export type RateType = "Per Hour" | "Per Day" | "Per Week" | "Per Month";
 
@@ -206,8 +205,9 @@ export function useShiftState() {
           toast.error("Failed to save shift data. Please try again.");
         } else {
           toast.success("Shift ended and data saved successfully!");
-          // Clear saved shift state
+          // Clear saved shift state AND break state
           clearShiftState();
+          clearBreakState(); // Add this line to clear break state as well
         }
       } catch (error) {
         console.error('Exception when saving shift:', error);

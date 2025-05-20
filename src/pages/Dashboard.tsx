@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
@@ -60,7 +59,8 @@ const DashboardPage = () => {
     setBreakMenuOpen,
     handleBreakToggle,
     handleBreakDurationChange,
-    getCurrentBreakDuration
+    getCurrentBreakDuration,
+    resetBreakStateCompletely
   } = breakTime;
 
   // Check authentication state
@@ -76,6 +76,14 @@ const DashboardPage = () => {
     checkAuth();
   }, []);
 
+  // Reset break state if shift is not active and break information exists
+  useEffect(() => {
+    // If shift is not active but we have break data, reset break state
+    if (!isShiftActive && !isShiftComplete && (totalBreakDuration > 0 || isBreakActive)) {
+      resetBreakStateCompletely();
+    }
+  }, [isShiftActive, isShiftComplete, totalBreakDuration, isBreakActive, resetBreakStateCompletely]);
+
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 
     calculateTimeWorkedUtil(startTime, endTime, getCurrentBreakDuration());
@@ -84,7 +92,7 @@ const DashboardPage = () => {
     calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
 
   const getBreakDuration = () => 
-    getBreakDurationUtil(totalBreakDuration, isBreakActive, breakStart);
+    getBreakDurationUtil(getCurrentBreakDuration(), isBreakActive, breakStart);
 
   const handleConfirmShiftEnd = () => {
     shiftState.confirmShiftEnd(user?.id);

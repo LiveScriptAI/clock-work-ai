@@ -89,6 +89,10 @@ export const getBreakDuration = (
   isBreakActive: boolean,
   breakStart: Date | null
 ): string => {
+  if (totalBreakDuration <= 0 && (!isBreakActive || !breakStart)) {
+    return "0 minutes";
+  }
+  
   let totalBreak = totalBreakDuration;
   
   // Add current break if active
@@ -96,9 +100,8 @@ export const getBreakDuration = (
     totalBreak += differenceInSeconds(new Date(), breakStart);
   }
   
-  // Make sure we don't show zero for small values
-  const minutes = Math.ceil(totalBreak / 60);
-  return minutes === 0 && totalBreak > 0 
-    ? "1 minute" // Show at least 1 minute if break time is > 0 but < 60 seconds
-    : `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  // Always show at least 1 minute if there was any break time at all
+  const minutes = Math.max(1, Math.ceil(totalBreak / 60));
+  
+  return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
 };

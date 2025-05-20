@@ -96,13 +96,18 @@ function transformShiftData(shiftData: any): ShiftEntry {
   const startTime = new Date(shiftData.start_time);
   const endTime = new Date(shiftData.end_time);
   
-  // Ensure break_duration is a valid number and convert to minutes for display
-  const breakDurationSeconds = typeof shiftData.break_duration === 'number' ? shiftData.break_duration : 0;
-  const breakMinutes = Math.ceil(breakDurationSeconds / 60); // Round up to ensure small breaks still show
+  // Ensure break_duration is a valid number
+  const breakDurationSeconds = typeof shiftData.break_duration === 'number' ? 
+    Math.max(0, shiftData.break_duration) : 0;
+    
+  // Always show at least 1 minute if there was any break time at all
+  const breakMinutes = breakDurationSeconds > 0 ? 
+    Math.max(1, Math.ceil(breakDurationSeconds / 60)) : 0;
 
   // Calculate hours worked (in hours) - accounting for break time
-  const totalMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-  const hoursWorked = (totalMinutes - breakMinutes) / 60;
+  const totalSeconds = Math.max(0, (endTime.getTime() - startTime.getTime()) / 1000);
+  const workSeconds = Math.max(0, totalSeconds - breakDurationSeconds);
+  const hoursWorked = workSeconds / 3600;
   
   // Calculate earnings based on rate type and hours worked
   let earnings = 0;
@@ -124,7 +129,7 @@ function transformShiftData(shiftData: any): ShiftEntry {
     employer: shiftData.employer_name,
     startTime: startTime,
     endTime: endTime,
-    breakDuration: breakMinutes, // Using rounded up minutes
+    breakDuration: breakMinutes,
     hoursWorked: hoursWorked,
     earnings: earnings,
     payRate: payRate,

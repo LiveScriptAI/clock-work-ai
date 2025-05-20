@@ -52,6 +52,13 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     return () => clearInterval(intervalId);
   }, [isShiftActive, isBreakActive, calculateTimeWorked, getBreakDuration, calculateEarnings]);
 
+  // Reset break duration display when shift is not active
+  useEffect(() => {
+    if (!isShiftActive && !isShiftComplete) {
+      setBreakDuration("0 minutes");
+    }
+  }, [isShiftActive, isShiftComplete]);
+
   return (
     <Card>
       <CardHeader>

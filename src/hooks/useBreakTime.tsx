@@ -6,6 +6,7 @@ import {
   saveBreakState,
   loadBreakState,
   clearBreakState,
+  resetBreakState,
   StoredBreakState
 } from "@/services/storageService";
 
@@ -178,6 +179,15 @@ export function useBreakTime() {
     return totalBreak;
   }, [isBreakActive, breakStart, totalBreakDuration]);
 
+  // Function to completely reset break state
+  const resetBreakStateCompletely = useCallback(() => {
+    setIsBreakActive(false);
+    setBreakStart(null);
+    setTotalBreakDuration(0);
+    setRemainingBreakTime(0);
+    resetBreakState();
+  }, []);
+
   return {
     isBreakActive,
     breakStart,
@@ -189,5 +199,7 @@ export function useBreakTime() {
     handleBreakToggle,
     handleBreakDurationChange,
     getCurrentBreakDuration,
+    resetBreakStateCompletely,
+    setTotalBreakDuration,
   };
 }

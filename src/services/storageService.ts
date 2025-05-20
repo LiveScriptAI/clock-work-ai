@@ -115,3 +115,21 @@ export const clearBreakState = (): void => {
     console.error("Error clearing break state:", error);
   }
 };
+
+// Reset break state to default values without removing from localStorage
+export const resetBreakState = (): void => {
+  try {
+    const defaultState: StoredBreakState = {
+      isBreakActive: false,
+      selectedBreakDuration: "15",
+      breakStartTime: null,
+      remainingBreakTime: 0,
+      totalBreakDuration: 0,
+      lastUpdatedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(BREAK_STATE_KEY, JSON.stringify(defaultState));
+  } catch (error) {
+    console.error("Error resetting break state:", error);
+  }
+};
