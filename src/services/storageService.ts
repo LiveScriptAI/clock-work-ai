@@ -18,10 +18,10 @@ export interface StoredShiftState {
 }
 
 export interface StoredBreakState {
+  isBreakActive: boolean;
   selectedBreakDuration: string;
   breakStartTime: string | null;
   remainingBreakTime: number;
-  isBreakActive: boolean;
   totalBreakDuration: number;
 }
 

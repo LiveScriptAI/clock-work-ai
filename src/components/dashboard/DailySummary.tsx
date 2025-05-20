@@ -28,6 +28,11 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   rateType = "Per Hour",
   payRate = 15,
 }) => {
+  // Calculate values to display
+  const timeWorked = calculateTimeWorked();
+  const breakDuration = getBreakDuration();
+  const earnings = calculateEarnings();
+
   return (
     <Card>
       <CardHeader>
@@ -47,16 +52,16 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           
           <div className="flex justify-between">
             <span className="text-gray-600">Hours Worked:</span>
-            <span className="font-medium">{formatDuration(calculateTimeWorked())}</span>
+            <span className="font-medium">{formatDuration(timeWorked)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Break Duration:</span>
-            <span className="font-medium">{getBreakDuration()}</span>
+            <span className="font-medium">{breakDuration}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Estimated Earnings:</span>
             <span className="font-medium">
-              £{calculateEarnings()}
+              £{earnings}
               <span className="text-xs text-gray-500 ml-1">({rateType})</span>
             </span>
           </div>

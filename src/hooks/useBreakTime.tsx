@@ -45,7 +45,7 @@ export function useBreakTime() {
       totalBreakDuration,
       remainingBreakTime
     });
-  }, [isBreakActive, selectedBreakDuration, breakStart, totalBreakDuration]);
+  }, [isBreakActive, selectedBreakDuration, breakStart, totalBreakDuration, remainingBreakTime]);
 
   useEffect(() => {
     if (!isBreakActive || remainingBreakTime <= 0) return;
