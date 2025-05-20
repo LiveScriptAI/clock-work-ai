@@ -86,7 +86,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
               <div className="mt-2 pt-2 border-t border-green-200">
                 <p className="text-sm text-amber-600 font-medium flex items-center">
                   <Timer className="h-4 w-4 mr-1" />
-                  {t('On break')}: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime)}</span>
+                  {t('On break')}: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime || 0)}</span>
                   <span className="ml-1">{t('remaining')}</span>
                 </p>
               </div>

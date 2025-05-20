@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
 
@@ -28,10 +28,29 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   rateType = "Per Hour",
   payRate = 15,
 }) => {
-  // Calculate values to display
-  const timeWorked = calculateTimeWorked();
-  const breakDuration = getBreakDuration();
-  const earnings = calculateEarnings();
+  // State to store and refresh values
+  const [timeWorked, setTimeWorked] = useState(calculateTimeWorked());
+  const [breakDuration, setBreakDuration] = useState(getBreakDuration());
+  const [earnings, setEarnings] = useState(calculateEarnings());
+  
+  // Update values every second to ensure they're always accurate
+  useEffect(() => {
+    // Initial update
+    setTimeWorked(calculateTimeWorked());
+    setBreakDuration(getBreakDuration());
+    setEarnings(calculateEarnings());
+    
+    // Set interval to update values if shift is active
+    const intervalId = setInterval(() => {
+      if (isShiftActive) {
+        setTimeWorked(calculateTimeWorked());
+        setBreakDuration(getBreakDuration());
+        setEarnings(calculateEarnings());
+      }
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [isShiftActive, isBreakActive, calculateTimeWorked, getBreakDuration, calculateEarnings]);
 
   return (
     <Card>

@@ -23,6 +23,7 @@ export interface StoredBreakState {
   breakStartTime: string | null;
   remainingBreakTime: number;
   totalBreakDuration: number;
+  lastUpdatedAt: string; // Add timestamp for syncing across devices
 }
 
 // Save active shift state to localStorage
@@ -50,7 +51,12 @@ export const loadShiftState = (): StoredShiftState | null => {
 // Save break state to localStorage
 export const saveBreakState = (breakState: StoredBreakState): void => {
   try {
-    localStorage.setItem(BREAK_STATE_KEY, JSON.stringify(breakState));
+    // Always add the current timestamp when saving
+    const stateWithTimestamp = {
+      ...breakState,
+      lastUpdatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(BREAK_STATE_KEY, JSON.stringify(stateWithTimestamp));
   } catch (error) {
     console.error("Error saving break state:", error);
   }

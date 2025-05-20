@@ -60,6 +60,7 @@ const DashboardPage = () => {
     setBreakMenuOpen,
     handleBreakToggle,
     handleBreakDurationChange,
+    getCurrentBreakDuration
   } = breakTime;
 
   // Check authentication state
@@ -77,7 +78,7 @@ const DashboardPage = () => {
 
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 
-    calculateTimeWorkedUtil(startTime, endTime, totalBreakDuration);
+    calculateTimeWorkedUtil(startTime, endTime, getCurrentBreakDuration());
 
   const calculateEarnings = () => 
     calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
