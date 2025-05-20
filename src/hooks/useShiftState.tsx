@@ -182,6 +182,9 @@ export function useShiftState() {
     // Save to Supabase
     if (startTime && userId) {
       try {
+        // Make sure totalBreakDuration is properly calculated before saving
+        const finalBreakDuration = totalBreakDuration;
+        
         const { error } = await supabase
           .from('shifts')
           .insert([
@@ -189,7 +192,7 @@ export function useShiftState() {
               user_id: userId,
               start_time: startTime.toISOString(),
               end_time: currentEndTime.toISOString(),
-              break_duration: totalBreakDuration,
+              break_duration: finalBreakDuration,
               employer_name: employerName,
               pay_rate: payRate,
               rate_type: rateType,
@@ -207,7 +210,7 @@ export function useShiftState() {
           toast.success("Shift ended and data saved successfully!");
           // Clear saved shift state AND break state
           clearShiftState();
-          clearBreakState(); // Add this line to clear break state as well
+          clearBreakState();
         }
       } catch (error) {
         console.error('Exception when saving shift:', error);

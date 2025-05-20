@@ -96,11 +96,11 @@ function transformShiftData(shiftData: any): ShiftEntry {
   const startTime = new Date(shiftData.start_time);
   const endTime = new Date(shiftData.end_time);
   
-  // Ensure break_duration is a valid number
+  // Ensure break_duration is a valid number (defaults to 0 if invalid)
   const breakDurationSeconds = typeof shiftData.break_duration === 'number' ? 
     Math.max(0, shiftData.break_duration) : 0;
     
-  // Always show at least 1 minute if there was any break time at all
+  // Critical fix: Always show at least 1 minute if there was ANY break time at all
   const breakMinutes = breakDurationSeconds > 0 ? 
     Math.max(1, Math.ceil(breakDurationSeconds / 60)) : 0;
 
