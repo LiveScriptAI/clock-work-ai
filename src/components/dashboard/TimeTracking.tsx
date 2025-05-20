@@ -64,6 +64,9 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   const { t } = useTranslation();
   const breakDurations = customBreakDurations || BREAK_DURATIONS;
   
+  // Determine if break has exceeded duration
+  const isBreakOvertime = remainingBreakTime < 0;
+  
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -84,10 +87,18 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             
             {isBreakActive && breakStart && (
               <div className="mt-2 pt-2 border-t border-green-200">
-                <p className="text-sm text-amber-600 font-medium flex items-center">
+                <p className={`text-sm ${isBreakOvertime ? 'text-red-600' : 'text-amber-600'} font-medium flex items-center`}>
                   <Timer className="h-4 w-4 mr-1" />
-                  {t('On break')}: <span className="ml-1 font-bold">{formatCountdown(remainingBreakTime || 0)}</span>
-                  <span className="ml-1">{t('remaining')}</span>
+                  {t('On break')}: 
+                  {isBreakOvertime ? (
+                    <span className="ml-1 font-bold text-red-600">
+                      {formatCountdown(Math.abs(remainingBreakTime))} {t('overtime')}
+                    </span>
+                  ) : (
+                    <span className="ml-1 font-bold">
+                      {formatCountdown(remainingBreakTime)} {t('remaining')}
+                    </span>
+                  )}
                 </p>
               </div>
             )}
@@ -150,7 +161,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
               
               <Button 
                 size="lg" 
-                className={`${isBreakActive ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'} flex-1`} 
+                className={`${isBreakActive ? (isBreakOvertime ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700') : 'bg-blue-600 hover:bg-blue-700'} flex-1`} 
                 onClick={handleBreakToggle}
                 disabled={!isShiftActive || isShiftComplete}
               >

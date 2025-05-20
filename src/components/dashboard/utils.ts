@@ -23,7 +23,7 @@ export const formatHoursAndMinutes = (hours: number): string => {
 
 // Format countdown time (minutes and seconds)
 export const formatCountdown = (seconds: number): string => {
-  if (isNaN(seconds) || seconds < 0) seconds = 0;
+  if (isNaN(seconds) || seconds < 0) seconds = Math.abs(seconds);
   
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -96,6 +96,9 @@ export const getBreakDuration = (
     totalBreak += differenceInSeconds(new Date(), breakStart);
   }
   
-  const minutes = Math.floor(totalBreak / 60);
-  return `${minutes} minutes`;
+  // Make sure we don't show zero for small values
+  const minutes = Math.ceil(totalBreak / 60);
+  return minutes === 0 && totalBreak > 0 
+    ? "1 minute" // Show at least 1 minute if break time is > 0 but < 60 seconds
+    : `${minutes} minute${minutes !== 1 ? 's' : ''}`;
 };

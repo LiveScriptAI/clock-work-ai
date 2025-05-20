@@ -42,7 +42,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     
     // Set interval to update values if shift is active
     const intervalId = setInterval(() => {
-      if (isShiftActive) {
+      if (isShiftActive || isBreakActive) {
         setTimeWorked(calculateTimeWorked());
         setBreakDuration(getBreakDuration());
         setEarnings(calculateEarnings());

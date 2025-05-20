@@ -56,6 +56,16 @@ export const saveBreakState = (breakState: StoredBreakState): void => {
       ...breakState,
       lastUpdatedAt: new Date().toISOString()
     };
+    
+    // Round values to prevent floating point issues
+    if (typeof stateWithTimestamp.totalBreakDuration === 'number') {
+      stateWithTimestamp.totalBreakDuration = Math.round(stateWithTimestamp.totalBreakDuration);
+    }
+    
+    if (typeof stateWithTimestamp.remainingBreakTime === 'number') {
+      stateWithTimestamp.remainingBreakTime = Math.round(stateWithTimestamp.remainingBreakTime);
+    }
+    
     localStorage.setItem(BREAK_STATE_KEY, JSON.stringify(stateWithTimestamp));
   } catch (error) {
     console.error("Error saving break state:", error);
@@ -68,7 +78,20 @@ export const loadBreakState = (): StoredBreakState | null => {
     const storedState = localStorage.getItem(BREAK_STATE_KEY);
     if (!storedState) return null;
     
-    return JSON.parse(storedState);
+    const parsedState = JSON.parse(storedState);
+    
+    // Ensure numeric values are properly typed
+    if (parsedState && typeof parsedState === 'object') {
+      if (parsedState.totalBreakDuration !== undefined) {
+        parsedState.totalBreakDuration = Number(parsedState.totalBreakDuration);
+      }
+      
+      if (parsedState.remainingBreakTime !== undefined) {
+        parsedState.remainingBreakTime = Number(parsedState.remainingBreakTime);
+      }
+    }
+    
+    return parsedState;
   } catch (error) {
     console.error("Error loading break state:", error);
     return null;

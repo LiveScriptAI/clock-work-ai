@@ -32,7 +32,8 @@ export function useBreakTime() {
         new Date(saved.breakStartTime)
       );
       const original = parseInt(saved.selectedBreakDuration || "15", 10) * 60;
-      return Math.max(0, original - elapsed);
+      // We now allow negative remaining time (meaning break has exceeded duration)
+      return original - elapsed;
     }
     return parseInt(saved?.selectedBreakDuration ?? "15", 10) * 60;
   });
@@ -95,18 +96,14 @@ export function useBreakTime() {
 
   // Countdown timer for active breaks
   useEffect(() => {
-    if (!isBreakActive || remainingBreakTime <= 0) return;
+    if (!isBreakActive) return;
+    
     const id = setInterval(() => {
-      setRemainingBreakTime(prev => {
-        if (prev <= 1) {
-          handleBreakEnd();
-          return 0;
-        }
-        return prev - 1;
-      });
+      setRemainingBreakTime(prev => prev - 1);
     }, 1000);
+    
     return () => clearInterval(id);
-  }, [isBreakActive, remainingBreakTime]);
+  }, [isBreakActive]);
 
   // Handle visibility change (when tab becomes active again)
   useEffect(() => {
@@ -115,13 +112,8 @@ export function useBreakTime() {
         // Recalculate remaining time based on the actual elapsed time
         const elapsed = differenceInSeconds(new Date(), breakStart);
         const original = parseInt(selectedBreakDuration, 10) * 60;
-        const newRemaining = Math.max(0, original - elapsed);
-        
-        if (newRemaining <= 0) {
-          handleBreakEnd();
-        } else {
-          setRemainingBreakTime(newRemaining);
-        }
+        const newRemaining = original - elapsed;
+        setRemainingBreakTime(newRemaining);
       }
     };
 
