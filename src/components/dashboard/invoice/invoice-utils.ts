@@ -3,7 +3,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
-import { useAuth } from "@/hooks/useAuth";
 
 interface LineItem {
   id: string;
@@ -35,9 +34,6 @@ interface InvoiceData {
 
 export const downloadInvoicePDF = (invoice: InvoiceData): void => {
   try {
-    // Get the sender's address from the profile
-    const { profile } = useAuth();
-    
     // Initialize new PDF document
     const doc = new jsPDF();
     
@@ -61,46 +57,10 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
     doc.setFontSize(11);
     doc.text("From:", 14, 35);
     doc.setFontSize(10);
+    doc.text("Your Business Name", 14, 42);
+    doc.text("Your Address", 14, 49);
+    doc.text("your@email.com", 14, 56);
     
-    // Use profile data for the "From" section
-    doc.text(profile?.full_name || "Your Business Name", 14, 42);
-    
-    let fromY = 49;
-    
-    // Address line 1
-    if (profile?.address1) {
-      doc.text(profile.address1, 14, fromY);
-      fromY += 7;
-    }
-    
-    // Address line 2
-    if (profile?.address2) {
-      doc.text(profile.address2, 14, fromY);
-      fromY += 7;
-    }
-    
-    // City, County, Postcode combined
-    const fromCityCountyPostcode = [
-      profile?.city,
-      profile?.county,
-      profile?.postcode
-    ].filter(Boolean).join(", ");
-    
-    if (fromCityCountyPostcode) {
-      doc.text(fromCityCountyPostcode, 14, fromY);
-      fromY += 7;
-    }
-    
-    // Country
-    if (profile?.country) {
-      doc.text(profile.country, 14, fromY);
-      fromY += 7;
-    }
-    
-    // Email
-    doc.text(profile?.email || "your@email.com", 14, fromY);
-    
-    // To section (customer)
     doc.setFontSize(11);
     doc.text("To:", 110, 35);
     doc.setFontSize(10);
@@ -205,34 +165,19 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
 
 // Function to send an invoice with granular address fields
 export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
-  // Get the sender's address from the profile
-  const { profile } = useAuth();
-  
   // This is just a placeholder function that would normally connect to a backend
   const email = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "customer@email.com";
   
   // Log the full invoice data being sent (in a real implementation, this would go to an API)
   console.log("Sending invoice with address details:", {
-    sender: {
-      name: profile?.full_name,
-      email: profile?.email,
-      address1: profile?.address1,
-      address2: profile?.address2,
-      city: profile?.city,
-      county: profile?.county,
-      postcode: profile?.postcode,
-      country: profile?.country
-    },
-    recipient: {
-      customer: invoice.customer,
-      email,
-      address1: invoice.address1,
-      address2: invoice.address2,
-      city: invoice.city,
-      county: invoice.county,
-      postcode: invoice.postcode,
-      country: invoice.country
-    }
+    customer: invoice.customer,
+    email,
+    address1: invoice.address1,
+    address2: invoice.address2,
+    city: invoice.city,
+    county: invoice.county,
+    postcode: invoice.postcode,
+    country: invoice.country
   });
   
   // Show success toast with the customer email

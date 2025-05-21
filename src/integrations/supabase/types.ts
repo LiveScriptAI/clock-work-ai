@@ -95,42 +95,24 @@ export type Database = {
       }
       profiles: {
         Row: {
-          address1: string | null
-          address2: string | null
-          city: string | null
-          country: string | null
-          county: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
-          postcode: string | null
           updated_at: string
         }
         Insert: {
-          address1?: string | null
-          address2?: string | null
-          city?: string | null
-          country?: string | null
-          county?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
-          postcode?: string | null
           updated_at?: string
         }
         Update: {
-          address1?: string | null
-          address2?: string | null
-          city?: string | null
-          country?: string | null
-          county?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
-          postcode?: string | null
           updated_at?: string
         }
         Relationships: []
