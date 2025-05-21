@@ -37,7 +37,7 @@ const DashboardPage = () => {
     employerName, payRate, rateType, setManagerName, setEndManagerName,
     setIsStartSignatureEmpty, setIsEndSignatureEmpty, showValidationAlert,
     setShowValidationAlert, validationType, setIsStartSignatureOpen, setIsEndSignatureOpen,
-    handleStartShift, handleEndShift, confirmShiftStart, 
+    handleStartShift, handleEndShift, confirmShiftStart, confirmShiftEnd,
     setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
 
@@ -73,10 +73,6 @@ const DashboardPage = () => {
 
   const getBreakDuration = () => 
     getBreakDurationUtil(getCurrentBreakDuration(), isBreakActive, breakStart);
-
-  const handleConfirmShiftEnd = () => {
-    shiftState.confirmShiftEnd();
-  };
 
   // Type-safe handler for rate type changes
   const handleRateTypeChange = (value: string) => {
@@ -145,7 +141,7 @@ const DashboardPage = () => {
         setIsEndSignatureEmpty={setIsEndSignatureEmpty}
         setShowValidationAlert={setShowValidationAlert}
         confirmShiftStart={confirmShiftStart}
-        handleConfirmShiftEnd={handleConfirmShiftEnd}
+        handleConfirmShiftEnd={confirmShiftEnd}
         setEmployerName={setEmployerName}
         setPayRate={setPayRate}
         setRateType={handleRateTypeChange}
