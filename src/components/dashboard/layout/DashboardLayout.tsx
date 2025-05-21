@@ -4,14 +4,12 @@ import Header from "@/components/dashboard/Header";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  handleSignOut: () => void;
   sheetOpen: boolean;
   setSheetOpen: (value: boolean) => void;
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
-  handleSignOut,
   sheetOpen,
   setSheetOpen,
 }) => {
@@ -19,7 +17,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header Component */}
       <Header
-        handleSignOut={handleSignOut}
         setSheetOpen={setSheetOpen}
         sheetOpen={sheetOpen}
       />

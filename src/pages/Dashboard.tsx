@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +28,6 @@ const BREAK_DURATIONS = [
 
 const DashboardPage = () => {
   const { t } = useTranslation();
-  const { user, handleSignOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
   
   const shiftState = useShiftState();
@@ -58,19 +56,6 @@ const DashboardPage = () => {
     resetBreakStateCompletely
   } = breakTime;
 
-  // Check authentication state
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        // Redirect to login if not authenticated
-        window.location.href = "/login";
-      }
-    };
-    
-    checkAuth();
-  }, []);
-
   // Reset break state if shift is not active and break information exists
   useEffect(() => {
     // If shift is not active but we have break data, reset break state
@@ -90,7 +75,7 @@ const DashboardPage = () => {
     getBreakDurationUtil(getCurrentBreakDuration(), isBreakActive, breakStart);
 
   const handleConfirmShiftEnd = () => {
-    shiftState.confirmShiftEnd(user?.id);
+    shiftState.confirmShiftEnd();
   };
 
   // Type-safe handler for rate type changes
@@ -108,7 +93,6 @@ const DashboardPage = () => {
 
   return (
     <DashboardLayout
-      handleSignOut={handleSignOut}
       setSheetOpen={setSheetOpen}
       sheetOpen={sheetOpen}
     >

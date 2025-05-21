@@ -16,19 +16,17 @@ import {
 } from '@/components/ui/select';
 
 type HeaderProps = {
-  handleSignOut: () => void;
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
 
 const Header: React.FC<HeaderProps> = ({
-  handleSignOut,
   setSheetOpen,
   sheetOpen
 }) => {
-const { t, i18n } = useTranslation();
-const isMobile = useIsMobile();
-const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isMobile = useIsMobile();
+  const { user, handleSignOut } = useAuth();
 
   return (
     <header className="bg-white shadow-sm py-4 px-6">
@@ -44,7 +42,7 @@ const { user } = useAuth();
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
-               {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
+                {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
               </SheetTitle>
             </SheetHeader>
             
@@ -62,41 +60,46 @@ const { user } = useAuth();
         
         <div className="hidden md:flex items-center gap-2">
           <User className="h-5 w-5 text-gray-500" />
-         {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
+          {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
         </div>
         
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSignOut} 
+            className="hidden md:flex"
+          >
             {t('Sign Out')}
           </Button>
           <Select
             value={i18n.language}
             onValueChange={(lng) => i18n.changeLanguage(lng)}
           >
-           <SelectTrigger className="ml-4 flex items-center gap-2 px-3 py-1.5 h-10 text-sm font-medium text-gray-700 hover:bg-gray-100">
-  <ReactCountryFlag
-    countryCode={i18n.language === 'es' ? 'ES' : 'GB'}
-    svg
-    style={{ width: '1em', height: '1em' }}
-  />
-  <SelectValue>
-    {i18n.language === 'es' ? 'Español' : 'English'}
-  </SelectValue>
-</SelectTrigger>
+            <SelectTrigger className="ml-4 flex items-center gap-2 px-3 py-1.5 h-10 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <ReactCountryFlag
+                countryCode={i18n.language === 'es' ? 'ES' : 'GB'}
+                svg
+                style={{ width: '1em', height: '1em' }}
+              />
+              <SelectValue>
+                {i18n.language === 'es' ? 'Español' : 'English'}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="en" className="flex items-center gap-2 px-3 py-2 text-sm">
-    <div className="flex items-center gap-2 flex-1">
-      <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
-      English
-    </div>
-  </SelectItem>
+                <div className="flex items-center gap-2 flex-1">
+                  <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
+                  English
+                </div>
+              </SelectItem>
 
-             <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
-  <div className="flex items-center gap-2 flex-1">
-    <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
-    Español
-  </div>
-</SelectItem>
+              <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 flex-1">
+                  <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
+                  Español
+                </div>
+              </SelectItem>
 
             </SelectContent>
           </Select>
