@@ -93,8 +93,8 @@ const DashboardPage = () => {
 
   return (
     <DashboardLayout
-      setSheetOpen={setSheetOpen}
       sheetOpen={sheetOpen}
+      setSheetOpen={setSheetOpen}
     >
       <DashboardContent
         startTime={startTime}
