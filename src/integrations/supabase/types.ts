@@ -93,6 +93,48 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_settings: {
+        Row: {
+          address1: string
+          address2: string | null
+          business_name: string
+          city: string
+          country: string
+          county: string | null
+          created_at: string | null
+          id: string
+          postcode: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address1: string
+          address2?: string | null
+          business_name: string
+          city: string
+          country: string
+          county?: string | null
+          created_at?: string | null
+          id?: string
+          postcode: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address1?: string
+          address2?: string | null
+          business_name?: string
+          city?: string
+          country?: string
+          county?: string | null
+          created_at?: string | null
+          id?: string
+          postcode?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address1: string | null

@@ -17,6 +17,14 @@ import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
 import { toast } from "@/hooks/use-toast";
 import CompanySelector from "./CompanySelector";
+import MyCompanyForm from "./MyCompanyForm";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs";
 
 // Get access to any pending autofill from TimesheetLog
 declare global {
@@ -26,6 +34,7 @@ declare global {
 }
 
 const InvoiceForm = () => {
+  const { user } = useAuth();
   const today = new Date();
   const [customer, setCustomer] = useState<string>("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
@@ -248,8 +257,23 @@ const InvoiceForm = () => {
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Company Selector */}
-          <CompanySelector onSelect={handleCompanySelect} />
+          {/* Company Selection Tabs */}
+          <Tabs defaultValue="load-company" className="my-6">
+            <TabsList>
+              <TabsTrigger value="load-company">Load Company</TabsTrigger>
+              <TabsTrigger value="my-company">My Company</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="load-company">
+              {/* Existing Company Selector */}
+              <CompanySelector onSelect={handleCompanySelect} />
+            </TabsContent>
+            
+            <TabsContent value="my-company">
+              {/* My Company Form */}
+              <MyCompanyForm />
+            </TabsContent>
+          </Tabs>
           
           {/* Header Section */}
           <InvoiceHeader 
