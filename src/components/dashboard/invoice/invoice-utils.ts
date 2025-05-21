@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
+import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
 
 interface LineItem {
   id: string;
@@ -32,7 +33,7 @@ interface InvoiceData {
   country: string;
 }
 
-export const downloadInvoicePDF = (invoice: InvoiceData): void => {
+export const downloadInvoicePDF = (invoice: InvoiceData, sender: InvoiceSettingsType): void => {
   try {
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -53,14 +54,44 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
     dueDate.setDate(dueDate.getDate() + 30);
     doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, 22, { align: "right" });
     
-    // From and To sections
+    // From section with sender information
     doc.setFontSize(11);
     doc.text("From:", 14, 35);
     doc.setFontSize(10);
-    doc.text("Your Business Name", 14, 42);
-    doc.text("Your Address", 14, 49);
-    doc.text("your@email.com", 14, 56);
     
+    // Use sender information instead of hardcoded values
+    let senderY = 42;
+    const lineHeight = 7;
+    
+    doc.text(sender.business_name, 14, senderY);
+    senderY += lineHeight;
+    
+    doc.text(sender.address1, 14, senderY);
+    senderY += lineHeight;
+    
+    if (sender.address2) {
+      doc.text(sender.address2, 14, senderY);
+      senderY += lineHeight;
+    }
+    
+    // City, county and postcode
+    const cityCountyPostcode = [
+      sender.city,
+      sender.county,
+      sender.postcode
+    ].filter(Boolean).join(", ");
+    
+    if (cityCountyPostcode) {
+      doc.text(cityCountyPostcode, 14, senderY);
+      senderY += lineHeight;
+    }
+    
+    // Country
+    if (sender.country) {
+      doc.text(sender.country, 14, senderY);
+    }
+    
+    // To section
     doc.setFontSize(11);
     doc.text("To:", 110, 35);
     doc.setFontSize(10);
@@ -82,14 +113,14 @@ export const downloadInvoicePDF = (invoice: InvoiceData): void => {
     }
     
     // City, County, Postcode combined
-    const cityCountyPostcode = [
+    const cityCountyPostcode2 = [
       invoice.city,
       invoice.county,
       invoice.postcode
     ].filter(Boolean).join(", ");
     
-    if (cityCountyPostcode) {
-      doc.text(cityCountyPostcode, 110, currentY);
+    if (cityCountyPostcode2) {
+      doc.text(cityCountyPostcode2, 110, currentY);
       currentY += 7;
     }
     

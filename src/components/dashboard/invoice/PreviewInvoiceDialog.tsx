@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
 
 interface LineItem {
   id: string;
@@ -28,13 +29,15 @@ interface PreviewInvoiceDialogProps {
   subtotal: string;
   vat: string;
   total: string;
-  // New address fields
+  // Address fields
   address1: string;
   address2: string;
   city: string;
   county: string;
   postcode: string;
   country: string;
+  // Sender information
+  sender: InvoiceSettingsType | null;
 }
 
 const PreviewInvoiceDialog = ({
@@ -49,13 +52,15 @@ const PreviewInvoiceDialog = ({
   subtotal,
   vat,
   total,
-  // New address fields
+  // Address fields
   address1,
   address2,
   city,
   county,
   postcode,
   country,
+  // Sender information
+  sender,
 }: PreviewInvoiceDialogProps) => {
   const isMobile = useIsMobile();
   
@@ -86,14 +91,25 @@ const PreviewInvoiceDialog = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-b pb-4">
               <div>
                 <h4 className="font-semibold mb-2">From</h4>
-                <p>Your Business Name</p>
-                <p>Your Address</p>
-                <p>your@email.com</p>
+                {sender ? (
+                  <>
+                    <p>{sender.business_name}</p>
+                    <p>{sender.address1}</p>
+                    {sender.address2 && <p>{sender.address2}</p>}
+                    <p>
+                      {sender.city}
+                      {sender.county ? `, ${sender.county}` : ""} {sender.postcode}
+                    </p>
+                    <p>{sender.country}</p>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground">No company information available</p>
+                )}
               </div>
               <div>
                 <h4 className="font-semibold mb-2">To</h4>
                 <p>{customer || "Client Name"}</p>
-                {/* Display formatted address using the new props */}
+                {/* Display formatted address using the props */}
                 {address1 && <p>{address1}</p>}
                 {address2 && <p>{address2}</p>}
                 <p>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -25,6 +26,10 @@ import {
   TabsTrigger,
   TabsContent
 } from "@/components/ui/tabs";
+import { 
+  InvoiceSettingsType, 
+  fetchInvoiceSettings 
+} from "@/services/invoiceSettingsService";
 
 // Get access to any pending autofill from TimesheetLog
 declare global {
@@ -42,6 +47,8 @@ const InvoiceForm = () => {
   const [notes, setNotes] = useState<string>("");
   const [terms, setTerms] = useState<string>("Payment due within 30 days. Late payments are subject to a 2% monthly fee.");
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   // Add state for address fields
   const [address1, setAddress1] = useState<string>("");
@@ -61,6 +68,29 @@ const InvoiceForm = () => {
       unitPrice: 0,
     },
   ]);
+
+  // Fetch sender information when component mounts
+  useEffect(() => {
+    const loadSenderInfo = async () => {
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const data = await fetchInvoiceSettings(user.id);
+        if (data) {
+          setSender(data);
+        }
+      } catch (error) {
+        console.error("Failed to load company settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSenderInfo();
+  }, [user]);
 
   // Handle company selection
   const handleCompanySelect = (companyData: any) => {
@@ -200,6 +230,7 @@ const InvoiceForm = () => {
 
   // Handler for Send Invoice button
   const handleSendInvoice = () => {
+    // Include sender information with invoice data
     const invoiceData = {
       customer,
       invoiceDate,
@@ -209,7 +240,6 @@ const InvoiceForm = () => {
       subtotal: calculateSubtotal(),
       vat: calculateVAT(),
       total: calculateTotal(),
-      // Include address information in the payload
       address1,
       address2,
       city,
@@ -228,6 +258,15 @@ const InvoiceForm = () => {
 
   // Handler for Download PDF button
   const handleDownloadPDF = () => {
+    if (!sender) {
+      toast({
+        title: "Missing company information",
+        description: "Please set up your company information first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const invoiceData = {
       customer,
       invoiceDate,
@@ -238,7 +277,6 @@ const InvoiceForm = () => {
       subtotal: calculateSubtotal(),
       vat: calculateVAT(),
       total: calculateTotal(),
-      // Add address information
       address1,
       address2,
       city,
@@ -247,7 +285,7 @@ const InvoiceForm = () => {
       country
     };
     
-    downloadInvoicePDF(invoiceData);
+    downloadInvoicePDF(invoiceData, sender);
   };
 
   return (
@@ -257,6 +295,23 @@ const InvoiceForm = () => {
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Display Sender Information if available */}
+          {sender && (
+            <Card className="mb-4">
+              <CardContent className="pt-4">
+                <h3 className="text-sm font-semibold mb-2">From</h3>
+                <p>{sender.business_name}</p>
+                <p>{sender.address1}</p>
+                {sender.address2 && <p>{sender.address2}</p>}
+                <p>
+                  {sender.city}
+                  {sender.county ? `, ${sender.county}` : ""} {sender.postcode}
+                </p>
+                <p>{sender.country}</p>
+              </CardContent>
+            </Card>
+          )}
+        
           {/* Company Selection Tabs */}
           <Tabs defaultValue="load-company" className="my-6">
             <TabsList>
@@ -350,6 +405,7 @@ const InvoiceForm = () => {
         county={county}
         postcode={postcode}
         country={country}
+        sender={sender}
       />
     </div>
   );
