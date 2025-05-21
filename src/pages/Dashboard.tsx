@@ -4,6 +4,7 @@ import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 
 // Import layout and content components
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
@@ -29,6 +30,7 @@ const BREAK_DURATIONS = [
 const DashboardPage = () => {
   const { t } = useTranslation();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { user } = useAuth();
   
   const shiftState = useShiftState();
   const {
@@ -73,6 +75,11 @@ const DashboardPage = () => {
 
   const getBreakDuration = () => 
     getBreakDurationUtil(getCurrentBreakDuration(), isBreakActive, breakStart);
+
+  // Create a wrapper function to call confirmShiftEnd with the user ID
+  const handleConfirmShiftEnd = () => {
+    confirmShiftEnd(user?.id);
+  };
 
   // Type-safe handler for rate type changes
   const handleRateTypeChange = (value: string) => {
@@ -141,7 +148,7 @@ const DashboardPage = () => {
         setIsEndSignatureEmpty={setIsEndSignatureEmpty}
         setShowValidationAlert={setShowValidationAlert}
         confirmShiftStart={confirmShiftStart}
-        handleConfirmShiftEnd={confirmShiftEnd}
+        handleConfirmShiftEnd={handleConfirmShiftEnd}
         setEmployerName={setEmployerName}
         setPayRate={setPayRate}
         setRateType={handleRateTypeChange}
