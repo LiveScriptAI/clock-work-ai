@@ -16,9 +16,16 @@ export async function upsertInvoiceSettings(
   userId: string,
   data: InvoiceSettingsType
 ) {
-  return supabase
+  const response = await supabase
     .from('invoice_settings')
     .upsert({ user_id: userId, ...data }, { onConflict: 'user_id' });
+    
+  if (response.error) {
+    console.error("upsertInvoiceSettings error:", response.error);
+    throw response.error;
+  }
+  
+  return response;
 }
 
 export async function fetchInvoiceSettings(userId: string) {
