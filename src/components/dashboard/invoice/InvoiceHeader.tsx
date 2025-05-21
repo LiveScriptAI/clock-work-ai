@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface InvoiceHeaderProps {
   customer: string;
@@ -20,19 +21,19 @@ interface InvoiceHeaderProps {
   setInvoiceDate: (date: Date) => void;
   reference: string;
   setReference: (value: string) => void;
-  // Add new address props
-  address1?: string;
-  setAddress1?: (value: string) => void;
-  address2?: string;
-  setAddress2?: (value: string) => void;
-  city?: string;
-  setCity?: (value: string) => void;
-  county?: string;
-  setCounty?: (value: string) => void;
-  postcode?: string;
-  setPostcode?: (value: string) => void;
-  country?: string;
-  setCountry?: (value: string) => void;
+  // Address props
+  address1: string;
+  setAddress1: (value: string) => void;
+  address2: string;
+  setAddress2: (value: string) => void;
+  city: string;
+  setCity: (value: string) => void;
+  county: string;
+  setCounty: (value: string) => void;
+  postcode: string;
+  setPostcode: (value: string) => void;
+  country: string;
+  setCountry: (value: string) => void;
 }
 
 const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
@@ -43,19 +44,33 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   reference,
   setReference,
   // Address fields
-  address1 = "",
-  setAddress1 = () => {},
-  address2 = "",
-  setAddress2 = () => {},
-  city = "",
-  setCity = () => {},
-  county = "",
-  setCounty = () => {},
-  postcode = "",
-  setPostcode = () => {},
-  country = "",
-  setCountry = () => {},
+  address1,
+  setAddress1,
+  address2,
+  setAddress2,
+  city,
+  setCity,
+  county,
+  setCounty,
+  postcode,
+  setPostcode,
+  country,
+  setCountry,
 }) => {
+  const { profile } = useAuth();
+  
+  // Populate address fields with user profile data if available
+  useEffect(() => {
+    if (profile) {
+      if (profile.address1 && !address1) setAddress1(profile.address1);
+      if (profile.address2 && !address2) setAddress2(profile.address2);
+      if (profile.city && !city) setCity(profile.city);
+      if (profile.county && !county) setCounty(profile.county);
+      if (profile.postcode && !postcode) setPostcode(profile.postcode);
+      if (profile.country && !country) setCountry(profile.country);
+    }
+  }, [profile, address1, address2, city, county, postcode, country, setAddress1, setAddress2, setCity, setCounty, setPostcode, setCountry]);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
