@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInSeconds } from "date-fns";
@@ -69,7 +68,9 @@ export function useShiftActions(
     // If still on break, end it and add to total
     if (isBreakActive && breakStart) {
       const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration(prev => prev + breakDuration);
+      // Fixed: Instead of using a function, calculate and pass the new value directly
+      const updatedBreakDuration = totalBreakDuration + breakDuration;
+      setTotalBreakDuration(updatedBreakDuration);
       setBreakStart(null);
       setIsBreakActive(false);
     }

@@ -60,8 +60,9 @@ export function useShiftPersistence(
           // Calculate elapsed break time since app was closed
           if (parsedBreakStart) {
             const elapsedBreakSeconds = differenceInSeconds(now, parsedBreakStart);
-            // Update total break duration with time elapsed during app closure
-            setTotalBreakDuration(prev => prev + elapsedBreakSeconds);
+            // Fixed: Instead of using a function, calculate and pass the new value directly
+            const updatedBreakDuration = savedState.totalBreakDuration + elapsedBreakSeconds;
+            setTotalBreakDuration(updatedBreakDuration);
             // Reset break start time to now
             setBreakStart(now);
           }
