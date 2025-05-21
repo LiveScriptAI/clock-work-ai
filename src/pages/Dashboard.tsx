@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useShiftState } from "@/hooks/useShiftState";
@@ -5,16 +6,10 @@ import { useBreakTime } from "@/hooks/useBreakTime";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 
-// Import components
-import Header from "@/components/dashboard/Header";
-import TimeTracking from "@/components/dashboard/TimeTracking";
-import DailySummary from "@/components/dashboard/DailySummary";
-import TimesheetLog from "@/components/dashboard/TimesheetLog";
-import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
-import CustomerTabs from "@/components/dashboard/CustomerTabs";
-import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
-import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
-import ValidationAlert from "@/components/dashboard/ValidationAlert";
+// Import layout and content components
+import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
+import DashboardContent from "@/components/dashboard/layout/DashboardContent";
+import DashboardDialogs from "@/components/dashboard/layout/DashboardDialogs";
 
 // Import utility functions
 import { 
@@ -112,110 +107,71 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header Component */}
-      <Header 
-        handleSignOut={handleSignOut}
-        setSheetOpen={setSheetOpen}
-        sheetOpen={sheetOpen}
-      />
-
-      {/* Main Content */}
-      <main className="flex-1 px-6 py-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Time Tracking Component */}
-          <TimeTracking 
-            startTime={startTime}
-            endTime={endTime}
-            isShiftActive={isShiftActive}
-            isShiftComplete={isShiftComplete}
-            isBreakActive={isBreakActive}
-            managerName={managerName}
-            endManagerName={endManagerName}
-            breakStart={breakStart}
-            remainingBreakTime={remainingBreakTime}
-            selectedBreakDuration={selectedBreakDuration}
-            breakMenuOpen={breakMenuOpen}
-            BREAK_DURATIONS={BREAK_DURATIONS}
-            handleStartShift={handleStartShift}
-            handleEndShift={handleEndShift}
-            handleBreakToggle={handleBreakToggle}
-            handleBreakDurationChange={handleBreakDurationChange}
-            setBreakMenuOpen={setBreakMenuOpen}
-            getBreakDuration={getBreakDuration}
-            formatCountdown={formatCountdown}
-          />
-
-          <div className="grid grid-cols-1 mb-6">
-            {/* Daily Summary Component */}
-            <DailySummary 
-              formatDuration={formatDuration}
-              calculateTimeWorked={calculateTimeWorked}
-              getBreakDuration={getBreakDuration}
-              calculateEarnings={calculateEarnings}
-              isShiftActive={isShiftActive}
-              isShiftComplete={isShiftComplete}
-              isBreakActive={isBreakActive}
-              employerName={employerName}
-              rateType={rateType}
-              payRate={payRate}
-            />
-          </div>
-          
-          {/* Timesheet Log Component */}
-          <div className="mt-6">
-            <TimesheetLog />
-          </div>
-
-          {/* Invoice Form Component */}
-          <InvoiceForm />
-          
-          {/* Customer Tabs Component */}
-          <div className="mt-6">
-            <CustomerTabs />
-          </div>
-        </div>
-      </main>
-
-      {/* Dialogs and Alerts */}
-      <StartShiftDialog 
-        isOpen={isStartSignatureOpen}
-        onOpenChange={setIsStartSignatureOpen}
+    <DashboardLayout
+      handleSignOut={handleSignOut}
+      setSheetOpen={setSheetOpen}
+      sheetOpen={sheetOpen}
+    >
+      <DashboardContent
+        startTime={startTime}
+        endTime={endTime}
+        isShiftActive={isShiftActive}
+        isShiftComplete={isShiftComplete}
+        isBreakActive={isBreakActive}
         managerName={managerName}
-        setManagerName={setManagerName}
-        isSignatureEmpty={shiftState.isStartSignatureEmpty}
-        setIsSignatureEmpty={setIsStartSignatureEmpty}
-        confirmShiftStart={confirmShiftStart}
+        endManagerName={endManagerName}
+        breakStart={breakStart}
+        remainingBreakTime={remainingBreakTime}
+        selectedBreakDuration={selectedBreakDuration}
+        breakMenuOpen={breakMenuOpen}
+        BREAK_DURATIONS={BREAK_DURATIONS}
         employerName={employerName}
-        setEmployerName={setEmployerName}
-        payRate={payRate}
-        setPayRate={setPayRate}
         rateType={rateType}
+        payRate={payRate}
+        handleStartShift={handleStartShift}
+        handleEndShift={handleEndShift}
+        handleBreakToggle={handleBreakToggle}
+        handleBreakDurationChange={handleBreakDurationChange}
+        setBreakMenuOpen={setBreakMenuOpen}
+        formatCountdown={formatCountdown}
+        getBreakDuration={getBreakDuration}
+        formatDuration={formatDuration}
+        calculateTimeWorked={calculateTimeWorked}
+        calculateEarnings={calculateEarnings}
+      />
+      
+      <DashboardDialogs
+        isStartSignatureOpen={isStartSignatureOpen}
+        isEndSignatureOpen={isEndSignatureOpen}
+        managerName={managerName}
+        endManagerName={endManagerName}
+        employerName={employerName}
+        payRate={payRate}
+        rateType={rateType}
+        startTime={startTime}
+        isStartSignatureEmpty={shiftState.isStartSignatureEmpty}
+        isEndSignatureEmpty={shiftState.isEndSignatureEmpty}
+        showValidationAlert={showValidationAlert}
+        validationType={validationType}
+        setIsStartSignatureOpen={setIsStartSignatureOpen}
+        setIsEndSignatureOpen={setIsEndSignatureOpen}
+        setManagerName={setManagerName}
+        setEndManagerName={setEndManagerName}
+        setIsStartSignatureEmpty={setIsStartSignatureEmpty}
+        setIsEndSignatureEmpty={setIsEndSignatureEmpty}
+        setShowValidationAlert={setShowValidationAlert}
+        confirmShiftStart={confirmShiftStart}
+        handleConfirmShiftEnd={handleConfirmShiftEnd}
+        setEmployerName={setEmployerName}
+        setPayRate={setPayRate}
         setRateType={handleRateTypeChange}
         setStartSignatureData={setStartSignatureData}
-      />
-
-      <EndShiftDialog 
-        isOpen={isEndSignatureOpen}
-        onOpenChange={setIsEndSignatureOpen}
-        endManagerName={endManagerName}
-        setEndManagerName={setEndManagerName}
-        isSignatureEmpty={shiftState.isEndSignatureEmpty}
-        setIsSignatureEmpty={setIsEndSignatureEmpty}
-        confirmShiftEnd={handleConfirmShiftEnd}
-        startTime={startTime}
+        setEndSignatureData={setEndSignatureData}
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}
         getBreakDuration={getBreakDuration}
-        setEndSignatureData={setEndSignatureData}
       />
-
-      <ValidationAlert 
-        showValidationAlert={showValidationAlert}
-        setShowValidationAlert={setShowValidationAlert}
-        validationType={validationType}
-      />
-    </div>
+    </DashboardLayout>
   );
 };
 
