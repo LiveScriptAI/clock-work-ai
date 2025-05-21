@@ -1,33 +1,10 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { differenceInSeconds } from "date-fns";
-import { saveShiftState, loadShiftState, clearShiftState, clearBreakState } from "@/services/storageService";
+
+import { useState } from "react";
+import { useShiftPersistence } from "./shift/useShiftPersistence";
+import { useShiftValidation } from "./shift/useShiftValidation";
+import { useShiftActions } from "./shift/useShiftActions";
 
 export type RateType = "Per Hour" | "Per Day" | "Per Week" | "Per Month";
-
-export interface ShiftState {
-  isShiftActive: boolean;
-  isBreakActive: boolean;
-  isStartSignatureOpen: boolean;
-  isEndSignatureOpen: boolean;
-  isShiftComplete: boolean;
-  managerName: string;
-  endManagerName: string;
-  startTime: Date | null;
-  endTime: Date | null;
-  breakStart: Date | null;
-  totalBreakDuration: number;
-  employerName: string;
-  payRate: number;
-  rateType: RateType;
-  startSignatureData: string | null;
-  endSignatureData: string | null;
-  isStartSignatureEmpty: boolean;
-  isEndSignatureEmpty: boolean;
-  showValidationAlert: boolean;
-  validationType: 'start' | 'end';
-}
 
 export function useShiftState() {
   // Core shift states
@@ -54,75 +31,12 @@ export function useShiftState() {
   const [payRate, setPayRate] = useState(15); // Default rate
   const [rateType, setRateType] = useState<RateType>("Per Hour");
   
-  // Validation states
-  const [isStartSignatureEmpty, setIsStartSignatureEmpty] = useState(true);
-  const [isEndSignatureEmpty, setIsEndSignatureEmpty] = useState(true);
-  const [showValidationAlert, setShowValidationAlert] = useState(false);
-  const [validationType, setValidationType] = useState<'start' | 'end'>('start');
-
-  // Load saved state on component mount
-  useEffect(() => {
-    const savedState = loadShiftState();
-    if (savedState) {
-      const now = new Date();
-
-      // Restore shift state
-      if (savedState.isShiftActive) {
-        setIsShiftActive(true);
-        setManagerName(savedState.managerName);
-        setEmployerName(savedState.employerName);
-        setPayRate(savedState.payRate);
-        setRateType(savedState.rateType as RateType);
-        setStartSignatureData(savedState.startSignatureData);
-        setIsStartSignatureEmpty(false);
-
-        // Restore timestamps
-        if (savedState.startTime) {
-          const parsedStartTime = new Date(savedState.startTime);
-          setStartTime(parsedStartTime);
-        }
-
-        // Restore break state
-        setIsBreakActive(savedState.isBreakActive);
-        setTotalBreakDuration(savedState.totalBreakDuration);
-
-        if (savedState.isBreakActive && savedState.breakStart) {
-          const parsedBreakStart = new Date(savedState.breakStart);
-          setBreakStart(parsedBreakStart);
-          
-          // Calculate elapsed break time since app was closed
-          if (parsedBreakStart) {
-            const elapsedBreakSeconds = differenceInSeconds(now, parsedBreakStart);
-            // Update total break duration with time elapsed during app closure
-            setTotalBreakDuration(prev => prev + elapsedBreakSeconds);
-            // Reset break start time to now
-            setBreakStart(now);
-          }
-        }
-
-        toast.info("Restored active shift from previous session");
-      }
-    }
-  }, []);
-
-  // Save state whenever relevant values change
-  useEffect(() => {
-    if (isShiftActive) {
-      saveShiftState({
-        isShiftActive,
-        isBreakActive,
-        startTime: startTime ? startTime.toISOString() : null,
-        breakStart: breakStart ? breakStart.toISOString() : null,
-        totalBreakDuration,
-        managerName,
-        employerName,
-        payRate,
-        rateType,
-        startSignatureData
-      });
-    }
-  }, [
-    isShiftActive, 
+  // Use our validation hook
+  const validation = useShiftValidation();
+  
+  // Use our persistence hook
+  useShiftPersistence(
+    isShiftActive,
     isBreakActive,
     startTime,
     breakStart,
@@ -131,97 +45,47 @@ export function useShiftState() {
     employerName,
     payRate,
     rateType,
-    startSignatureData
-  ]);
-
-  const handleStartShift = () => {
-    setIsStartSignatureOpen(true);
-  };
-
-  const handleEndShift = () => {
-    setIsEndSignatureOpen(true);
-  };
-
-  const confirmShiftStart = () => {
-    if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
-      setValidationType('start');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    setIsStartSignatureOpen(false);
-    setIsShiftActive(true);
-    setStartTime(new Date());
-    setIsShiftComplete(false);
-    // Reset any previous shift data
-    setEndTime(null);
-    setTotalBreakDuration(0);
-    setBreakStart(null);
-    setIsBreakActive(false);
-    toast.success("Shift started successfully!");
-  };
-
-  const confirmShiftEnd = async (userId: string | undefined) => {
-    if (isEndSignatureEmpty || !endManagerName.trim()) {
-      setValidationType('end');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    // If still on break, end it and add to total
-    if (isBreakActive && breakStart) {
-      const breakDuration = differenceInSeconds(new Date(), breakStart);
-      setTotalBreakDuration(prev => prev + breakDuration);
-      setBreakStart(null);
-      setIsBreakActive(false);
-    }
-    
-    const currentEndTime = new Date();
-    setEndTime(currentEndTime);
-    
-    // Save to Supabase
-    if (startTime && userId) {
-      try {
-        // Make sure totalBreakDuration is properly calculated before saving
-        let finalBreakDuration = totalBreakDuration;
-        
-        const { error } = await supabase
-          .from('shifts')
-          .insert([
-            {
-              user_id: userId,
-              start_time: startTime.toISOString(),
-              end_time: currentEndTime.toISOString(),
-              break_duration: finalBreakDuration,
-              employer_name: employerName,
-              pay_rate: payRate,
-              rate_type: rateType,
-              manager_start_name: managerName,
-              manager_end_name: endManagerName,
-              manager_start_signature: startSignatureData,
-              manager_end_signature: endSignatureData
-            }
-          ]);
-        
-        if (error) {
-          console.error('Error saving shift:', error);
-          toast.error("Failed to save shift data. Please try again.");
-        } else {
-          toast.success("Shift ended and data saved successfully!");
-          // Clear saved shift state AND break state
-          clearShiftState();
-          clearBreakState();
-        }
-      } catch (error) {
-        console.error('Exception when saving shift:', error);
-        toast.error("An unexpected error occurred. Please try again.");
-      }
-    }
-    
-    setIsEndSignatureOpen(false);
-    setIsShiftActive(false);
-    setIsShiftComplete(true);
-  };
+    startSignatureData,
+    setIsShiftActive,
+    setManagerName,
+    setEmployerName,
+    setPayRate,
+    setRateType,
+    setStartSignatureData,
+    validation.setIsStartSignatureEmpty,
+    setStartTime,
+    setIsBreakActive,
+    setTotalBreakDuration,
+    setBreakStart
+  );
+  
+  // Use our actions hook
+  const actions = useShiftActions(
+    setIsStartSignatureOpen,
+    setIsEndSignatureOpen,
+    validation.isStartSignatureEmpty,
+    validation.isEndSignatureEmpty,
+    managerName,
+    endManagerName,
+    employerName,
+    validation.setShowValidationAlert,
+    validation.setValidationType,
+    setIsShiftActive,
+    setStartTime,
+    setIsShiftComplete,
+    setEndTime,
+    setTotalBreakDuration,
+    setBreakStart,
+    setIsBreakActive,
+    isBreakActive,
+    breakStart,
+    totalBreakDuration,
+    startTime,
+    payRate,
+    rateType,
+    startSignatureData,
+    endSignatureData
+  );
 
   return {
     // State
@@ -241,18 +105,18 @@ export function useShiftState() {
     rateType,
     startSignatureData,
     endSignatureData,
-    isStartSignatureEmpty,
-    isEndSignatureEmpty,
-    showValidationAlert,
-    validationType,
+    isStartSignatureEmpty: validation.isStartSignatureEmpty,
+    isEndSignatureEmpty: validation.isEndSignatureEmpty,
+    showValidationAlert: validation.showValidationAlert,
+    validationType: validation.validationType,
     
     // Setters
     setIsShiftActive,
     setManagerName,
     setEndManagerName,
-    setIsStartSignatureEmpty,
-    setIsEndSignatureEmpty,
-    setShowValidationAlert,
+    setIsStartSignatureEmpty: validation.setIsStartSignatureEmpty,
+    setIsEndSignatureEmpty: validation.setIsEndSignatureEmpty,
+    setShowValidationAlert: validation.setShowValidationAlert,
     setEmployerName,
     setPayRate,
     setRateType,
@@ -265,9 +129,9 @@ export function useShiftState() {
     setIsEndSignatureOpen,
     
     // Actions
-    handleStartShift,
-    handleEndShift,
-    confirmShiftStart,
-    confirmShiftEnd,
+    handleStartShift: actions.handleStartShift,
+    handleEndShift: actions.handleEndShift,
+    confirmShiftStart: actions.confirmShiftStart,
+    confirmShiftEnd: actions.confirmShiftEnd,
   };
 }
