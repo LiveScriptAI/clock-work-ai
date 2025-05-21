@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LineItem {
   id: string;
@@ -58,6 +59,7 @@ const PreviewInvoiceDialog = ({
   country,
 }: PreviewInvoiceDialogProps) => {
   const isMobile = useIsMobile();
+  const { profile } = useAuth();
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -86,9 +88,18 @@ const PreviewInvoiceDialog = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-b pb-4">
               <div>
                 <h4 className="font-semibold mb-2">From</h4>
-                <p>Your Business Name</p>
-                <p>Your Address</p>
-                <p>your@email.com</p>
+                <p>{profile?.full_name || "Your Business Name"}</p>
+                {profile?.address1 && <p>{profile.address1}</p>}
+                {profile?.address2 && <p>{profile.address2}</p>}
+                <p>
+                  {[
+                    profile?.city,
+                    profile?.county,
+                    profile?.postcode
+                  ].filter(Boolean).join(", ")}
+                </p>
+                {profile?.country && <p>{profile.country}</p>}
+                <p>{profile?.email || "your@email.com"}</p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">To</h4>
