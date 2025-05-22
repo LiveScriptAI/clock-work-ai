@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { User, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
 import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
+import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import {
   Select,
   SelectTrigger,
@@ -27,6 +28,25 @@ const Header: React.FC<HeaderProps> = ({
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
   const { user, handleSignOut } = useAuth();
+  const [logo, setLogo] = useState<string | null>(null);
+
+  // Fetch logo when component mounts if user is logged in
+  useEffect(() => {
+    const fetchLogo = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const settings = await fetchInvoiceSettings(user.id);
+        if (settings?.logo_url) {
+          setLogo(settings.logo_url);
+        }
+      } catch (error) {
+        console.error("Failed to fetch logo:", error);
+      }
+    };
+    
+    fetchLogo();
+  }, [user]);
 
   return (
     <header className="bg-white shadow-sm py-4 px-6">
@@ -40,6 +60,15 @@ const Header: React.FC<HeaderProps> = ({
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px]">
             <SheetHeader>
+              {logo && (
+                <div className="mb-3">
+                  <img 
+                    src={logo} 
+                    alt="Company Logo" 
+                    className="h-10 object-contain" 
+                  />
+                </div>
+              )}
               <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
                 {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
@@ -59,6 +88,13 @@ const Header: React.FC<HeaderProps> = ({
         </Sheet>
         
         <div className="hidden md:flex items-center gap-2">
+          {logo && (
+            <img 
+              src={logo} 
+              alt="Company Logo" 
+              className="h-8 mr-2 object-contain" 
+            />
+          )}
           <User className="h-5 w-5 text-gray-500" />
           {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
         </div>

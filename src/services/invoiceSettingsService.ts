@@ -10,6 +10,7 @@ export type InvoiceSettingsType = {
   county?: string;
   postcode: string;
   country: string;
+  logo_url?: string;
 };
 
 export async function upsertInvoiceSettings(

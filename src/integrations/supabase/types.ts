@@ -103,6 +103,7 @@ export type Database = {
           county: string | null
           created_at: string | null
           id: string
+          logo_url: string | null
           postcode: string
           updated_at: string | null
           user_id: string | null
@@ -116,6 +117,7 @@ export type Database = {
           county?: string | null
           created_at?: string | null
           id?: string
+          logo_url?: string | null
           postcode: string
           updated_at?: string | null
           user_id?: string | null
@@ -129,6 +131,7 @@ export type Database = {
           county?: string | null
           created_at?: string | null
           id?: string
+          logo_url?: string | null
           postcode?: string
           updated_at?: string | null
           user_id?: string | null

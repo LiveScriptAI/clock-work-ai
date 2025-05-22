@@ -75,14 +75,27 @@ const PreviewInvoiceDialog = ({
           <div className="space-y-6 pb-6 px-1">
             {/* Invoice Header */}
             <div className="border-b pb-4">
-              <div className="flex justify-between flex-wrap gap-4">
-                <div>
-                  <h3 className="text-xl font-bold">INVOICE</h3>
-                  <p className="text-muted-foreground">Reference: {reference || "N/A"}</p>
-                </div>
-                <div className="text-right">
-                  <p><span className="font-medium">Date:</span> {format(invoiceDate, "dd MMM yyyy")}</p>
-                  <p className="text-muted-foreground">Due: {format(new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000), "dd MMM yyyy")}</p>
+              <div className="flex flex-col gap-4">
+                {/* Logo display */}
+                {sender?.logo_url && (
+                  <div className="mb-4">
+                    <img 
+                      src={sender.logo_url} 
+                      alt="Company Logo" 
+                      className="h-16 object-contain" 
+                    />
+                  </div>
+                )}
+                
+                <div className="flex justify-between flex-wrap gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold">INVOICE</h3>
+                    <p className="text-muted-foreground">Reference: {reference || "N/A"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p><span className="font-medium">Date:</span> {format(invoiceDate, "dd MMM yyyy")}</p>
+                    <p className="text-muted-foreground">Due: {format(new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000), "dd MMM yyyy")}</p>
+                  </div>
                 </div>
               </div>
             </div>

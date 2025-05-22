@@ -33,34 +33,79 @@ interface InvoiceData {
   country: string;
 }
 
-export const downloadInvoicePDF = (invoice: InvoiceData, sender: InvoiceSettingsType): void => {
+// Function to load an image from URL and return it as a data URL
+const loadImage = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous'; // This helps with CORS issues
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+      
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    
+    img.onerror = () => {
+      reject(new Error('Could not load image'));
+    };
+    
+    img.src = url;
+  });
+};
+
+export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
   try {
     // Initialize new PDF document
     const doc = new jsPDF();
     
+    // Starting Y position for content after logo (if any)
+    let yPos = 15; // Default position
+    
+    // Add logo if available
+    if (sender.logo_url) {
+      try {
+        const logoDataUrl = await loadImage(sender.logo_url);
+        // Add the logo to the top left
+        doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 20, undefined, 'FAST');
+        // Adjust yPos to place content below the logo
+        yPos = 40;
+      } catch (err) {
+        console.error('Error adding logo to PDF:', err);
+      }
+    }
+    
     // Add title and invoice number
     doc.setFontSize(20);
-    doc.text("INVOICE", 14, 15);
+    doc.text("INVOICE", 14, yPos);
     
     doc.setFontSize(10);
-    doc.text(`Reference: ${invoice.reference || "N/A"}`, 14, 22);
+    doc.text(`Reference: ${invoice.reference || "N/A"}`, 14, yPos + 7);
     
     // Add date
     const formattedDate = invoice.invoiceDate.toLocaleDateString();
-    doc.text(`Date: ${formattedDate}`, 170, 15, { align: "right" });
+    doc.text(`Date: ${formattedDate}`, 170, yPos, { align: "right" });
     
     // Due date (30 days from invoice date)
     const dueDate = new Date(invoice.invoiceDate);
     dueDate.setDate(dueDate.getDate() + 30);
-    doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, 22, { align: "right" });
+    doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, yPos + 7, { align: "right" });
     
     // From section with sender information
     doc.setFontSize(11);
-    doc.text("From:", 14, 35);
+    doc.text("From:", 14, yPos + 20);
     doc.setFontSize(10);
     
     // Use sender information instead of hardcoded values
-    let senderY = 42;
+    let senderY = yPos + 27;
     const lineHeight = 7;
     
     doc.text(sender.business_name, 14, senderY);
@@ -93,12 +138,12 @@ export const downloadInvoicePDF = (invoice: InvoiceData, sender: InvoiceSettings
     
     // To section
     doc.setFontSize(11);
-    doc.text("To:", 110, 35);
+    doc.text("To:", 110, yPos + 20);
     doc.setFontSize(10);
-    doc.text(invoice.customer || "Client Name", 110, 42);
+    doc.text(invoice.customer || "Client Name", 110, yPos + 27);
     
     // Format the customer address using granular fields
-    let currentY = 49;
+    let currentY = yPos + 34;
     
     // Address line 1
     if (invoice.address1) {
@@ -143,8 +188,11 @@ export const downloadInvoicePDF = (invoice: InvoiceData, sender: InvoiceSettings
       `£${(item.quantity * item.unitPrice).toFixed(2)}`
     ]);
     
+    // Adjust table starting position if we have a logo
+    const tableStartY = sender.logo_url ? yPos + 60 : 65;
+    
     autoTable(doc, {
-      startY: 65,
+      startY: tableStartY,
       head: [["Date", "Description", "Rate Type", "Hours Worked", "Unit Price", "Total"]],
       body: tableData,
       theme: 'striped',

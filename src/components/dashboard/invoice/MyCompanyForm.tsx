@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   InvoiceSettingsType, 
   fetchInvoiceSettings, 
@@ -21,10 +22,13 @@ import {
   FormControl,
   FormMessage
 } from "@/components/ui/form";
+import { Image } from "lucide-react";
 
 const MyCompanyForm = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<InvoiceSettingsType>({
     defaultValues: {
@@ -34,7 +38,8 @@ const MyCompanyForm = () => {
       city: "",
       county: "",
       postcode: "",
-      country: ""
+      country: "",
+      logo_url: ""
     }
   });
   
@@ -55,8 +60,14 @@ const MyCompanyForm = () => {
             city: data.city,
             county: data.county || "",
             postcode: data.postcode,
-            country: data.country
+            country: data.country,
+            logo_url: data.logo_url || ""
           });
+          
+          // Set preview URL if logo exists
+          if (data.logo_url) {
+            setPreviewUrl(data.logo_url);
+          }
         }
       } catch (error) {
         console.error("Failed to load company settings:", error);
@@ -67,6 +78,74 @@ const MyCompanyForm = () => {
     
     loadSettings();
   }, [user, form]);
+  
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    
+    // Validate file type
+    if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PNG, JPEG or SVG image",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Logo file size should be less than 2MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Create a filename with timestamp to avoid conflicts
+      const timestamp = new Date().getTime();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${timestamp}.${fileExt}`;
+      
+      // Upload the file to Supabase storage
+      const { data, error } = await supabase
+        .storage
+        .from('logos')
+        .upload(filePath, file, { upsert: true });
+        
+      if (error) throw error;
+      
+      // Get the public URL for the uploaded file
+      const publicUrl = supabase
+        .storage
+        .from('logos')
+        .getPublicUrl(filePath)
+        .data.publicUrl;
+      
+      // Update the form value and preview
+      form.setValue('logo_url', publicUrl);
+      setPreviewUrl(publicUrl);
+      
+      toast({
+        title: "Logo uploaded",
+        description: "Your logo has been uploaded successfully"
+      });
+      
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
   
   const onSubmit = async (data: InvoiceSettingsType) => {
     if (!user?.id) {
@@ -105,6 +184,36 @@ const MyCompanyForm = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
+              {/* Logo Upload Section */}
+              <div className="space-y-2">
+                <Label htmlFor="logo">Company Logo</Label>
+                <div className="flex flex-col items-center space-y-4">
+                  {previewUrl && (
+                    <div className="border rounded p-2 mb-2 max-w-[200px]">
+                      <img 
+                        src={previewUrl} 
+                        alt="Company Logo" 
+                        className="h-24 object-contain" 
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="w-full">
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/svg+xml"
+                      onChange={handleLogoSelect}
+                      disabled={isUploading}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Supported formats: PNG, JPEG, SVG. Max size: 2MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <FormField
                 control={form.control}
                 name="business_name"
@@ -218,7 +327,7 @@ const MyCompanyForm = () => {
         <div className="flex justify-end">
           <Button 
             type="submit" 
-            disabled={isLoading}
+            disabled={isLoading || isUploading}
             className="w-full md:w-auto"
           >
             {isLoading ? "Saving..." : "Save My Company Details"}
