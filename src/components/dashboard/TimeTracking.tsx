@@ -5,6 +5,7 @@ import { Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { useBreakTime } from "@/hooks/useBreakTime";
 
 type TimeTrackingProps = {
   startTime: Date | null;
@@ -28,6 +29,11 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   handleEndShift,
 }) => {
   const { t } = useTranslation();
+  
+  const {
+    handleBreakToggle,
+    isBreakActive,
+  } = useBreakTime();
   
   return (
     <Card className="mb-6">
@@ -60,7 +66,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button 
             size="lg" 
             className={`${isShiftActive ? 'bg-gray-400 hover:bg-gray-500' : 'bg-green-600 hover:bg-green-700'}`} 
@@ -68,6 +74,16 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             disabled={isShiftActive || isShiftComplete}
           >
             {isShiftActive ? t('Shift Started') : t('Start Shift')}
+          </Button>
+          
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={handleBreakToggle}
+            disabled={!isShiftActive || isShiftComplete}
+            className="px-8"
+          >
+            {isBreakActive ? t('End Break') : t('Start Break')}
           </Button>
           
           <Button 
