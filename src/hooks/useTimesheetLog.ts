@@ -9,6 +9,7 @@ import {
   filterShiftsByDateRange,
   deleteShift 
 } from "@/services/shiftService";
+import { loadBreakState } from "@/services/storageService";
 
 export function useTimesheetLog() {
   const [activeTab, setActiveTab] = useState("day");
@@ -42,7 +43,32 @@ export function useTimesheetLog() {
     setIsLoading(true);
     try {
       const userShifts = await fetchUserShifts();
-      setShifts(userShifts);
+      
+      // Enhance shifts with break intervals from localStorage if available
+      const enhancedShifts = userShifts.map(shift => {
+        const shiftKey = `shift_${shift.id}_breaks`;
+        const storedBreakData = localStorage.getItem(shiftKey);
+        
+        let breakIntervals: { start: Date; end: Date | null }[] = [];
+        if (storedBreakData) {
+          try {
+            const parsedData = JSON.parse(storedBreakData);
+            breakIntervals = parsedData.map((interval: any) => ({
+              start: new Date(interval.start),
+              end: interval.end ? new Date(interval.end) : null
+            }));
+          } catch (error) {
+            console.error("Error parsing stored break data:", error);
+          }
+        }
+        
+        return {
+          ...shift,
+          breakIntervals
+        };
+      });
+      
+      setShifts(enhancedShifts);
       setError(null);
     } catch (err) {
       console.error("Failed to fetch shifts:", err);
@@ -63,6 +89,10 @@ export function useTimesheetLog() {
       const success = await deleteShift(shiftId);
       
       if (success) {
+        // Also clean up stored break intervals for this shift
+        const shiftKey = `shift_${shiftId}_breaks`;
+        localStorage.removeItem(shiftKey);
+        
         // Update state to immediately remove the deleted shift from UI
         setShifts(prevShifts => prevShifts.filter(shift => shift.id !== shiftId));
         toast({

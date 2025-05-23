@@ -20,10 +20,10 @@ export interface StoredShiftState {
 export interface StoredBreakState {
   isBreakActive: boolean;
   selectedBreakDuration: string;
-  breakStartTime: string | null;
+  breakIntervals: { start: string; end: string | null }[];
   remainingBreakTime: number;
   totalBreakDuration: number;
-  lastUpdatedAt: string; // Add timestamp for syncing across devices
+  lastUpdatedAt: string;
 }
 
 // Save active shift state to localStorage
@@ -89,6 +89,11 @@ export const loadBreakState = (): StoredBreakState | null => {
       if (parsedState.remainingBreakTime !== undefined) {
         parsedState.remainingBreakTime = Number(parsedState.remainingBreakTime);
       }
+
+      // Ensure breakIntervals is an array
+      if (!Array.isArray(parsedState.breakIntervals)) {
+        parsedState.breakIntervals = [];
+      }
     }
     
     return parsedState;
@@ -122,7 +127,7 @@ export const resetBreakState = (): void => {
     const defaultState: StoredBreakState = {
       isBreakActive: false,
       selectedBreakDuration: "15",
-      breakStartTime: null,
+      breakIntervals: [],
       remainingBreakTime: 0,
       totalBreakDuration: 0,
       lastUpdatedAt: new Date().toISOString()
