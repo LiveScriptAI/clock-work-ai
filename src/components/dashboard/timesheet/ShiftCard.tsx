@@ -85,10 +85,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
             <p className="text-muted-foreground">End Time:</p>
             <p>{format(shift.endTime, "h:mm a")}</p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Break:</p>
-            <p>{shift.breakDuration} minutes</p>
-          </div>
+          {/* Break duration line removed as requested */}
           <div>
             <p className="text-muted-foreground">Hours Worked:</p>
             <p>{formatHoursAndMinutes(shift.hoursWorked)}</p>
