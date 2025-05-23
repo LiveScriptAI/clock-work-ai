@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
@@ -10,9 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
 import DashboardContent from "@/components/dashboard/layout/DashboardContent";
 import DashboardDialogs from "@/components/dashboard/layout/DashboardDialogs";
-
-// Import break intervals component
-import BreakIntervalsList from "@/components/dashboard/timesheet/BreakIntervalsList";
 
 // Import utility functions
 import { 
