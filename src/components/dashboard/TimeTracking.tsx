@@ -85,6 +85,24 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
               <span className="font-medium">{t('Manager')}:</span> {managerName}
             </p>
             
+            {isBreakActive && breakStart && (
+              <div className="mt-2 pt-2 border-t border-green-200">
+                <p className={`text-sm ${isBreakOvertime ? 'text-red-600' : 'text-amber-600'} font-medium flex items-center`}>
+                  <Timer className="h-4 w-4 mr-1" />
+                  {t('On break')}: 
+                  {isBreakOvertime ? (
+                    <span className="ml-1 font-bold text-red-600">
+                      {formatCountdown(Math.abs(remainingBreakTime))} {t('overtime')}
+                    </span>
+                  ) : (
+                    <span className="ml-1 font-bold">
+                      {formatCountdown(remainingBreakTime)} {t('remaining')}
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+            
             {isShiftComplete && endTime && (
               <div className="mt-2 pt-2 border-t border-green-200">
                 <p className="text-sm text-red-600">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useShiftState } from "@/hooks/useShiftState";
 import { useBreakTime } from "@/hooks/useBreakTime";
@@ -54,8 +55,7 @@ const DashboardPage = () => {
     handleBreakToggle,
     handleBreakDurationChange,
     getCurrentBreakDuration,
-    resetBreakStateCompletely,
-    getBreakIntervals  // Add this to the destructuring
+    resetBreakStateCompletely
   } = breakTime;
 
   // Reset break state if shift is not active and break information exists

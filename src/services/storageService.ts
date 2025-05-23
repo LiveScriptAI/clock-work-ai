@@ -21,7 +21,8 @@ export interface StoredBreakState {
   isBreakActive: boolean;
   selectedBreakDuration: string;
   breakStartTime: string | null;
-  breakIntervals: { start: string; end: string | null }[];
+  remainingBreakTime: number;
+  totalBreakDuration: number;
   lastUpdatedAt: string; // Add timestamp for syncing across devices
 }
 
@@ -56,6 +57,15 @@ export const saveBreakState = (breakState: StoredBreakState): void => {
       lastUpdatedAt: new Date().toISOString()
     };
     
+    // Round values to prevent floating point issues
+    if (typeof stateWithTimestamp.totalBreakDuration === 'number') {
+      stateWithTimestamp.totalBreakDuration = Math.round(stateWithTimestamp.totalBreakDuration);
+    }
+    
+    if (typeof stateWithTimestamp.remainingBreakTime === 'number') {
+      stateWithTimestamp.remainingBreakTime = Math.round(stateWithTimestamp.remainingBreakTime);
+    }
+    
     localStorage.setItem(BREAK_STATE_KEY, JSON.stringify(stateWithTimestamp));
   } catch (error) {
     console.error("Error saving break state:", error);
@@ -70,10 +80,14 @@ export const loadBreakState = (): StoredBreakState | null => {
     
     const parsedState = JSON.parse(storedState);
     
-    // Ensure breakIntervals is properly initialized
+    // Ensure numeric values are properly typed
     if (parsedState && typeof parsedState === 'object') {
-      if (!Array.isArray(parsedState.breakIntervals)) {
-        parsedState.breakIntervals = [];
+      if (parsedState.totalBreakDuration !== undefined) {
+        parsedState.totalBreakDuration = Number(parsedState.totalBreakDuration);
+      }
+      
+      if (parsedState.remainingBreakTime !== undefined) {
+        parsedState.remainingBreakTime = Number(parsedState.remainingBreakTime);
       }
     }
     
@@ -109,7 +123,8 @@ export const resetBreakState = (): void => {
       isBreakActive: false,
       selectedBreakDuration: "15",
       breakStartTime: null,
-      breakIntervals: [],
+      remainingBreakTime: 0,
+      totalBreakDuration: 0,
       lastUpdatedAt: new Date().toISOString()
     };
     
