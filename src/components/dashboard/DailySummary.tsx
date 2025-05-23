@@ -81,10 +81,6 @@ const DailySummary: React.FC<DailySummaryProps> = ({
             <span className="font-medium">{formatDuration(timeWorked)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Break Duration:</span>
-            <span className="font-medium">{breakDuration}</span>
-          </div>
-          <div className="flex justify-between">
             <span className="text-gray-600">Estimated Earnings:</span>
             <span className="font-medium">
               £{earnings}
