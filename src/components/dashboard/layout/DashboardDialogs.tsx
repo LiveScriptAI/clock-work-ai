@@ -38,7 +38,6 @@ interface DashboardDialogsProps {
   // Utility functions
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
-  getBreakDuration: () => string;
 }
 
 const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
@@ -70,7 +69,6 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
   setEndSignatureData,
   formatDuration,
   calculateTimeWorked,
-  getBreakDuration,
 }) => {
   return (
     <>
@@ -102,7 +100,7 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
         startTime={startTime}
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}
-        getBreakDuration={getBreakDuration}
+        getBreakDuration={() => "0 min"} // No breaks for now
         setEndSignatureData={setEndSignatureData}
       />
 

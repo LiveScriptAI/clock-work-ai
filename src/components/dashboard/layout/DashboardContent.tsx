@@ -12,14 +12,8 @@ interface DashboardContentProps {
   endTime: Date | null;
   isShiftActive: boolean;
   isShiftComplete: boolean;
-  isBreakActive: boolean;
   managerName: string;
   endManagerName: string;
-  breakStart: Date | null;
-  remainingBreakTime: number;
-  selectedBreakDuration: string;
-  breakMenuOpen: boolean;
-  BREAK_DURATIONS: Array<{ value: string; label: string }>;
   employerName: string;
   rateType: string;
   payRate: number;
@@ -27,11 +21,7 @@ interface DashboardContentProps {
   // Functions
   handleStartShift: () => void;
   handleEndShift: () => void;
-  handleBreakToggle: () => void;
-  handleBreakDurationChange: (duration: string) => void;
-  setBreakMenuOpen: (open: boolean) => void;
   formatCountdown: (seconds: number) => string;
-  getBreakDuration: () => string;
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
   calculateEarnings: () => string;
@@ -42,24 +32,14 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   endTime,
   isShiftActive,
   isShiftComplete,
-  isBreakActive,
   managerName,
   endManagerName,
-  breakStart,
-  remainingBreakTime,
-  selectedBreakDuration,
-  breakMenuOpen,
-  BREAK_DURATIONS,
   employerName,
   rateType,
   payRate,
   handleStartShift,
   handleEndShift,
-  handleBreakToggle,
-  handleBreakDurationChange,
-  setBreakMenuOpen,
   formatCountdown,
-  getBreakDuration,
   formatDuration,
   calculateTimeWorked,
   calculateEarnings,
@@ -72,21 +52,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         endTime={endTime}
         isShiftActive={isShiftActive}
         isShiftComplete={isShiftComplete}
-        isBreakActive={isBreakActive}
         managerName={managerName}
         endManagerName={endManagerName}
-        breakStart={breakStart}
-        remainingBreakTime={remainingBreakTime}
-        selectedBreakDuration={selectedBreakDuration}
-        breakMenuOpen={breakMenuOpen}
-        BREAK_DURATIONS={BREAK_DURATIONS}
         handleStartShift={handleStartShift}
         handleEndShift={handleEndShift}
-        handleBreakToggle={handleBreakToggle}
-        handleBreakDurationChange={handleBreakDurationChange}
-        setBreakMenuOpen={setBreakMenuOpen}
-        getBreakDuration={getBreakDuration}
-        formatCountdown={formatCountdown}
       />
 
       <div className="grid grid-cols-1 mb-6">
@@ -94,11 +63,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         <DailySummary 
           formatDuration={formatDuration}
           calculateTimeWorked={calculateTimeWorked}
-          getBreakDuration={getBreakDuration}
+          getBreakDuration={() => "0 min"} // No breaks for now
           calculateEarnings={calculateEarnings}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
-          isBreakActive={isBreakActive}
+          isBreakActive={false} // No breaks for now
           employerName={employerName}
           rateType={rateType}
           payRate={payRate}
