@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { differenceInSeconds } from "date-fns";
+import { differenceInSeconds, format } from "date-fns";
 import { toast } from "sonner";
 import {
   saveBreakState,
@@ -20,6 +20,18 @@ export function useBreakTime() {
   const [isBreakActive, setIsBreakActive] = useState<boolean>(
     saved?.isBreakActive ?? false
   );
+  const [breakStart, setBreakStart] = useState<Date | null>(() => {
+    if (saved?.breakStart) {
+      return new Date(saved.breakStart);
+    }
+    return null;
+  });
+  const [breakEnd, setBreakEnd] = useState<Date | null>(() => {
+    if (saved?.breakEnd) {
+      return new Date(saved.breakEnd);
+    }
+    return null;
+  });
   const [breakIntervals, setBreakIntervals] = useState<{start: Date; end: Date | null}[]>(() => {
     if (saved?.breakIntervals) {
       return saved.breakIntervals.map(interval => ({
@@ -69,9 +81,11 @@ export function useBreakTime() {
       breakIntervals: intervalsForStorage,
       totalBreakDuration,
       remainingBreakTime,
+      breakStart: breakStart?.toISOString() ?? null,
+      breakEnd: breakEnd?.toISOString() ?? null,
       lastUpdatedAt: new Date().toISOString()
     });
-  }, [isBreakActive, selectedBreakDuration, breakIntervals, totalBreakDuration, remainingBreakTime]);
+  }, [isBreakActive, selectedBreakDuration, breakIntervals, totalBreakDuration, remainingBreakTime, breakStart, breakEnd]);
 
   // Check for break state changes from other tabs/devices
   useEffect(() => {
@@ -105,6 +119,18 @@ export function useBreakTime() {
         if (latestState.remainingBreakTime !== remainingBreakTime) {
           setRemainingBreakTime(latestState.remainingBreakTime);
         }
+
+        // Update breakStart and breakEnd
+        const newBreakStart = latestState.breakStart ? new Date(latestState.breakStart) : null;
+        const newBreakEnd = latestState.breakEnd ? new Date(latestState.breakEnd) : null;
+        
+        if (JSON.stringify(newBreakStart) !== JSON.stringify(breakStart)) {
+          setBreakStart(newBreakStart);
+        }
+        
+        if (JSON.stringify(newBreakEnd) !== JSON.stringify(breakEnd)) {
+          setBreakEnd(newBreakEnd);
+        }
       }
     };
 
@@ -116,53 +142,29 @@ export function useBreakTime() {
         clearInterval(syncIntervalRef.current);
       }
     };
-  }, [isBreakActive, breakIntervals, remainingBreakTime, selectedBreakDuration]);
-
-  // Countdown timer for active breaks
-  useEffect(() => {
-    if (!isBreakActive) return;
-    
-    const id = setInterval(() => {
-      setRemainingBreakTime(prev => prev - 1);
-    }, 1000);
-    
-    return () => clearInterval(id);
-  }, [isBreakActive]);
-
-  // Handle visibility change (when tab becomes active again)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isBreakActive && breakIntervals.length > 0) {
-        const lastInterval = breakIntervals[breakIntervals.length - 1];
-        if (lastInterval && !lastInterval.end) {
-          // Recalculate remaining time based on the actual elapsed time
-          const elapsed = differenceInSeconds(new Date(), lastInterval.start);
-          const original = parseInt(selectedBreakDuration, 10) * 60;
-          const newRemaining = original - elapsed;
-          setRemainingBreakTime(newRemaining);
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [isBreakActive, breakIntervals, selectedBreakDuration]);
+  }, [isBreakActive, breakIntervals, remainingBreakTime, selectedBreakDuration, breakStart, breakEnd]);
 
   const handleBreakStart = useCallback(() => {
     const now = new Date();
     const secs = parseInt(selectedBreakDuration, 10) * 60;
     
+    // Set breakStart and clear breakEnd
+    setBreakStart(now);
+    setBreakEnd(null);
+    
     // Add new break interval
     setBreakIntervals(prev => [...prev, { start: now, end: null }]);
     setIsBreakActive(true);
     setRemainingBreakTime(secs);
-    toast.info(`Break started for ${selectedBreakDuration} minutes`);
+    
+    toast.info(`Break started at ${format(now, 'HH:mm:ss')}`);
   }, [selectedBreakDuration]);
 
   const handleBreakEnd = useCallback(() => {
     const now = new Date();
+    
+    // Set breakEnd
+    setBreakEnd(now);
     
     // End the last active break interval
     setBreakIntervals(prev => {
@@ -176,7 +178,7 @@ export function useBreakTime() {
     setIsBreakActive(false);
     setRemainingBreakTime(0);
     
-    toast.success("Break ended");
+    toast.success(`Break ended at ${format(now, 'HH:mm:ss')}`);
   }, []);
 
   const handleBreakToggle = useCallback(() => {
@@ -194,11 +196,15 @@ export function useBreakTime() {
     setIsBreakActive(false);
     setBreakIntervals([]);
     setRemainingBreakTime(0);
+    setBreakStart(null);
+    setBreakEnd(null);
     resetBreakState();
   }, []);
 
   return {
     isBreakActive,
+    breakStart,
+    breakEnd,
     breakIntervals,
     totalBreakDuration,
     remainingBreakTime,

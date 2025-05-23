@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
+import { format, formatDistanceStrict } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useBreakTime } from "@/hooks/useBreakTime";
 
@@ -33,6 +33,8 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   const {
     handleBreakToggle,
     isBreakActive,
+    breakStart,
+    breakEnd,
   } = useBreakTime();
   
   return (
@@ -52,6 +54,25 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
             <p className="text-sm text-green-800 mt-1">
               <span className="font-medium">{t('Manager')}:</span> {managerName}
             </p>
+            
+            {/* Break timestamp display */}
+            {breakStart && (
+              <div className="mt-2 pt-2 border-t border-green-200">
+                <div className="text-sm text-blue-600">
+                  <span className="font-medium">Break started:</span> {format(breakStart, 'HH:mm:ss')}
+                </div>
+                {breakEnd && (
+                  <>
+                    <div className="text-sm text-blue-600">
+                      <span className="font-medium">Break ended:</span> {format(breakEnd, 'HH:mm:ss')}
+                    </div>
+                    <div className="text-sm text-blue-600">
+                      <span className="font-medium">Duration:</span> {formatDistanceStrict(breakStart, breakEnd, { unit: 'second' })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             
             {isShiftComplete && endTime && (
               <div className="mt-2 pt-2 border-t border-green-200">
@@ -77,11 +98,11 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
           </Button>
           
           <Button
-            variant="secondary"
+            variant="default"
             size="lg"
             onClick={handleBreakToggle}
             disabled={!isShiftActive || isShiftComplete}
-            className="px-8"
+            className="px-8 bg-blue-600 hover:bg-blue-700"
           >
             {isBreakActive ? t('End Break') : t('Start Break')}
           </Button>

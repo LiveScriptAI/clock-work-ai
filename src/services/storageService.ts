@@ -23,6 +23,8 @@ export interface StoredBreakState {
   breakIntervals: { start: string; end: string | null }[];
   remainingBreakTime: number;
   totalBreakDuration: number;
+  breakStart: string | null;
+  breakEnd: string | null;
   lastUpdatedAt: string;
 }
 
@@ -130,6 +132,8 @@ export const resetBreakState = (): void => {
       breakIntervals: [],
       remainingBreakTime: 0,
       totalBreakDuration: 0,
+      breakStart: null,
+      breakEnd: null,
       lastUpdatedAt: new Date().toISOString()
     };
     
