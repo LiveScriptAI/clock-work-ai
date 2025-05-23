@@ -1,3 +1,4 @@
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -61,7 +62,7 @@ const loadImage = (url: string): Promise<string> => {
   });
 };
 
-export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType, includeBreaks: boolean = false): Promise<void> => {
+export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
   try {
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -178,23 +179,14 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, currentY);
     
     // Line items table
-    const tableData = invoice.lineItems.map(item => {
-      const baseRow = [
-        item.date ? item.date.toLocaleDateString() : "N/A",
-        item.description || "N/A",
-        item.rateType,
-        formatHoursAndMinutes(item.quantity),
-        `£${item.unitPrice.toFixed(2)}`,
-        `£${(item.quantity * item.unitPrice).toFixed(2)}`
-      ];
-      
-      // If includeBreaks is true, add break information to description
-      if (includeBreaks) {
-        baseRow[1] += "\n(Breaks: See attached timesheet)";
-      }
-      
-      return baseRow;
-    });
+    const tableData = invoice.lineItems.map(item => [
+      item.date ? item.date.toLocaleDateString() : "N/A",
+      item.description || "N/A",
+      item.rateType,
+      formatHoursAndMinutes(item.quantity),
+      `£${item.unitPrice.toFixed(2)}`,
+      `£${(item.quantity * item.unitPrice).toFixed(2)}`
+    ]);
     
     // Adjust table starting position if we have a logo
     const tableStartY = sender.logo_url ? yPos + 60 : 65;
@@ -211,30 +203,19 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     // Get the y position after the table
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     
-    // Add breaks section if enabled
-    if (includeBreaks) {
-      doc.setFontSize(11);
-      doc.text("Break Intervals:", 14, finalY + 10);
-      doc.setFontSize(9);
-      doc.text("Break intervals would be detailed here for each line item", 14, finalY + 20);
-    }
+    // Totals
+    doc.text("Subtotal:", 140, finalY);
+    doc.text(`£${invoice.subtotal}`, 170, finalY, { align: "right" });
     
-    // Totals (adjust position if breaks section was added)
-    const totalsY = includeBreaks ? finalY + 35 : finalY;
-    
-    doc.setFontSize(10);
-    doc.text("Subtotal:", 140, totalsY);
-    doc.text(`£${invoice.subtotal}`, 170, totalsY, { align: "right" });
-    
-    doc.text("VAT (20%):", 140, totalsY + 7);
-    doc.text(`£${invoice.vat}`, 170, totalsY + 7, { align: "right" });
+    doc.text("VAT (20%):", 140, finalY + 7);
+    doc.text(`£${invoice.vat}`, 170, finalY + 7, { align: "right" });
     
     doc.setFontSize(11);
-    doc.text("Total:", 140, totalsY + 14);
-    doc.text(`£${invoice.total}`, 170, totalsY + 14, { align: "right" });
+    doc.text("Total:", 140, finalY + 14);
+    doc.text(`£${invoice.total}`, 170, finalY + 14, { align: "right" });
     
     // Notes and Terms
-    let notesY = totalsY + 30;
+    let notesY = finalY + 30;
     
     if (invoice.notes) {
       doc.setFontSize(11);
