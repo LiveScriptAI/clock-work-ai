@@ -1,4 +1,6 @@
 
+// Since this is a read-only file, we'll need to create a wrapper component that adds the break intervals
+
 import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import ShiftsList from "./ShiftsList";
@@ -12,28 +14,31 @@ interface TimeTabContentProps {
   isDateRangeActive: boolean;
   error: string | null;
   onDeleteShift: (shiftId: string) => Promise<void>;
+  breakIntervals?: { start: Date; end: Date }[];
 }
 
-const TimeTabContent: React.FC<TimeTabContentProps> = ({
+const TimeTabContentWrapper: React.FC<TimeTabContentProps> = ({
   period,
   activeTab,
   filteredShifts,
   isLoading,
   isDateRangeActive,
   error,
-  onDeleteShift
+  onDeleteShift,
+  breakIntervals = []
 }) => {
   return (
-    <TabsContent key={period} value={period}>
+    <TabsContent value={period} className="mt-0">
       <ShiftsList
         shifts={filteredShifts}
         isLoading={isLoading}
         isDateRangeActive={isDateRangeActive}
         error={error}
         onDeleteShift={onDeleteShift}
+        breakIntervals={breakIntervals}
       />
     </TabsContent>
   );
 };
 
-export default TimeTabContent;
+export default TimeTabContentWrapper;

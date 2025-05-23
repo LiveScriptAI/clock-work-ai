@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
+import { useBreakTime } from "@/hooks/useBreakTime";
+import { format } from "date-fns";
 
 type DailySummaryProps = {
   formatDuration: (seconds: number) => string;
@@ -32,6 +34,10 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   const [timeWorked, setTimeWorked] = useState(calculateTimeWorked());
   const [breakDuration, setBreakDuration] = useState(getBreakDuration());
   const [earnings, setEarnings] = useState(calculateEarnings());
+  
+  // Get break intervals from the hook
+  const { getBreakIntervals } = useBreakTime();
+  const breakIntervals = getBreakIntervals();
   
   // Update values every second to ensure they're always accurate
   useEffect(() => {
@@ -97,6 +103,24 @@ const DailySummary: React.FC<DailySummaryProps> = ({
               {isShiftActive ? (isBreakActive ? 'On Break' : 'Active') : isShiftComplete ? 'Completed' : 'Not Started'}
             </span>
           </div>
+          
+          {/* Break intervals list */}
+          {(isShiftActive || isShiftComplete) && (
+            <div className="mt-4">
+              <h3 className="font-medium">Breaks</h3>
+              {breakIntervals.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {breakIntervals.map(({ start, end }, idx) => (
+                    <li key={idx}>
+                      {format(start, "HH:mm")} – {format(end, "HH:mm")}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500">No breaks taken</p>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

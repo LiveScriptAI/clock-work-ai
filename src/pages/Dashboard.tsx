@@ -11,6 +11,9 @@ import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
 import DashboardContent from "@/components/dashboard/layout/DashboardContent";
 import DashboardDialogs from "@/components/dashboard/layout/DashboardDialogs";
 
+// Import break intervals component
+import BreakIntervalsList from "@/components/dashboard/timesheet/BreakIntervalsList";
+
 // Import utility functions
 import { 
   formatDuration, 
@@ -55,7 +58,8 @@ const DashboardPage = () => {
     handleBreakToggle,
     handleBreakDurationChange,
     getCurrentBreakDuration,
-    resetBreakStateCompletely
+    resetBreakStateCompletely,
+    getBreakIntervals  // Add this to the destructuring
   } = breakTime;
 
   // Reset break state if shift is not active and break information exists

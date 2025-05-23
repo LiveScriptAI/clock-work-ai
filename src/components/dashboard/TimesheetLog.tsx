@@ -15,7 +15,8 @@ import {
 // Import components
 import DateRangePicker from "./DateRangePicker";
 import ExportActions from "./timesheet/ExportActions";
-import TimeTabContent from "./timesheet/TimeTabContent";
+import TimeTabContentWrapper from "./timesheet/TimeTabContent"; // Using our wrapper instead
+import { useBreakTime } from "@/hooks/useBreakTime";
 
 // Import hooks
 import { useTimesheetLog } from "@/hooks/useTimesheetLog";
@@ -36,6 +37,10 @@ const TimesheetLog: React.FC = () => {
     handleApplyFilter,
     handleResetFilter
   } = useTimesheetLog();
+  
+  // Get break intervals from the hook to pass to TimeTabContent
+  const { getBreakIntervals } = useBreakTime();
+  const breakIntervals = getBreakIntervals();
 
   return (
     <Card>
@@ -67,7 +72,7 @@ const TimesheetLog: React.FC = () => {
           </TabsList>
           
           {["day", "week", "month"].map((period) => (
-            <TimeTabContent
+            <TimeTabContentWrapper
               key={period}
               period={period}
               activeTab={activeTab}
@@ -76,6 +81,7 @@ const TimesheetLog: React.FC = () => {
               isDateRangeActive={isDateRangeActive}
               error={error}
               onDeleteShift={handleDeleteShift}
+              breakIntervals={breakIntervals}
             />
           ))}
         </Tabs>
