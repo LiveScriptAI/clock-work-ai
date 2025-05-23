@@ -38,6 +38,8 @@ interface PreviewInvoiceDialogProps {
   country: string;
   // Sender information
   sender: InvoiceSettingsType | null;
+  // Break intervals flag
+  includeBreaks: boolean;
 }
 
 const PreviewInvoiceDialog = ({
@@ -61,6 +63,8 @@ const PreviewInvoiceDialog = ({
   country,
   // Sender information
   sender,
+  // Break intervals flag
+  includeBreaks,
 }: PreviewInvoiceDialogProps) => {
   const isMobile = useIsMobile();
   
@@ -156,7 +160,16 @@ const PreviewInvoiceDialog = ({
                     {lineItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.date ? format(item.date, "dd/MM/yyyy") : "N/A"}</TableCell>
-                        <TableCell>{item.description || "N/A"}</TableCell>
+                        <TableCell>
+                          {item.description || "N/A"}
+                          {/* Conditionally show break intervals if enabled */}
+                          {includeBreaks && (
+                            <div className="mt-2 text-xs text-muted-foreground">
+                              <p className="font-medium">Breaks:</p>
+                              <p>Break intervals would be shown here for this line item</p>
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="hidden sm:table-cell">{item.rateType}</TableCell>
                         <TableCell>{formatHoursAndMinutes(item.quantity)}</TableCell>
                         <TableCell>£{item.unitPrice.toFixed(2)}</TableCell>

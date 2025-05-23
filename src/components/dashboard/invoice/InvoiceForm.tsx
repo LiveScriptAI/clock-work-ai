@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -8,6 +7,7 @@ import {
   CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import InvoiceHeader from "./InvoiceHeader";
 import LineItemsTable from "./LineItemsTable";
 import NotesAndTerms from "./NotesAndTerms";
@@ -49,6 +49,7 @@ const InvoiceForm = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [includeBreaksOnInvoice, setIncludeBreaksOnInvoice] = useState<boolean>(false);
   
   // Add state for address fields
   const [address1, setAddress1] = useState<string>("");
@@ -58,17 +59,6 @@ const InvoiceForm = () => {
   const [postcode, setPostcode] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: `item-${Date.now()}`,
-      date: today,
-      description: "",
-      rateType: "Per Hour",
-      quantity: 1,
-      unitPrice: 0,
-    },
-  ]);
-
   // Fetch sender information when component mounts
   useEffect(() => {
     const loadSenderInfo = async () => {
@@ -285,7 +275,7 @@ const InvoiceForm = () => {
       country
     };
     
-    downloadInvoicePDF(invoiceData, sender);
+    downloadInvoicePDF(invoiceData, sender, includeBreaksOnInvoice);
   };
 
   return (
@@ -377,6 +367,18 @@ const InvoiceForm = () => {
             vat={calculateVAT()}
             total={calculateTotal()}
           />
+
+          {/* Include Breaks Checkbox */}
+          <div className="flex items-center gap-2 mb-4">
+            <Checkbox
+              checked={includeBreaksOnInvoice}
+              onCheckedChange={(v) => setIncludeBreaksOnInvoice(!!v)}
+              id="include-breaks"
+            />
+            <label htmlFor="include-breaks" className="text-sm font-medium">
+              Include break intervals on this invoice
+            </label>
+          </div>
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end">
@@ -406,6 +408,7 @@ const InvoiceForm = () => {
         postcode={postcode}
         country={country}
         sender={sender}
+        includeBreaks={includeBreaksOnInvoice}
       />
     </div>
   );
