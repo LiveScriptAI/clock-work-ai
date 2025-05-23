@@ -85,7 +85,6 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
             <p className="text-muted-foreground">End Time:</p>
             <p>{format(shift.endTime, "h:mm a")}</p>
           </div>
-          {/* Break duration line removed as requested */}
           <div>
             <p className="text-muted-foreground">Hours Worked:</p>
             <p>{formatHoursAndMinutes(shift.hoursWorked)}</p>
@@ -99,6 +98,21 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
             <p>£{shift.payRate} {shift.payType}</p>
           </div>
         </div>
+
+        {/* Break intervals section */}
+        {shift.breakIntervals && shift.breakIntervals.length > 0 && (
+          <div className="mt-2">
+            <p className="text-sm font-medium text-muted-foreground mb-1">Breaks:</p>
+            <div className="space-y-1">
+              {shift.breakIntervals.map((b, idx) => (
+                <div key={idx} className="text-xs text-gray-600">
+                  Break {idx + 1}: {format(b.start, 'HH:mm')} –{' '}
+                  {b.end ? format(b.end, 'HH:mm') : 'ongoing'}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-2 space-y-2">
           <AlertDialog>
