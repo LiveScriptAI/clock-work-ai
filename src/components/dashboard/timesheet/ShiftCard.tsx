@@ -21,7 +21,7 @@ const ShiftCardWrapper: React.FC<ShiftCardProps> = ({
     <div className="p-4 bg-white rounded-lg border shadow-sm">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="font-medium">{shift.employerName || "Unnamed Employer"}</h3>
+          <h3 className="font-medium">{shift.employer || "Unnamed Employer"}</h3>
           <p className="text-sm text-gray-500">
             {format(new Date(shift.startTime), "MMM d, yyyy • HH:mm")} - 
             {shift.endTime ? format(new Date(shift.endTime), " HH:mm") : " ongoing"}
