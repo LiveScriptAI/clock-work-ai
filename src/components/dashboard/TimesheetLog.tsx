@@ -9,13 +9,14 @@ import {
 import { 
   Tabs, 
   TabsList, 
-  TabsTrigger 
+  TabsTrigger,
+  TabsContent 
 } from "@/components/ui/tabs";
 
 // Import components
 import DateRangePicker from "./DateRangePicker";
 import ExportActions from "./timesheet/ExportActions";
-import TimeTabContentWrapper from "./timesheet/TimeTabContent"; // Using our wrapper instead
+import ShiftsList from "./timesheet/ShiftsList";
 import { useBreakTime } from "@/hooks/useBreakTime";
 
 // Import hooks
@@ -38,7 +39,7 @@ const TimesheetLog: React.FC = () => {
     handleResetFilter
   } = useTimesheetLog();
   
-  // Get break intervals from the hook to pass to TimeTabContent
+  // Get break intervals from the hook to pass to ShiftsList
   const { getBreakIntervals } = useBreakTime();
   const breakIntervals = getBreakIntervals();
 
@@ -72,17 +73,16 @@ const TimesheetLog: React.FC = () => {
           </TabsList>
           
           {["day", "week", "month"].map((period) => (
-            <TimeTabContentWrapper
-              key={period}
-              period={period}
-              activeTab={activeTab}
-              filteredShifts={filteredShifts}
-              isLoading={isLoading}
-              isDateRangeActive={isDateRangeActive}
-              error={error}
-              onDeleteShift={handleDeleteShift}
-              breakIntervals={breakIntervals}
-            />
+            <TabsContent key={period} value={period} className="mt-0">
+              <ShiftsList
+                shifts={filteredShifts}
+                isLoading={isLoading}
+                isDateRangeActive={isDateRangeActive}
+                error={error}
+                onDeleteShift={handleDeleteShift}
+                breakIntervals={breakIntervals}
+              />
+            </TabsContent>
           ))}
         </Tabs>
       </CardContent>
