@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { format, formatDistanceStrict } from "date-fns";
+import { format, formatDistanceStrict, differenceInSeconds } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useBreakTime } from "@/hooks/useBreakTime";
 
@@ -33,9 +33,16 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   const {
     handleBreakToggle,
     isBreakActive,
-    breakStart,
-    breakEnd,
+    breakIntervals,
   } = useBreakTime();
+
+  // Helper function to format duration in HH:mm:ss
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
   
   return (
     <Card className="mb-6">
@@ -55,22 +62,18 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
               <span className="font-medium">{t('Manager')}:</span> {managerName}
             </p>
             
-            {/* Break timestamp display */}
-            {breakStart && (
+            {/* Break intervals display */}
+            {breakIntervals.length > 0 && (
               <div className="mt-2 pt-2 border-t border-green-200">
-                <div className="text-sm text-blue-600">
-                  <span className="font-medium">Break started:</span> {format(breakStart, 'HH:mm:ss')}
-                </div>
-                {breakEnd && (
-                  <>
-                    <div className="text-sm text-blue-600">
-                      <span className="font-medium">Break ended:</span> {format(breakEnd, 'HH:mm:ss')}
-                    </div>
-                    <div className="text-sm text-blue-600">
-                      <span className="font-medium">Duration:</span> {formatDistanceStrict(breakStart, breakEnd, { unit: 'second' })}
-                    </div>
-                  </>
-                )}
+                <div className="text-sm text-blue-600 font-medium mb-2">Break Intervals:</div>
+                {breakIntervals.map((interval, index) => (
+                  <div key={interval.start.toISOString()} className="text-sm text-blue-600 mb-1">
+                    <div>Break started: {format(interval.start, 'HH:mm:ss')}</div>
+                    <div>Break ended: {interval.end ? format(interval.end, 'HH:mm:ss') : '…'}</div>
+                    <div>Duration: {formatDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</div>
+                    {index < breakIntervals.length - 1 && <div className="border-b border-blue-200 my-1"></div>}
+                  </div>
+                ))}
               </div>
             )}
             
