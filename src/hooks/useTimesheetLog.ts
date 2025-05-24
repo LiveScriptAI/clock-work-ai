@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
@@ -52,15 +53,24 @@ export function useTimesheetLog() {
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
-            // Keep intervals as ISO strings to match ShiftEntry type
+            console.log(`Loading break data for shift ${shift.id}:`, parsedData);
+            
+            // Convert all intervals to proper format, including both completed and ongoing breaks
             breakIntervals = parsedData
-              .filter((interval: any) => interval.start && interval.end) // Only include completed intervals
-              .map((interval: any) => ({
-                start: typeof interval.start === 'string' ? interval.start : new Date(interval.start).toISOString(),
-                end: typeof interval.end === 'string' ? interval.end : new Date(interval.end).toISOString()
-              }));
+              .map((interval: any) => {
+                // Ensure we have both start and end times as strings
+                const start = typeof interval.start === 'string' ? interval.start : 
+                             interval.start ? new Date(interval.start).toISOString() : null;
+                const end = typeof interval.end === 'string' ? interval.end : 
+                           interval.end ? new Date(interval.end).toISOString() : null;
+                
+                return start && end ? { start, end } : null;
+              })
+              .filter(Boolean); // Remove null entries
+            
+            console.log(`Processed break intervals for shift ${shift.id}:`, breakIntervals);
           } catch (error) {
-            console.error("Error parsing stored break data:", error);
+            console.error("Error parsing stored break data for shift", shift.id, ":", error);
           }
         }
         
@@ -70,6 +80,7 @@ export function useTimesheetLog() {
         };
       });
       
+      console.log("Enhanced shifts with break intervals:", enhancedShifts);
       setShifts(enhancedShifts);
       setError(null);
     } catch (err) {

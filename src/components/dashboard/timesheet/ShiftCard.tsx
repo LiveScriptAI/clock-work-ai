@@ -32,6 +32,10 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [breaksOpen, setBreaksOpen] = React.useState(false);
 
+  // Debug logging
+  console.log("ShiftCard rendering with shift:", shift);
+  console.log("Break intervals:", shift.breakIntervals);
+
   const handleDelete = async () => {
     setIsDeleting(true);
     await onDelete(shift.id);
@@ -110,39 +114,49 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
           </div>
         </div>
 
-        {/* Break intervals section */}
+        {/* Break intervals section - Always show if intervals exist */}
         {shift.breakIntervals && shift.breakIntervals.length > 0 && (
-          <div className="mt-2">
+          <div className="mt-3 border-t pt-3">
             <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
-                <span>Breaks</span>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-50 px-3 rounded-md">
+                <span className="font-semibold">Break Times ({shift.breakIntervals.length})</span>
                 {breaksOpen ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
                   <ChevronRight className="h-4 w-4" />
                 )}
               </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2">
-                <div className="space-y-3 pt-2">
+              <CollapsibleContent className="mt-2">
+                <div className="space-y-3">
                   {shift.breakIntervals.map((interval, i) => (
-                    <div key={i} className="break-interval bg-gray-50 p-3 rounded-md">
-                      <div className="flex justify-between text-sm">
-                        <span>Start:</span>
-                        <span>{format(parseISO(interval.start), 'HH:mm:ss')}</span>
+                    <div key={i} className="break-interval bg-blue-50 border border-blue-200 p-3 rounded-md">
+                      <div className="text-sm font-medium text-blue-900 mb-2">Break {i + 1}</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Start:</span>
+                          <span className="font-medium">{format(parseISO(interval.start), 'HH:mm:ss')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">End:</span>
+                          <span className="font-medium">{format(parseISO(interval.end), 'HH:mm:ss')}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>End:</span>
-                        <span>{interval.end ? format(parseISO(interval.end), 'HH:mm:ss') : '–'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm font-medium">
-                        <span>Duration:</span>
-                        <span>{formatDuration(intervalsToSeconds(interval))}</span>
+                      <div className="flex justify-between text-sm mt-2 pt-2 border-t border-blue-200">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="font-semibold text-blue-700">{formatDuration(intervalsToSeconds(interval))}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </div>
+        )}
+
+        {/* Debug info - remove this after testing */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 text-xs text-gray-400 bg-gray-100 p-2 rounded">
+            Debug: {shift.breakIntervals?.length || 0} break intervals found
           </div>
         )}
 
