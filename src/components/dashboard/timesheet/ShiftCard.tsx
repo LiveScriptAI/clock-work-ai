@@ -1,13 +1,13 @@
 
 import React from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Plus } from "lucide-react";
 import { ShiftEntry } from "./types";
-import { formatHoursAndMinutes } from "@/components/dashboard/utils";
+import { formatHoursAndMinutes, formatDuration } from "@/components/dashboard/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface ShiftCardProps {
   shift: ShiftEntry;
@@ -28,6 +30,7 @@ interface ShiftCardProps {
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [breaksOpen, setBreaksOpen] = React.useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -58,6 +61,14 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
         description: "Failed to add shift to invoice",
       });
     }
+  };
+
+  // Helper function to calculate interval duration in seconds
+  const intervalsToSeconds = (interval: { start: string; end: string }) => {
+    if (!interval.end) return 0;
+    const startTime = parseISO(interval.start);
+    const endTime = parseISO(interval.end);
+    return Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
   };
 
   return (
@@ -102,15 +113,36 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
         {/* Break intervals section */}
         {shift.breakIntervals && shift.breakIntervals.length > 0 && (
           <div className="mt-2">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Breaks:</p>
-            <div className="space-y-1">
-              {shift.breakIntervals.map((b, idx) => (
-                <div key={idx} className="text-xs text-gray-600">
-                  Break {idx + 1}: {format(b.start, 'HH:mm')} –{' '}
-                  {b.end ? format(b.end, 'HH:mm') : 'ongoing'}
+            <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+                <span>Breaks</span>
+                {breaksOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="space-y-3 pt-2">
+                  {shift.breakIntervals.map((interval, i) => (
+                    <div key={i} className="break-interval bg-gray-50 p-3 rounded-md">
+                      <div className="flex justify-between text-sm">
+                        <span>Start:</span>
+                        <span>{format(parseISO(interval.start), 'HH:mm:ss')}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>End:</span>
+                        <span>{interval.end ? format(parseISO(interval.end), 'HH:mm:ss') : '–'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Duration:</span>
+                        <span>{formatDuration(intervalsToSeconds(interval))}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         )}
 
