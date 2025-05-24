@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
@@ -49,14 +48,17 @@ export function useTimesheetLog() {
         const shiftKey = `shift_${shift.id}_breaks`;
         const storedBreakData = localStorage.getItem(shiftKey);
         
-        let breakIntervals: { start: Date; end: Date | null }[] = [];
+        let breakIntervals: { start: string; end: string }[] = [];
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
-            breakIntervals = parsedData.map((interval: any) => ({
-              start: new Date(interval.start),
-              end: interval.end ? new Date(interval.end) : null
-            }));
+            // Keep intervals as ISO strings to match ShiftEntry type
+            breakIntervals = parsedData
+              .filter((interval: any) => interval.start && interval.end) // Only include completed intervals
+              .map((interval: any) => ({
+                start: typeof interval.start === 'string' ? interval.start : new Date(interval.start).toISOString(),
+                end: typeof interval.end === 'string' ? interval.end : new Date(interval.end).toISOString()
+              }));
           } catch (error) {
             console.error("Error parsing stored break data:", error);
           }
