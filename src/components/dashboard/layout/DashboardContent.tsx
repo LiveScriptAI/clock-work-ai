@@ -5,6 +5,7 @@ import DailySummary from "@/components/dashboard/DailySummary";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
+import { useBreakTime } from "@/hooks/useBreakTime";
 
 interface DashboardContentProps {
   // Shift state
@@ -44,6 +45,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   calculateTimeWorked,
   calculateEarnings,
 }) => {
+  const { breakIntervals, isBreakActive } = useBreakTime();
+
   return (
     <>
       {/* Time Tracking Component */}
@@ -67,10 +70,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           calculateEarnings={calculateEarnings}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
-          isBreakActive={false} // No breaks for now
+          isBreakActive={isBreakActive}
           employerName={employerName}
           rateType={rateType}
           payRate={payRate}
+          breakIntervals={breakIntervals}
         />
       </div>
       

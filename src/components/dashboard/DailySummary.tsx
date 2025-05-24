@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { User } from "lucide-react";
-import { format } from "date-fns";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { User, ChevronDown, ChevronRight } from "lucide-react";
+import { format, differenceInSeconds } from "date-fns";
 
 type DailySummaryProps = {
   formatDuration: (seconds: number) => string;
@@ -34,6 +35,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   // State to store and refresh values
   const [timeWorked, setTimeWorked] = useState(calculateTimeWorked());
   const [earnings, setEarnings] = useState(calculateEarnings());
+  const [breaksOpen, setBreaksOpen] = useState(false);
   
   // Update values every second to ensure they're always accurate
   useEffect(() => {
@@ -88,21 +90,40 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           </div>
           
           {(isShiftActive || isShiftComplete) && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-600 mb-2">Breaks</h4>
-              {breakIntervals && breakIntervals.length > 0 ? (
-                <div className="space-y-1">
-                  {breakIntervals.map((interval, i) => (
-                    <p key={i} className="text-sm text-gray-700">
-                      {format(interval.start, 'hh:mm a')} –{' '}
-                      {interval.end ? format(interval.end, 'hh:mm a') : '…'}
-                    </p>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm italic text-gray-500">No breaks</p>
-              )}
-            </div>
+            <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+                <span>Breaks</span>
+                {breaksOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                {breakIntervals && breakIntervals.length > 0 ? (
+                  <div className="space-y-3 pt-2">
+                    {breakIntervals.map((interval, i) => (
+                      <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                        <div className="flex justify-between">
+                          <span>Start:</span>
+                          <span>{format(interval.start, 'HH:mm:ss')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>End:</span>
+                          <span>{interval.end ? format(interval.end, 'HH:mm:ss') : 'Ongoing'}</span>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                          <span>Duration:</span>
+                          <span>{formatDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm italic text-gray-500 pt-2">No breaks taken</p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
       </CardContent>
