@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
@@ -54,17 +53,20 @@ export function useTimesheetLog() {
         
         console.log(`useTimesheetLog - checking localStorage for ${shiftKey}:`, storedBreakData);
         
-        let breakIntervals: { start: string; end: string | null }[] = [];
+        let breakIntervals: { start: string; end: string | null }[] | undefined = undefined;
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
             console.log(`useTimesheetLog - parsed break data for shift ${shift.id}:`, parsedData);
             
-            // Convert to consistent ISO string format
-            breakIntervals = parsedData.map((interval: any) => ({
-              start: interval.start instanceof Date ? interval.start.toISOString() : interval.start,
-              end: interval.end ? (interval.end instanceof Date ? interval.end.toISOString() : interval.end) : null
-            }));
+            // Only set breakIntervals if there's actual data
+            if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
+              // Convert to consistent ISO string format
+              breakIntervals = parsedData.map((interval: any) => ({
+                start: interval.start instanceof Date ? interval.start.toISOString() : interval.start,
+                end: interval.end ? (interval.end instanceof Date ? interval.end.toISOString() : interval.end) : null
+              }));
+            }
           } catch (error) {
             console.error("Error parsing stored break data:", error);
           }
@@ -72,7 +74,7 @@ export function useTimesheetLog() {
         
         const enhancedShift = {
           ...shift,
-          breakIntervals
+          ...(breakIntervals && { breakIntervals })
         };
         
         console.log(`useTimesheetLog - enhanced shift ${shift.id}:`, {
