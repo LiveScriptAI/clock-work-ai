@@ -49,28 +49,16 @@ export function useTimesheetLog() {
         const shiftKey = `shift_${shift.id}_breaks`;
         const storedBreakData = localStorage.getItem(shiftKey);
         
-        let breakIntervals: { start: string; end: string }[] = [];
+        let breakIntervals: { start: Date; end: Date | null }[] = [];
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
-            console.log(`Loading break data for shift ${shift.id}:`, parsedData);
-            
-            // Convert all intervals to proper format, including both completed and ongoing breaks
-            breakIntervals = parsedData
-              .map((interval: any) => {
-                // Ensure we have both start and end times as strings
-                const start = typeof interval.start === 'string' ? interval.start : 
-                             interval.start ? new Date(interval.start).toISOString() : null;
-                const end = typeof interval.end === 'string' ? interval.end : 
-                           interval.end ? new Date(interval.end).toISOString() : null;
-                
-                return start && end ? { start, end } : null;
-              })
-              .filter(Boolean); // Remove null entries
-            
-            console.log(`Processed break intervals for shift ${shift.id}:`, breakIntervals);
+            breakIntervals = parsedData.map((interval: any) => ({
+              start: new Date(interval.start),
+              end: interval.end ? new Date(interval.end) : null
+            }));
           } catch (error) {
-            console.error("Error parsing stored break data for shift", shift.id, ":", error);
+            console.error("Error parsing stored break data:", error);
           }
         }
         
@@ -80,7 +68,6 @@ export function useTimesheetLog() {
         };
       });
       
-      console.log("Enhanced shifts with break intervals:", enhancedShifts);
       setShifts(enhancedShifts);
       setError(null);
     } catch (err) {

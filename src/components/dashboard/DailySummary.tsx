@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -54,14 +53,6 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     
     return () => clearInterval(intervalId);
   }, [isShiftActive, isBreakActive, calculateTimeWorked, calculateEarnings]);
-
-  // Helper function to format duration in HH:mm:ss
-  const formatBreakDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <Card>
@@ -123,7 +114,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                         </div>
                         <div className="flex justify-between font-medium">
                           <span>Duration:</span>
-                          <span>{formatBreakDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
+                          <span>{formatDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
                         </div>
                       </div>
                     ))}
@@ -141,4 +132,3 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 };
 
 export default DailySummary;
-
