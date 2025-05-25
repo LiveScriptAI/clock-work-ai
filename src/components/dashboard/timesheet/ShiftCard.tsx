@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format, parseISO, differenceInSeconds } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +32,15 @@ const secondsBetween = (start: Date, end: Date): number => {
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // Debug logging
+  console.log("ShiftCard - shift data:", {
+    id: shift.id,
+    date: shift.date,
+    hasBreakIntervals: !!shift.breakIntervals,
+    breakIntervalsLength: shift.breakIntervals?.length || 0,
+    breakIntervals: shift.breakIntervals
+  });
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -104,16 +112,24 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
           </div>
         </div>
 
+        {/* Debug section - temporary */}
+        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+          <p><strong>Debug Info:</strong></p>
+          <p>Break intervals exist: {shift.breakIntervals ? 'Yes' : 'No'}</p>
+          <p>Break intervals count: {shift.breakIntervals?.length || 0}</p>
+          {shift.breakIntervals && (
+            <p>Raw data: {JSON.stringify(shift.breakIntervals, null, 2)}</p>
+          )}
+        </div>
+
         {/* Break intervals section */}
         {shift.breakIntervals && shift.breakIntervals.length > 0 && (
           <div className="mt-4">
             <h4 className="text-sm font-medium">Breaks</h4>
             {shift.breakIntervals.map((interval, idx) => {
-              // Handle both Date objects and ISO strings
-              const start = typeof interval.start === 'string' ? parseISO(interval.start) : interval.start;
-              const end = interval.end 
-                ? (typeof interval.end === 'string' ? parseISO(interval.end) : interval.end)
-                : new Date();
+              // Handle ISO strings (updated data format)
+              const start = parseISO(interval.start);
+              const end = interval.end ? parseISO(interval.end) : new Date();
               const durSeconds = secondsBetween(start, end);
               
               return (

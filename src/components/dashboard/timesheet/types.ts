@@ -6,7 +6,7 @@ export interface ShiftEntry {
   startTime: Date;
   endTime: Date;
   breakDuration: number; // minutes - keep for compatibility
-  breakIntervals?: { start: Date; end: Date | null }[];
+  breakIntervals?: { start: string; end: string | null }[];
   hoursWorked: number;
   earnings: number;
   payRate: number;

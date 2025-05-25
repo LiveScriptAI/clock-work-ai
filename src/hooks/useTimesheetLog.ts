@@ -44,28 +44,44 @@ export function useTimesheetLog() {
     try {
       const userShifts = await fetchUserShifts();
       
+      // Debug logging
+      console.log("useTimesheetLog - loaded shifts:", userShifts.length);
+      
       // Enhance shifts with break intervals from localStorage if available
       const enhancedShifts = userShifts.map(shift => {
         const shiftKey = `shift_${shift.id}_breaks`;
         const storedBreakData = localStorage.getItem(shiftKey);
         
-        let breakIntervals: { start: Date; end: Date | null }[] = [];
+        console.log(`useTimesheetLog - checking localStorage for ${shiftKey}:`, storedBreakData);
+        
+        let breakIntervals: { start: string; end: string | null }[] = [];
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
+            console.log(`useTimesheetLog - parsed break data for shift ${shift.id}:`, parsedData);
+            
+            // Convert to consistent ISO string format
             breakIntervals = parsedData.map((interval: any) => ({
-              start: new Date(interval.start),
-              end: interval.end ? new Date(interval.end) : null
+              start: interval.start instanceof Date ? interval.start.toISOString() : interval.start,
+              end: interval.end ? (interval.end instanceof Date ? interval.end.toISOString() : interval.end) : null
             }));
           } catch (error) {
             console.error("Error parsing stored break data:", error);
           }
         }
         
-        return {
+        const enhancedShift = {
           ...shift,
           breakIntervals
         };
+        
+        console.log(`useTimesheetLog - enhanced shift ${shift.id}:`, {
+          hasBreakIntervals: !!enhancedShift.breakIntervals,
+          breakIntervalsCount: enhancedShift.breakIntervals?.length || 0,
+          breakIntervals: enhancedShift.breakIntervals
+        });
+        
+        return enhancedShift;
       });
       
       setShifts(enhancedShifts);
