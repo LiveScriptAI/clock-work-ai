@@ -1,13 +1,13 @@
 
 import React from "react";
-import { format } from "date-fns";
+import { format, parseISO, differenceInSeconds } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Plus } from "lucide-react";
 import { ShiftEntry } from "./types";
-import { formatHoursAndMinutes } from "@/components/dashboard/utils";
+import { formatHoursAndMinutes, formatDuration } from "@/components/dashboard/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,11 @@ interface ShiftCardProps {
   shift: ShiftEntry;
   onDelete: (shiftId: string) => Promise<void>;
 }
+
+// Helper function to calculate seconds between two dates
+const secondsBetween = (start: Date, end: Date): number => {
+  return differenceInSeconds(end, start);
+};
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -101,16 +106,33 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
 
         {/* Break intervals section */}
         {shift.breakIntervals && shift.breakIntervals.length > 0 && (
-          <div className="mt-2">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Breaks:</p>
-            <div className="space-y-1">
-              {shift.breakIntervals.map((b, idx) => (
-                <div key={idx} className="text-xs text-gray-600">
-                  Break {idx + 1}: {format(b.start, 'HH:mm')} –{' '}
-                  {b.end ? format(b.end, 'HH:mm') : 'ongoing'}
+          <div className="mt-4">
+            <h4 className="text-sm font-medium">Breaks</h4>
+            {shift.breakIntervals.map((interval, idx) => {
+              // Handle both Date objects and ISO strings
+              const start = typeof interval.start === 'string' ? parseISO(interval.start) : interval.start;
+              const end = interval.end 
+                ? (typeof interval.end === 'string' ? parseISO(interval.end) : interval.end)
+                : new Date();
+              const durSeconds = secondsBetween(start, end);
+              
+              return (
+                <div key={idx} className="grid grid-cols-3 gap-4 text-xs mt-1">
+                  <div>
+                    <span className="text-gray-500">Start:</span><br/>
+                    {format(start, 'HH:mm:ss')}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">End:</span><br/>
+                    {interval.end ? format(end, 'HH:mm:ss') : '—'}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Duration:</span><br/>
+                    {formatDuration(durSeconds)}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
 
