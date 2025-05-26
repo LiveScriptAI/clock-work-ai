@@ -100,7 +100,7 @@ export function useShiftActions(
         setIsBreakActive(false);
         if (breakStart) {
           const activeBreakDuration = differenceInSeconds(now, breakStart);
-          setTotalBreakDuration(prev => prev + activeBreakDuration);
+          setTotalBreakDuration(totalBreakDuration + activeBreakDuration);
         }
         setBreakStart(null);
       }
@@ -132,7 +132,7 @@ export function useShiftActions(
         earnings
       });
 
-      // Save to database
+      // Save to database with break intervals data
       const { data, error } = await supabase
         .from('shifts')
         .insert({
@@ -147,6 +147,7 @@ export function useShiftActions(
           pay_rate: payRate,
           rate_type: rateType,
           break_duration: Math.round(finalBreakDuration / 60), // Convert to minutes for database
+          break_intervals: breakIntervals.length > 0 ? JSON.stringify(breakIntervals) : null,
         })
         .select()
         .single();
@@ -157,13 +158,6 @@ export function useShiftActions(
       }
 
       console.log("useShiftActions - shift saved to database:", data);
-
-      // Save break intervals to localStorage with shift ID
-      if (data?.id && breakIntervals.length > 0) {
-        const shiftKey = `shift_${data.id}_breaks`;
-        localStorage.setItem(shiftKey, JSON.stringify(breakIntervals));
-        console.log(`useShiftActions - saved break intervals to ${shiftKey}:`, breakIntervals);
-      }
 
       // Clean up
       setIsEndSignatureOpen(false);
