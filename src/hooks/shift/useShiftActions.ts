@@ -37,18 +37,7 @@ export function useShiftActions(
   };
 
   const handleEndShift = () => {
-    if (!endManagerName.trim()) {
-      setValidationType('endManager');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    if (isEndSignatureEmpty) {
-      setValidationType('endSignature');
-      setShowValidationAlert(true);
-      return;
-    }
-    
+    // Simply open the signature dialog - validation will happen in confirmShiftEnd
     setIsEndSignatureOpen(true);
   };
 
@@ -81,8 +70,14 @@ export function useShiftActions(
   };
 
   const confirmShiftEnd = async (userId: string | undefined) => {
-    if (!endManagerName.trim() || isEndSignatureEmpty) {
-      setValidationType('end');
+    if (!endManagerName.trim()) {
+      setValidationType('endManager');
+      setShowValidationAlert(true);
+      return;
+    }
+    
+    if (isEndSignatureEmpty) {
+      setValidationType('endSignature');
       setShowValidationAlert(true);
       return;
     }
