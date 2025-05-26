@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { startOfDay, endOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
@@ -89,6 +88,48 @@ export function filterShiftsByDateRange(
     const shiftDate = startOfDay(shift.date);
     return shiftDate >= startOfDay(fromDate) && shiftDate <= endOfDay(toDate);
   });
+}
+
+// Save a new shift to the database
+export async function saveShift(shiftData: {
+  user_id: string;
+  start_time: string;
+  end_time: string;
+  manager_name: string;
+  end_manager_name: string;
+  employer_name: string;
+  pay_rate: number;
+  rate_type: string;
+  start_signature_data: string | null;
+  end_signature_data: string | null;
+  break_intervals: { start: string; end: string }[];
+}): Promise<void> {
+  // Calculate total break duration from intervals
+  const totalBreakDuration = shiftData.break_intervals.reduce((total, interval) => {
+    const start = new Date(interval.start);
+    const end = new Date(interval.end);
+    return total + Math.floor((end.getTime() - start.getTime()) / 1000);
+  }, 0);
+
+  const { error } = await supabase
+    .from("shifts")
+    .insert({
+      user_id: shiftData.user_id,
+      start_time: shiftData.start_time,
+      end_time: shiftData.end_time,
+      manager_start_name: shiftData.manager_name,
+      manager_end_name: shiftData.end_manager_name,
+      employer_name: shiftData.employer_name,
+      pay_rate: shiftData.pay_rate,
+      rate_type: shiftData.rate_type,
+      manager_start_signature: shiftData.start_signature_data,
+      manager_end_signature: shiftData.end_signature_data,
+      break_duration: totalBreakDuration
+    });
+
+  if (error) {
+    throw error;
+  }
 }
 
 // Transform Supabase shift data to ShiftEntry format

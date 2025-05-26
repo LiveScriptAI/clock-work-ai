@@ -195,6 +195,9 @@ export function useBreakTime() {
     resetBreakState();
   }, []);
 
+  // Alias for resetBreakStateCompletely to match what useShiftActions expects
+  const resetBreakIntervals = resetBreakStateCompletely;
+
   return {
     isBreakActive,
     breakStart,
@@ -208,5 +211,6 @@ export function useBreakTime() {
     handleBreakDurationChange,
     getCurrentBreakDuration: () => totalBreakDuration,
     resetBreakStateCompletely,
+    resetBreakIntervals,
   };
 }
