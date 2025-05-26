@@ -2,13 +2,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { 
   fetchUserShifts, 
   filterShiftsByPeriod, 
   filterShiftsByDateRange,
   deleteShift 
 } from "@/services/shiftService";
+import { loadBreakState } from "@/services/storageService";
 
 export function useTimesheetLog() {
   const [activeTab, setActiveTab] = useState("day");
@@ -30,7 +31,7 @@ export function useTimesheetLog() {
     () => isDateRangeActive && dateRange?.from && dateRange?.to
       ? filterShiftsByDateRange(shifts, dateRange.from, dateRange.to)
       : periodFilteredShifts,
-    [isDateRangeActive, dateRange, periodFilteredShifts, shifts]
+    [isDateRangeActive, dateRange, periodFilteredShifts]
   );
 
   // Fetch shifts data on component mount
@@ -40,46 +41,48 @@ export function useTimesheetLog() {
 
   const loadShifts = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const userShifts = await fetchUserShifts();
-      
-      console.log("useTimesheetLog - loaded shifts:", userShifts.length);
-      console.log("useTimesheetLog - shifts data:", userShifts);
       
       // Enhance shifts with break intervals from localStorage if available
       const enhancedShifts = userShifts.map(shift => {
         const shiftKey = `shift_${shift.id}_breaks`;
         const storedBreakData = localStorage.getItem(shiftKey);
         
-        let breakIntervals: { start: string; end: string | null }[] | undefined = undefined;
+        let breakIntervals: { start: string; end: string }[] = [];
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
+            console.log(`Loading break data for shift ${shift.id}:`, parsedData);
             
-            // Only set breakIntervals if there's actual data
-            if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-              // Convert to consistent ISO string format
-              breakIntervals = parsedData.map((interval: any) => ({
-                start: interval.start instanceof Date ? interval.start.toISOString() : interval.start,
-                end: interval.end ? (interval.end instanceof Date ? interval.end.toISOString() : interval.end) : null
-              }));
-            }
+            // Convert all intervals to proper format, including both completed and ongoing breaks
+            breakIntervals = parsedData
+              .map((interval: any) => {
+                // Ensure we have both start and end times as strings
+                const start = typeof interval.start === 'string' ? interval.start : 
+                             interval.start ? new Date(interval.start).toISOString() : null;
+                const end = typeof interval.end === 'string' ? interval.end : 
+                           interval.end ? new Date(interval.end).toISOString() : null;
+                
+                return start && end ? { start, end } : null;
+              })
+              .filter(Boolean); // Remove null entries
+            
+            console.log(`Processed break intervals for shift ${shift.id}:`, breakIntervals);
           } catch (error) {
-            console.error("Error parsing stored break data:", error);
+            console.error("Error parsing stored break data for shift", shift.id, ":", error);
           }
         }
         
-        const enhancedShift = {
+        return {
           ...shift,
-          ...(breakIntervals && { breakIntervals })
+          breakIntervals
         };
-        
-        return enhancedShift;
       });
       
+      console.log("Enhanced shifts with break intervals:", enhancedShifts);
       setShifts(enhancedShifts);
-      console.log("useTimesheetLog - enhanced shifts set:", enhancedShifts.length);
+      setError(null);
     } catch (err) {
       console.error("Failed to fetch shifts:", err);
       setError("Failed to load shift data");

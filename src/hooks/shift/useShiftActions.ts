@@ -1,7 +1,8 @@
-
-import { useBreakTime } from "../useBreakTime";
-import { saveShift } from "@/services/shiftService";
-import { ValidationType } from "./useShiftValidation";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { differenceInSeconds } from "date-fns";
+import { clearShiftState, clearBreakState } from "@/services/storageService";
+import { ShiftActions } from "./shiftTypes";
 
 export function useShiftActions(
   setIsStartSignatureOpen: (value: boolean) => void,
@@ -12,7 +13,7 @@ export function useShiftActions(
   endManagerName: string,
   employerName: string,
   setShowValidationAlert: (value: boolean) => void,
-  setValidationType: (value: ValidationType) => void,
+  setValidationType: (value: 'start' | 'end') => void,
   setIsShiftActive: (value: boolean) => void,
   setStartTime: (value: Date | null) => void,
   setIsShiftComplete: (value: boolean) => void,
@@ -28,104 +29,107 @@ export function useShiftActions(
   rateType: string,
   startSignatureData: string | null,
   endSignatureData: string | null
-) {
-  const { resetBreakIntervals } = useBreakTime();
-
+): ShiftActions {
+  
   const handleStartShift = () => {
-    // Simply open the signature dialog - validation will happen in confirmShiftStart
     setIsStartSignatureOpen(true);
   };
 
   const handleEndShift = () => {
-    // Simply open the signature dialog - validation will happen in confirmShiftEnd
     setIsEndSignatureOpen(true);
   };
 
   const confirmShiftStart = () => {
-    if (!employerName.trim()) {
-      setValidationType('employer');
+    if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
+      setValidationType('start');
       setShowValidationAlert(true);
       return;
     }
     
-    if (!managerName.trim()) {
-      setValidationType('manager');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    if (isStartSignatureEmpty) {
-      setValidationType('startSignature');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    const now = new Date();
-    setStartTime(now);
-    setIsShiftActive(true);
     setIsStartSignatureOpen(false);
-    
-    // Reset break tracking when starting a new shift
-    resetBreakIntervals();
+    setIsShiftActive(true);
+    setStartTime(new Date());
+    setIsShiftComplete(false);
+    // Reset any previous shift data
+    setEndTime(null);
+    setTotalBreakDuration(0);
+    setBreakStart(null);
+    setIsBreakActive(false);
+    toast.success("Shift started successfully!");
   };
 
   const confirmShiftEnd = async (userId: string | undefined) => {
-    if (!endManagerName.trim()) {
-      setValidationType('endManager');
+    if (isEndSignatureEmpty || !endManagerName.trim()) {
+      setValidationType('end');
       setShowValidationAlert(true);
       return;
     }
     
-    if (isEndSignatureEmpty) {
-      setValidationType('endSignature');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    const now = new Date();
-    setEndTime(now);
-    setIsShiftComplete(true);
-    setIsEndSignatureOpen(false);
-    
-    // End any active break
+    // If still on break, end it and add to total
     if (isBreakActive && breakStart) {
-      const activeBreakDuration = Math.floor((now.getTime() - breakStart.getTime()) / 1000);
-      setTotalBreakDuration(totalBreakDuration + activeBreakDuration);
+      const breakDuration = differenceInSeconds(new Date(), breakStart);
+      // Fixed: Instead of using a function, calculate and pass the new value directly
+      const updatedBreakDuration = totalBreakDuration + breakDuration;
+      setTotalBreakDuration(updatedBreakDuration);
       setBreakStart(null);
       setIsBreakActive(false);
     }
     
-    // Save shift to database if user is available
-    if (userId && startTime) {
+    const currentEndTime = new Date();
+    setEndTime(currentEndTime);
+    
+    // Save to Supabase
+    if (startTime && userId) {
       try {
-        const { breakIntervals } = useBreakTime();
-        await saveShift({
-          user_id: userId,
-          start_time: startTime.toISOString(),
-          end_time: now.toISOString(),
-          manager_name: managerName,
-          end_manager_name: endManagerName,
-          employer_name: employerName,
-          pay_rate: payRate,
-          rate_type: rateType,
-          start_signature_data: startSignatureData,
-          end_signature_data: endSignatureData,
-          break_intervals: breakIntervals.map(interval => ({
-            start: interval.start.toISOString(),
-            end: interval.end?.toISOString() || now.toISOString()
-          }))
-        });
-        console.log('Shift saved successfully with break intervals:', breakIntervals);
+        // Make sure totalBreakDuration is properly calculated before saving
+        let finalBreakDuration = totalBreakDuration;
+        // Add any active break time to the total if needed
+        if (isBreakActive && breakStart) {
+          finalBreakDuration += differenceInSeconds(new Date(), breakStart);
+        }
+        
+        const { error } = await supabase
+          .from('shifts')
+          .insert([
+            {
+              user_id: userId,
+              start_time: startTime.toISOString(),
+              end_time: currentEndTime.toISOString(),
+              break_duration: finalBreakDuration,
+              employer_name: employerName,
+              pay_rate: payRate,
+              rate_type: rateType,
+              manager_start_name: managerName,
+              manager_end_name: endManagerName,
+              manager_start_signature: startSignatureData,
+              manager_end_signature: endSignatureData
+            }
+          ]);
+        
+        if (error) {
+          console.error('Error saving shift:', error);
+          toast.error("Failed to save shift data. Please try again.");
+        } else {
+          toast.success("Shift ended and data saved successfully!");
+          // Clear saved shift state AND break state
+          clearShiftState();
+          clearBreakState();
+        }
       } catch (error) {
-        console.error('Error saving shift:', error);
+        console.error('Exception when saving shift:', error);
+        toast.error("An unexpected error occurred. Please try again.");
       }
     }
+    
+    setIsEndSignatureOpen(false);
+    setIsShiftActive(false);
+    setIsShiftComplete(true);
   };
 
   return {
     handleStartShift,
     handleEndShift,
     confirmShiftStart,
-    confirmShiftEnd,
+    confirmShiftEnd
   };
 }

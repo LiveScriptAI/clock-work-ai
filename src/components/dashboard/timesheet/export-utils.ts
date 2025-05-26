@@ -3,10 +3,22 @@ import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { format, parseISO } from "date-fns";
 
 // Format date for CSV and PDF
 const formatDate = (date: Date): string => {
   return date.toLocaleString();
+};
+
+// Format break intervals for export
+const formatBreakIntervals = (breakIntervals?: { start: string; end: string }[]): string => {
+  if (!breakIntervals || breakIntervals.length === 0) {
+    return "No breaks";
+  }
+  
+  return breakIntervals
+    .map(i => `${format(parseISO(i.start), 'HH:mm:ss')}–${format(parseISO(i.end), 'HH:mm:ss')}`)
+    .join(' | ');
 };
 
 // Function to download CSV file
@@ -26,7 +38,8 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
       "Total Hours Worked", 
       "Pay Rate and Type", 
       "Estimated Earnings", 
-      "Payment Status"
+      "Payment Status",
+      "Breaks"
     ];
 
     // Convert shift data to CSV rows
@@ -39,7 +52,8 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
         `${shift.hoursWorked.toFixed(2)} hours`,
         `$${shift.payRate} ${shift.payType}`,
         `$${shift.earnings.toFixed(2)}`,
-        shift.status
+        shift.status,
+        formatBreakIntervals(shift.breakIntervals)
       ].join(",");
     });
 
@@ -97,7 +111,8 @@ export const downloadPDF = (shifts: ShiftEntry[]): void => {
       `${shift.hoursWorked.toFixed(2)} hours`,
       `$${shift.payRate} ${shift.payType}`,
       `$${shift.earnings.toFixed(2)}`,
-      shift.status
+      shift.status,
+      formatBreakIntervals(shift.breakIntervals)
     ]);
     
     // Generate table
@@ -110,7 +125,8 @@ export const downloadPDF = (shifts: ShiftEntry[]): void => {
         "Hours", 
         "Rate", 
         "Earnings", 
-        "Status"
+        "Status",
+        "Breaks"
       ]],
       body: tableData,
       startY: 30,
