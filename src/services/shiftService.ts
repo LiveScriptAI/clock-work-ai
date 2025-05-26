@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
-import { startOfDay, endOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { startOfDay, endOfDay, subDays } from "date-fns";
 
 // Fetch shifts for the current authenticated user
 export async function fetchUserShifts(): Promise<ShiftEntry[]> {
@@ -100,7 +100,7 @@ function transformShiftData(shiftData: any): ShiftEntry {
   const breakDurationSeconds = typeof shiftData.break_duration === 'number' ? 
     Math.max(0, shiftData.break_duration) : 0;
     
-  // Critical fix: Always show at least 1 minute if there was ANY break time at all
+  // Convert to minutes for display
   const breakMinutes = breakDurationSeconds > 0 ? 
     Math.max(1, Math.ceil(breakDurationSeconds / 60)) : 0;
 
