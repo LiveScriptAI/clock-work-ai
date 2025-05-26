@@ -17,7 +17,7 @@ interface DashboardDialogsProps {
   isStartSignatureEmpty: boolean;
   isEndSignatureEmpty: boolean;
   showValidationAlert: boolean;
-  validationType: 'start' | 'end';
+  validationType: string;
   
   // Functions
   setIsStartSignatureOpen: (value: boolean) => void;
