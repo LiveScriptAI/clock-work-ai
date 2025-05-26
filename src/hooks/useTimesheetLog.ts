@@ -1,14 +1,14 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { 
   fetchUserShifts, 
   filterShiftsByPeriod, 
   filterShiftsByDateRange,
   deleteShift 
 } from "@/services/shiftService";
-import { loadBreakState } from "@/services/storageService";
 
 export function useTimesheetLog() {
   const [activeTab, setActiveTab] = useState("day");
@@ -30,7 +30,7 @@ export function useTimesheetLog() {
     () => isDateRangeActive && dateRange?.from && dateRange?.to
       ? filterShiftsByDateRange(shifts, dateRange.from, dateRange.to)
       : periodFilteredShifts,
-    [isDateRangeActive, dateRange, periodFilteredShifts]
+    [isDateRangeActive, dateRange, periodFilteredShifts, shifts]
   );
 
   // Fetch shifts data on component mount
@@ -40,24 +40,22 @@ export function useTimesheetLog() {
 
   const loadShifts = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const userShifts = await fetchUserShifts();
       
-      // Debug logging
       console.log("useTimesheetLog - loaded shifts:", userShifts.length);
+      console.log("useTimesheetLog - shifts data:", userShifts);
       
       // Enhance shifts with break intervals from localStorage if available
       const enhancedShifts = userShifts.map(shift => {
         const shiftKey = `shift_${shift.id}_breaks`;
         const storedBreakData = localStorage.getItem(shiftKey);
         
-        console.log(`useTimesheetLog - checking localStorage for ${shiftKey}:`, storedBreakData);
-        
         let breakIntervals: { start: string; end: string | null }[] | undefined = undefined;
         if (storedBreakData) {
           try {
             const parsedData = JSON.parse(storedBreakData);
-            console.log(`useTimesheetLog - parsed break data for shift ${shift.id}:`, parsedData);
             
             // Only set breakIntervals if there's actual data
             if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
@@ -77,17 +75,11 @@ export function useTimesheetLog() {
           ...(breakIntervals && { breakIntervals })
         };
         
-        console.log(`useTimesheetLog - enhanced shift ${shift.id}:`, {
-          hasBreakIntervals: !!enhancedShift.breakIntervals,
-          breakIntervalsCount: enhancedShift.breakIntervals?.length || 0,
-          breakIntervals: enhancedShift.breakIntervals
-        });
-        
         return enhancedShift;
       });
       
       setShifts(enhancedShifts);
-      setError(null);
+      console.log("useTimesheetLog - enhanced shifts set:", enhancedShifts.length);
     } catch (err) {
       console.error("Failed to fetch shifts:", err);
       setError("Failed to load shift data");

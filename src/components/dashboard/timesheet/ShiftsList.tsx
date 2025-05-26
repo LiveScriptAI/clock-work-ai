@@ -22,6 +22,14 @@ const ShiftsList: React.FC<ShiftsListProps> = ({
   error,
   onDeleteShift
 }) => {
+  console.log("ShiftsList - rendering with:", {
+    shiftsCount: shifts.length,
+    isLoading,
+    isDateRangeActive,
+    error,
+    shifts: shifts.map(s => ({ id: s.id, date: s.date, employer: s.employer }))
+  });
+
   return (
     <ScrollArea className="h-[320px] w-full pr-4">
       {error ? (
