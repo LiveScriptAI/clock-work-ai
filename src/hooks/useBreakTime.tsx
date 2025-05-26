@@ -6,9 +6,8 @@ import {
   saveBreakState,
   loadBreakState,
   clearBreakState,
-  resetBreakState,
   StoredBreakState
-} from "@/services/storageService";
+} from "@/services/breakStorage";
 
 export function useBreakTime() {
   const saved = loadBreakState();
@@ -175,7 +174,6 @@ export function useBreakTime() {
     setBreakIntervals([]);
     setBreakStart(null);
     setBreakEnd(null);
-    resetBreakState();
   }, []);
 
   return {
