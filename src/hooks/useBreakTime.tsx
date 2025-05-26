@@ -1,179 +1,135 @@
 
+// src/hooks/useBreakTime.tsx
 import { useState, useEffect, useCallback, useRef } from "react";
 import { differenceInSeconds, format } from "date-fns";
 import { toast } from "sonner";
+
 import {
   saveBreakState,
   loadBreakState,
   clearBreakState,
-  StoredBreakState
-} from "@/services/breakStorage";
+  resetBreakState,
+  StoredBreakState,
+} from "@/services/storageService";
 
 export function useBreakTime() {
   const saved = loadBreakState();
   const syncIntervalRef = useRef<number | null>(null);
 
+  // State
+  const [isBreakActive, setIsBreakActive] = useState<boolean>(saved?.isBreakActive ?? false);
+  const [breakStart,   setBreakStart]   = useState<Date | null>(
+    saved?.breakStart ? new Date(saved.breakStart) : null
+  );
+  const [breakEnd,     setBreakEnd]     = useState<Date | null>(
+    saved?.breakEnd ? new Date(saved.breakEnd) : null
+  );
+  const [breakIntervals, setBreakIntervals] = useState<{ start: Date; end: Date | null }[]>(
+    () => (saved?.breakIntervals ?? []).map(i => ({
+      start: new Date(i.start),
+      end:   i.end ? new Date(i.end) : null
+    }))
+  );
   const [selectedBreakDuration, setSelectedBreakDuration] = useState<string>(
     saved?.selectedBreakDuration ?? "15"
   );
-  const [isBreakActive, setIsBreakActive] = useState<boolean>(
-    saved?.isBreakActive ?? false
-  );
-  const [breakStart, setBreakStart] = useState<Date | null>(() => {
-    if (saved?.breakStart) {
-      return new Date(saved.breakStart);
-    }
-    return null;
-  });
-  const [breakEnd, setBreakEnd] = useState<Date | null>(() => {
-    if (saved?.breakEnd) {
-      return new Date(saved.breakEnd);
-    }
-    return null;
-  });
-  const [breakIntervals, setBreakIntervals] = useState<{start: Date; end: Date | null}[]>(() => {
-    if (saved?.breakIntervals) {
-      return saved.breakIntervals.map(interval => ({
-        start: new Date(interval.start),
-        end: interval.end ? new Date(interval.end) : null
-      }));
-    }
-    return [];
-  });
   const [breakMenuOpen, setBreakMenuOpen] = useState<boolean>(false);
 
-  // Calculate total break duration from intervals
-  const totalBreakDuration = breakIntervals.reduce((total, interval) => {
-    if (interval.end) {
-      return total + differenceInSeconds(interval.end, interval.start);
-    } else if (isBreakActive) {
-      // Add current active break time
-      return total + differenceInSeconds(new Date(), interval.start);
-    }
-    return total;
+  // Total break secs (past + current)
+  const totalBreakDuration = breakIntervals.reduce((sum, iv) => {
+    if (iv.end) return sum + differenceInSeconds(iv.end, iv.start);
+    if (isBreakActive) return sum + differenceInSeconds(new Date(), iv.start);
+    return sum;
   }, 0);
 
-  // Save break state whenever it changes
+  // Persist on every change
   useEffect(() => {
-    const intervalsForStorage = breakIntervals.map(interval => ({
-      start: interval.start.toISOString(),
-      end: interval.end?.toISOString() ?? null
+    const intervalsForStorage = breakIntervals.map(iv => ({
+      start: iv.start.toISOString(),
+      end:   iv.end?.toISOString() ?? null
     }));
-
-    saveBreakState({
+    const state: StoredBreakState = {
       isBreakActive,
       selectedBreakDuration,
-      breakIntervals: intervalsForStorage,
+      breakStart:       breakStart?.toISOString() ?? null,
+      breakEnd:         breakEnd?.toISOString() ?? null,
+      breakIntervals:   intervalsForStorage,
       totalBreakDuration,
-      remainingBreakTime: 0, // No longer using countdown
-      breakStart: breakStart?.toISOString() ?? null,
-      breakEnd: breakEnd?.toISOString() ?? null,
-      lastUpdatedAt: new Date().toISOString()
-    });
-  }, [isBreakActive, selectedBreakDuration, breakIntervals, totalBreakDuration, breakStart, breakEnd]);
+      remainingBreakTime: 0,
+      lastUpdatedAt:      new Date().toISOString(),
+    };
+    saveBreakState(state);
+  }, [isBreakActive, breakStart, breakEnd, breakIntervals, selectedBreakDuration, totalBreakDuration]);
 
-  // Check for break state changes from other tabs/devices
+  // Sync across tabs
   useEffect(() => {
-    const checkForExternalChanges = () => {
-      const latestState = loadBreakState();
-      if (!latestState) return;
+    const checkExternal = () => {
+      const latest = loadBreakState();
+      if (!latest) return;
 
-      // Only update if the data has changed from another source
-      if (latestState.lastUpdatedAt && 
-          new Date(latestState.lastUpdatedAt).getTime() > new Date().getTime() - 2000) {
-        
-        // Update all states if they've changed
-        if (latestState.isBreakActive !== isBreakActive) {
-          setIsBreakActive(latestState.isBreakActive);
-        }
-        
-        // Update breakIntervals if they've changed
-        const latestIntervals = latestState.breakIntervals.map(interval => ({
-          start: new Date(interval.start),
-          end: interval.end ? new Date(interval.end) : null
-        }));
-        
-        if (JSON.stringify(latestIntervals) !== JSON.stringify(breakIntervals)) {
-          setBreakIntervals(latestIntervals);
-        }
-        
-        if (latestState.selectedBreakDuration !== selectedBreakDuration) {
-          setSelectedBreakDuration(latestState.selectedBreakDuration);
-        }
-
-        // Update breakStart and breakEnd
-        const newBreakStart = latestState.breakStart ? new Date(latestState.breakStart) : null;
-        const newBreakEnd = latestState.breakEnd ? new Date(latestState.breakEnd) : null;
-        
-        if (JSON.stringify(newBreakStart) !== JSON.stringify(breakStart)) {
-          setBreakStart(newBreakStart);
-        }
-        
-        if (JSON.stringify(newBreakEnd) !== JSON.stringify(breakEnd)) {
-          setBreakEnd(newBreakEnd);
-        }
+      if (new Date(latest.lastUpdatedAt).getTime() > Date.now() - 2000) {
+        setIsBreakActive(latest.isBreakActive);
+        setBreakStart( latest.breakStart ? new Date(latest.breakStart) : null );
+        setBreakEnd(   latest.breakEnd   ? new Date(latest.breakEnd)   : null );
+        setSelectedBreakDuration(latest.selectedBreakDuration);
+        setBreakIntervals(
+          (latest.breakIntervals ?? []).map(i => ({
+            start: new Date(i.start),
+            end:   i.end ? new Date(i.end) : null
+          }))
+        );
       }
     };
 
-    // Check for external changes every 2 seconds
-    syncIntervalRef.current = window.setInterval(checkForExternalChanges, 2000);
-
+    syncIntervalRef.current = window.setInterval(checkExternal, 2000);
     return () => {
-      if (syncIntervalRef.current !== null) {
-        clearInterval(syncIntervalRef.current);
-      }
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
     };
-  }, [isBreakActive, breakIntervals, selectedBreakDuration, breakStart, breakEnd]);
+  }, []);
 
+  // Start a break
   const handleBreakStart = useCallback(() => {
     const now = new Date();
-    
-    // Set breakStart and clear breakEnd
     setBreakStart(now);
     setBreakEnd(null);
-    
-    // Add new break interval
     setBreakIntervals(prev => [...prev, { start: now, end: null }]);
     setIsBreakActive(true);
-    
-    toast.info(`Break started at ${format(now, 'HH:mm:ss')}`);
+    toast.info(`Break started at ${format(now, "HH:mm:ss")}`);
   }, []);
 
+  // End current break
   const handleBreakEnd = useCallback(() => {
     const now = new Date();
-    
-    // Set breakEnd
     setBreakEnd(now);
-    
-    // End the last active break interval
     setBreakIntervals(prev => {
-      const updated = [...prev];
-      if (updated.length > 0 && !updated[updated.length - 1].end) {
-        updated[updated.length - 1].end = now;
+      const copy = [...prev];
+      if (copy.length && !copy[copy.length - 1].end) {
+        copy[copy.length - 1].end = now;
       }
-      return updated;
+      return copy;
     });
-    
     setIsBreakActive(false);
-    
-    toast.success(`Break ended at ${format(now, 'HH:mm:ss')}`);
+    toast.success(`Break ended at ${format(now, "HH:mm:ss")}`);
   }, []);
 
+  // Toggle start/end
   const handleBreakToggle = useCallback(() => {
     isBreakActive ? handleBreakEnd() : handleBreakStart();
   }, [isBreakActive, handleBreakEnd, handleBreakStart]);
 
-  const handleBreakDurationChange = useCallback((duration: string) => {
-    setSelectedBreakDuration(duration);
+  // Duration selection (unused if tracking intervals)
+  const handleBreakDurationChange = useCallback((dur: string) => {
+    setSelectedBreakDuration(dur);
     setBreakMenuOpen(false);
   }, []);
 
-  // Function to completely reset break state
+  // Completely reset
   const resetBreakStateCompletely = useCallback(() => {
     setIsBreakActive(false);
-    setBreakIntervals([]);
     setBreakStart(null);
     setBreakEnd(null);
+    setBreakIntervals([]);
+    resetBreakState();
   }, []);
 
   return {
