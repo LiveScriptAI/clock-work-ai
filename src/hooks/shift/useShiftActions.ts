@@ -29,28 +29,10 @@ export function useShiftActions(
   startSignatureData: string | null,
   endSignatureData: string | null
 ) {
-  const { breakIntervals, resetBreakIntervals } = useBreakTime();
+  const { resetBreakIntervals } = useBreakTime();
 
   const handleStartShift = () => {
-    // Validation logic
-    if (!employerName.trim()) {
-      setValidationType('employer');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    if (!managerName.trim()) {
-      setValidationType('manager');
-      setShowValidationAlert(true);
-      return;
-    }
-    
-    if (isStartSignatureEmpty) {
-      setValidationType('startSignature');
-      setShowValidationAlert(true);
-      return;
-    }
-    
+    // Simply open the signature dialog - validation will happen in confirmShiftStart
     setIsStartSignatureOpen(true);
   };
 
@@ -71,8 +53,20 @@ export function useShiftActions(
   };
 
   const confirmShiftStart = () => {
-    if (!employerName.trim() || !managerName.trim() || isStartSignatureEmpty) {
-      setValidationType('start');
+    if (!employerName.trim()) {
+      setValidationType('employer');
+      setShowValidationAlert(true);
+      return;
+    }
+    
+    if (!managerName.trim()) {
+      setValidationType('manager');
+      setShowValidationAlert(true);
+      return;
+    }
+    
+    if (isStartSignatureEmpty) {
+      setValidationType('startSignature');
       setShowValidationAlert(true);
       return;
     }
@@ -109,6 +103,7 @@ export function useShiftActions(
     // Save shift to database if user is available
     if (userId && startTime) {
       try {
+        const { breakIntervals } = useBreakTime();
         await saveShift({
           user_id: userId,
           start_time: startTime.toISOString(),
