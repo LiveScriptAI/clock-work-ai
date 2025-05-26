@@ -61,6 +61,13 @@ export function useBreakTime() {
       end: interval.end?.toISOString() ?? null
     }));
 
+    console.log("useBreakTime - saving break state:", {
+      isBreakActive,
+      breakIntervalsCount: intervalsForStorage.length,
+      totalBreakDuration,
+      breakIntervals: intervalsForStorage
+    });
+
     saveBreakState({
       isBreakActive,
       selectedBreakDuration,
@@ -129,12 +136,18 @@ export function useBreakTime() {
   const handleBreakStart = useCallback(() => {
     const now = new Date();
     
+    console.log("useBreakTime - starting break at:", now.toISOString());
+    
     // Set breakStart and clear breakEnd
     setBreakStart(now);
     setBreakEnd(null);
     
     // Add new break interval
-    setBreakIntervals(prev => [...prev, { start: now, end: null }]);
+    setBreakIntervals(prev => {
+      const newIntervals = [...prev, { start: now, end: null }];
+      console.log("useBreakTime - updated break intervals:", newIntervals);
+      return newIntervals;
+    });
     setIsBreakActive(true);
     
     toast.info(`Break started at ${format(now, 'HH:mm:ss')}`);
@@ -142,6 +155,8 @@ export function useBreakTime() {
 
   const handleBreakEnd = useCallback(() => {
     const now = new Date();
+    
+    console.log("useBreakTime - ending break at:", now.toISOString());
     
     // Set breakEnd
     setBreakEnd(now);
@@ -151,6 +166,7 @@ export function useBreakTime() {
       const updated = [...prev];
       if (updated.length > 0 && !updated[updated.length - 1].end) {
         updated[updated.length - 1].end = now;
+        console.log("useBreakTime - ended break interval:", updated[updated.length - 1]);
       }
       return updated;
     });
@@ -171,6 +187,7 @@ export function useBreakTime() {
 
   // Function to completely reset break state
   const resetBreakStateCompletely = useCallback(() => {
+    console.log("useBreakTime - resetting break state completely");
     setIsBreakActive(false);
     setBreakIntervals([]);
     setBreakStart(null);

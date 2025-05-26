@@ -125,30 +125,32 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
         {/* Break intervals section */}
         {shift.breakIntervals && shift.breakIntervals.length > 0 && (
           <div className="mt-4">
-            <h4 className="text-sm font-medium">Breaks</h4>
-            {shift.breakIntervals.map((interval, idx) => {
-              // Handle ISO strings (updated data format)
-              const start = parseISO(interval.start);
-              const end = interval.end ? parseISO(interval.end) : new Date();
-              const durSeconds = secondsBetween(start, end);
-              
-              return (
-                <div key={idx} className="grid grid-cols-3 gap-4 text-xs mt-1">
-                  <div>
-                    <span className="text-gray-500">Start:</span><br/>
-                    {format(start, 'HH:mm:ss')}
+            <h4 className="text-sm font-medium mb-2">Breaks</h4>
+            <div className="space-y-2">
+              {shift.breakIntervals.map((interval, idx) => {
+                // Handle ISO strings (updated data format)
+                const start = parseISO(interval.start);
+                const end = interval.end ? parseISO(interval.end) : new Date();
+                const durSeconds = secondsBetween(start, end);
+                
+                return (
+                  <div key={idx} className="grid grid-cols-3 gap-4 text-xs bg-gray-50 p-2 rounded">
+                    <div>
+                      <span className="text-gray-500 font-medium">Start:</span><br/>
+                      <span className="font-mono">{format(start, 'HH:mm:ss')}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 font-medium">End:</span><br/>
+                      <span className="font-mono">{interval.end ? format(end, 'HH:mm:ss') : '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 font-medium">Duration:</span><br/>
+                      <span className="font-mono">{formatDuration(durSeconds)}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-500">End:</span><br/>
-                    {interval.end ? format(end, 'HH:mm:ss') : '—'}
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Duration:</span><br/>
-                    {formatDuration(durSeconds)}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
 
