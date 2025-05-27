@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
@@ -66,6 +67,8 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
     return Math.floor((e.getTime() - s.getTime()) / 1000);
   };
 
+  console.log("▶️ ShiftCard received breakIntervals:", shift.breakIntervals);
+
   return (
     <Card className="p-4 border border-gray-200">
       <div className="flex flex-col gap-2">
@@ -106,7 +109,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onDelete }) => {
         {/* Break intervals */}
         {shift.breakIntervals?.length > 0 && (
           <div className="mt-4 border-t pt-3">
-            <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
+            <Collapsible open={true} onOpenChange={setBreaksOpen}>
               <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-50 px-3 rounded-md">
                 <span className="font-semibold">Breaks ({shift.breakIntervals.length})</span>
                 {breaksOpen ? <ChevronDown /> : <ChevronRight />}

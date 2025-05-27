@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
@@ -80,6 +79,7 @@ export function useTimesheetLog() {
         };
       });
       
+      console.log("▶️ enhancedShifts", enhancedShifts);
       console.log("Enhanced shifts with break intervals:", enhancedShifts);
       setShifts(enhancedShifts);
       setError(null);
