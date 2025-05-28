@@ -1,11 +1,14 @@
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
+import BreaksSummary from "@/components/dashboard/BreaksSummary";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
+import { Button } from "@/components/ui/button";
 import { useBreakTime } from "@/hooks/useBreakTime";
+import { getBreakIntervalsByShift } from "@/services/breakIntervalsService";
 
 interface DashboardContentProps {
   // Shift state
@@ -46,6 +49,20 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   calculateEarnings,
 }) => {
   const { breakIntervals, isBreakActive } = useBreakTime();
+  const [importBreaksToExport, setImportBreaksToExport] = useState(false);
+
+  // Get break intervals organized by shift
+  const breakIntervalsByShift = useMemo(() => {
+    return getBreakIntervalsByShift();
+  }, []);
+
+  const handleImportBreaksToggle = () => {
+    setImportBreaksToExport(prev => {
+      const newValue = !prev;
+      console.log("Import breaks to export toggled:", newValue);
+      return newValue;
+    });
+  };
 
   return (
     <>
@@ -80,7 +97,23 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       
       {/* Timesheet Log Component */}
       <div className="mt-6">
-        <TimesheetLog />
+        <TimesheetLog importBreaksToExport={importBreaksToExport} />
+      </div>
+
+      {/* Import Breaks Toggle Button */}
+      <div className="mt-6 flex justify-center">
+        <Button
+          variant={importBreaksToExport ? "default" : "outline"}
+          onClick={handleImportBreaksToggle}
+          className="flex items-center gap-2"
+        >
+          {importBreaksToExport ? "✓ Breaks Included in Export" : "Import Breaks to CSV/PDF"}
+        </Button>
+      </div>
+
+      {/* Breaks Summary Component */}
+      <div className="mt-6">
+        <BreaksSummary breakIntervalsByShift={breakIntervalsByShift} />
       </div>
 
       {/* Invoice Form Component */}

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format, parseISO } from "date-fns";
+import { getBreakIntervalsByShift } from "@/services/breakIntervalsService";
 
 // Format date for CSV and PDF
 const formatDate = (date: Date): string => {
@@ -22,15 +23,28 @@ const formatBreakIntervals = (breakIntervals?: { start: string; end: string }[])
 };
 
 // Function to download CSV file
-export const downloadCSV = (shifts: ShiftEntry[]): void => {
+export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
     if (shifts.length === 0) {
       toast.error("No shifts to export");
       return;
     }
 
-    // CSV Headers
-    const headers = [
+    // Get break intervals if needed
+    const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
+    
+    // Calculate max number of breaks across all shifts for dynamic headers
+    let maxBreaks = 0;
+    if (importBreaksToExport) {
+      Object.values(breakIntervalsByShift).forEach(intervals => {
+        if (intervals.length > maxBreaks) {
+          maxBreaks = intervals.length;
+        }
+      });
+    }
+
+    // CSV Headers - base headers
+    const baseHeaders = [
       "Date", 
       "Employer Name", 
       "Start Time", 
@@ -38,13 +52,22 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
       "Total Hours Worked", 
       "Pay Rate and Type", 
       "Estimated Earnings", 
-      "Payment Status",
-      "Breaks"
+      "Payment Status"
     ];
+
+    // Add break headers if importing breaks
+    const breakHeaders: string[] = [];
+    if (importBreaksToExport && maxBreaks > 0) {
+      for (let i = 1; i <= maxBreaks; i++) {
+        breakHeaders.push(`Break ${i} Start`, `Break ${i} End`);
+      }
+    }
+
+    const headers = [...baseHeaders, ...breakHeaders];
 
     // Convert shift data to CSV rows
     const csvContent = shifts.map((shift) => {
-      return [
+      const baseRow = [
         formatDate(shift.date),
         shift.employer,
         formatDate(shift.startTime),
@@ -52,9 +75,27 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
         `${shift.hoursWorked.toFixed(2)} hours`,
         `$${shift.payRate} ${shift.payType}`,
         `$${shift.earnings.toFixed(2)}`,
-        shift.status,
-        formatBreakIntervals(shift.breakIntervals)
-      ].join(",");
+        shift.status
+      ];
+
+      // Add break data if importing breaks
+      const breakData: string[] = [];
+      if (importBreaksToExport && maxBreaks > 0) {
+        const shiftBreaks = breakIntervalsByShift[shift.id] || [];
+        
+        for (let i = 0; i < maxBreaks; i++) {
+          if (i < shiftBreaks.length) {
+            breakData.push(
+              format(parseISO(shiftBreaks[i].start), 'HH:mm:ss'),
+              format(parseISO(shiftBreaks[i].end), 'HH:mm:ss')
+            );
+          } else {
+            breakData.push('', ''); // Empty cells for missing breaks
+          }
+        }
+      }
+
+      return [...baseRow, ...breakData].join(",");
     });
 
     // Combine headers and rows
@@ -84,12 +125,15 @@ export const downloadCSV = (shifts: ShiftEntry[]): void => {
 };
 
 // Function to download PDF file
-export const downloadPDF = (shifts: ShiftEntry[]): void => {
+export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
     if (shifts.length === 0) {
       toast.error("No shifts to export");
       return;
     }
+    
+    // Get break intervals if needed
+    const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
     
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -102,32 +146,54 @@ export const downloadPDF = (shifts: ShiftEntry[]): void => {
     doc.setFontSize(10);
     doc.text(`Exported on: ${new Date().toLocaleDateString()}`, 14, 22);
     
+    // Base table headers
+    const baseTableHeaders = [
+      "Date", 
+      "Employer", 
+      "Start Time", 
+      "End Time", 
+      "Hours", 
+      "Rate", 
+      "Earnings", 
+      "Status"
+    ];
+
+    // Add breaks column if importing breaks
+    const tableHeaders = importBreaksToExport 
+      ? [...baseTableHeaders, "Breaks"]
+      : baseTableHeaders;
+    
     // Prepare table data
-    const tableData = shifts.map((shift) => [
-      formatDate(shift.date),
-      shift.employer,
-      formatDate(shift.startTime),
-      formatDate(shift.endTime),
-      `${shift.hoursWorked.toFixed(2)} hours`,
-      `$${shift.payRate} ${shift.payType}`,
-      `$${shift.earnings.toFixed(2)}`,
-      shift.status,
-      formatBreakIntervals(shift.breakIntervals)
-    ]);
+    const tableData = shifts.map((shift) => {
+      const baseRowData = [
+        formatDate(shift.date),
+        shift.employer,
+        formatDate(shift.startTime),
+        formatDate(shift.endTime),
+        `${shift.hoursWorked.toFixed(2)} hours`,
+        `$${shift.payRate} ${shift.payType}`,
+        `$${shift.earnings.toFixed(2)}`,
+        shift.status
+      ];
+
+      // Add break data if importing breaks
+      if (importBreaksToExport) {
+        const shiftBreaks = breakIntervalsByShift[shift.id] || [];
+        const breaksText = shiftBreaks.length > 0 
+          ? shiftBreaks.map(interval => 
+              `${format(parseISO(interval.start), 'HH:mm')}–${format(parseISO(interval.end), 'HH:mm')}`
+            ).join(', ')
+          : 'No breaks';
+        
+        return [...baseRowData, breaksText];
+      }
+
+      return baseRowData;
+    });
     
     // Generate table
     autoTable(doc, {
-      head: [[
-        "Date", 
-        "Employer", 
-        "Start Time", 
-        "End Time", 
-        "Hours", 
-        "Rate", 
-        "Earnings", 
-        "Status",
-        "Breaks"
-      ]],
+      head: [tableHeaders],
       body: tableData,
       startY: 30,
       theme: 'grid',

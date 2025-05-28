@@ -9,19 +9,21 @@ interface ExportActionsProps {
   isLoading: boolean;
   isExporting: string | null;
   setIsExporting: (value: string | null) => void;
+  importBreaksToExport?: boolean;
 }
 
 const ExportActions: React.FC<ExportActionsProps> = ({
   filteredShifts,
   isLoading,
   isExporting,
-  setIsExporting
+  setIsExporting,
+  importBreaksToExport = false
 }) => {
   // Export handlers
   const handleExportCSV = () => {
     setIsExporting('csv');
     setTimeout(() => {
-      downloadCSV(filteredShifts);
+      downloadCSV(filteredShifts, importBreaksToExport);
       setIsExporting(null);
     }, 500);
   };
@@ -29,7 +31,7 @@ const ExportActions: React.FC<ExportActionsProps> = ({
   const handleExportPDF = () => {
     setIsExporting('pdf');
     setTimeout(() => {
-      downloadPDF(filteredShifts);
+      downloadPDF(filteredShifts, importBreaksToExport);
       setIsExporting(null);
     }, 500);
   };

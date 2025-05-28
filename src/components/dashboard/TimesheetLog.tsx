@@ -20,7 +20,11 @@ import TimeTabContent from "./timesheet/TimeTabContent";
 // Import hooks
 import { useTimesheetLog } from "@/hooks/useTimesheetLog";
 
-const TimesheetLog: React.FC = () => {
+interface TimesheetLogProps {
+  importBreaksToExport?: boolean;
+}
+
+const TimesheetLog: React.FC<TimesheetLogProps> = ({ importBreaksToExport = false }) => {
   const {
     activeTab,
     setActiveTab,
@@ -47,6 +51,7 @@ const TimesheetLog: React.FC = () => {
           isLoading={isLoading}
           isExporting={isExporting}
           setIsExporting={setIsExporting}
+          importBreaksToExport={importBreaksToExport}
         />
       </CardHeader>
       <CardContent>
