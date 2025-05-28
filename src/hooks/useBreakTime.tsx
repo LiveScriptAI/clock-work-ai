@@ -54,7 +54,7 @@ export function useBreakTime() {
     return total;
   }, 0);
 
-  // Save break state whenever it changes
+  // Save break state whenever it changes and also save intervals to the break intervals service
   useEffect(() => {
     const intervalsForStorage = breakIntervals.map(interval => ({
       start: interval.start.toISOString(),
@@ -71,6 +71,17 @@ export function useBreakTime() {
       breakEnd: breakEnd?.toISOString() ?? null,
       lastUpdatedAt: new Date().toISOString()
     });
+
+    // Also save completed intervals to the break intervals service
+    const completedIntervals = intervalsForStorage.filter(interval => interval.start && interval.end);
+    if (completedIntervals.length > 0) {
+      // Import the service function dynamically to avoid circular dependency
+      import("@/services/breakIntervalsService").then(({ saveBreakIntervalsForShift }) => {
+        const shiftId = `current_shift_${Date.now()}`;
+        saveBreakIntervalsForShift(shiftId, completedIntervals as any);
+        console.log("useBreakTime - Saved break intervals to service:", completedIntervals);
+      });
+    }
   }, [isBreakActive, selectedBreakDuration, breakIntervals, totalBreakDuration, breakStart, breakEnd]);
 
   // Check for break state changes from other tabs/devices

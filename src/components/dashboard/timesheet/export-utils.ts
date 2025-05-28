@@ -26,6 +26,7 @@ const formatBreakIntervals = (breakIntervals?: { start: string; end: string }[])
 export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
     console.log("CSV Export - importBreaksToExport:", importBreaksToExport);
+    console.log("CSV Export - shifts data:", shifts);
     
     if (shifts.length === 0) {
       toast.error("No shifts to export");
@@ -35,6 +36,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     // Get break intervals if needed
     const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
     console.log("CSV Export - breakIntervalsByShift:", breakIntervalsByShift);
+    console.log("CSV Export - Total shifts with breaks found:", Object.keys(breakIntervalsByShift).length);
     
     // Calculate max number of breaks across all shifts for dynamic headers
     let maxBreaks = 0;
@@ -45,6 +47,16 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
         }
       });
       console.log("CSV Export - maxBreaks found:", maxBreaks);
+      
+      // If no breaks in stored data, check if shifts have break intervals
+      if (maxBreaks === 0) {
+        shifts.forEach(shift => {
+          if (shift.breakIntervals && shift.breakIntervals.length > maxBreaks) {
+            maxBreaks = shift.breakIntervals.length;
+          }
+        });
+        console.log("CSV Export - maxBreaks from shift data:", maxBreaks);
+      }
     }
 
     // CSV Headers - base headers
@@ -66,12 +78,18 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
         breakHeaders.push(`Break ${i} Start`, `Break ${i} End`);
       }
       console.log("CSV Export - breakHeaders:", breakHeaders);
+    } else if (importBreaksToExport) {
+      // Add a single breaks column if we have break data but no specific intervals
+      breakHeaders.push("Breaks");
+      console.log("CSV Export - Added single breaks column");
     }
 
     const headers = [...baseHeaders, ...breakHeaders];
 
     // Convert shift data to CSV rows
     const csvContent = shifts.map((shift) => {
+      console.log("CSV Export - Processing shift:", shift.id, shift.employer);
+      
       const baseRow = [
         formatDate(shift.date),
         shift.employer,
@@ -85,19 +103,34 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
 
       // Add break data if importing breaks
       const breakData: string[] = [];
-      if (importBreaksToExport && maxBreaks > 0) {
-        const shiftBreaks = breakIntervalsByShift[shift.id] || [];
+      if (importBreaksToExport) {
+        // First try to get breaks from stored intervals by shift ID
+        let shiftBreaks = breakIntervalsByShift[shift.id] || [];
         
-        for (let i = 0; i < maxBreaks; i++) {
-          if (i < shiftBreaks.length) {
-            breakData.push(
-              format(parseISO(shiftBreaks[i].start), 'HH:mm:ss'),
-              format(parseISO(shiftBreaks[i].end), 'HH:mm:ss')
-            );
-          } else {
-            breakData.push('', ''); // Empty cells for missing breaks
-          }
+        // If no breaks found in stored data, try shift.breakIntervals
+        if (shiftBreaks.length === 0 && shift.breakIntervals) {
+          shiftBreaks = shift.breakIntervals;
+          console.log("CSV Export - Using shift.breakIntervals for", shift.id, ":", shiftBreaks);
         }
+        
+        // If we have dynamic break columns
+        if (maxBreaks > 0) {
+          for (let i = 0; i < maxBreaks; i++) {
+            if (i < shiftBreaks.length) {
+              breakData.push(
+                format(parseISO(shiftBreaks[i].start), 'HH:mm:ss'),
+                format(parseISO(shiftBreaks[i].end), 'HH:mm:ss')
+              );
+            } else {
+              breakData.push('', ''); // Empty cells for missing breaks
+            }
+          }
+        } else {
+          // Single breaks column
+          breakData.push(formatBreakIntervals(shiftBreaks));
+        }
+        
+        console.log("CSV Export - Break data for shift", shift.id, ":", breakData);
       }
 
       return [...baseRow, ...breakData].join(",");
@@ -134,6 +167,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
 export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
     console.log("PDF Export - importBreaksToExport:", importBreaksToExport);
+    console.log("PDF Export - shifts data:", shifts);
     
     if (shifts.length === 0) {
       toast.error("No shifts to export");
@@ -143,6 +177,7 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     // Get break intervals if needed
     const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
     console.log("PDF Export - breakIntervalsByShift:", breakIntervalsByShift);
+    console.log("PDF Export - Total shifts with breaks found:", Object.keys(breakIntervalsByShift).length);
     
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -179,6 +214,8 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     
     // Prepare table data
     const tableData = shifts.map((shift) => {
+      console.log("PDF Export - Processing shift:", shift.id, shift.employer);
+      
       const baseRowData = [
         format(shift.date, 'MM/dd/yyyy'),
         shift.employer,
@@ -192,13 +229,22 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
 
       // Add break data if importing breaks
       if (importBreaksToExport) {
-        const shiftBreaks = breakIntervalsByShift[shift.id] || [];
+        // First try to get breaks from stored intervals by shift ID
+        let shiftBreaks = breakIntervalsByShift[shift.id] || [];
+        
+        // If no breaks found in stored data, try shift.breakIntervals
+        if (shiftBreaks.length === 0 && shift.breakIntervals) {
+          shiftBreaks = shift.breakIntervals;
+          console.log("PDF Export - Using shift.breakIntervals for", shift.id, ":", shiftBreaks);
+        }
+        
         const breaksText = shiftBreaks.length > 0 
           ? shiftBreaks.map(interval => 
               `${format(parseISO(interval.start), 'HH:mm')}–${format(parseISO(interval.end), 'HH:mm')}`
             ).join(', ')
           : 'No breaks';
         
+        console.log("PDF Export - Breaks text for shift", shift.id, ":", breaksText);
         return [...baseRowData, breaksText];
       }
 
