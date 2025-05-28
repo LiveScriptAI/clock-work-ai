@@ -25,6 +25,8 @@ const formatBreakIntervals = (breakIntervals?: { start: string; end: string }[])
 // Function to download CSV file
 export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
+    console.log("CSV Export - importBreaksToExport:", importBreaksToExport);
+    
     if (shifts.length === 0) {
       toast.error("No shifts to export");
       return;
@@ -32,6 +34,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
 
     // Get break intervals if needed
     const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
+    console.log("CSV Export - breakIntervalsByShift:", breakIntervalsByShift);
     
     // Calculate max number of breaks across all shifts for dynamic headers
     let maxBreaks = 0;
@@ -41,6 +44,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
           maxBreaks = intervals.length;
         }
       });
+      console.log("CSV Export - maxBreaks found:", maxBreaks);
     }
 
     // CSV Headers - base headers
@@ -61,6 +65,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
       for (let i = 1; i <= maxBreaks; i++) {
         breakHeaders.push(`Break ${i} Start`, `Break ${i} End`);
       }
+      console.log("CSV Export - breakHeaders:", breakHeaders);
     }
 
     const headers = [...baseHeaders, ...breakHeaders];
@@ -118,6 +123,7 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     document.body.removeChild(link);
     
     toast.success("CSV exported successfully");
+    console.log("CSV Export completed successfully");
   } catch (error) {
     console.error("CSV export failed:", error);
     toast.error("Failed to export CSV");
@@ -127,6 +133,8 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
 // Function to download PDF file
 export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean = false): void => {
   try {
+    console.log("PDF Export - importBreaksToExport:", importBreaksToExport);
+    
     if (shifts.length === 0) {
       toast.error("No shifts to export");
       return;
@@ -134,6 +142,7 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     
     // Get break intervals if needed
     const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
+    console.log("PDF Export - breakIntervalsByShift:", breakIntervalsByShift);
     
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -145,6 +154,11 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     // Add export date
     doc.setFontSize(10);
     doc.text(`Exported on: ${new Date().toLocaleDateString()}`, 14, 22);
+    
+    // Add break intervals notice if enabled
+    if (importBreaksToExport) {
+      doc.text("(Including break intervals)", 14, 27);
+    }
     
     // Base table headers
     const baseTableHeaders = [
@@ -166,12 +180,12 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     // Prepare table data
     const tableData = shifts.map((shift) => {
       const baseRowData = [
-        formatDate(shift.date),
+        format(shift.date, 'MM/dd/yyyy'),
         shift.employer,
-        formatDate(shift.startTime),
-        formatDate(shift.endTime),
-        `${shift.hoursWorked.toFixed(2)} hours`,
-        `$${shift.payRate} ${shift.payType}`,
+        format(shift.startTime, 'HH:mm'),
+        format(shift.endTime, 'HH:mm'),
+        `${shift.hoursWorked.toFixed(2)}h`,
+        `$${shift.payRate}/${shift.payType}`,
         `$${shift.earnings.toFixed(2)}`,
         shift.status
       ];
@@ -195,10 +209,20 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     autoTable(doc, {
       head: [tableHeaders],
       body: tableData,
-      startY: 30,
+      startY: importBreaksToExport ? 35 : 30,
       theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { 
+        fontSize: 8,
+        cellPadding: 2
+      },
+      headStyles: { 
+        fillColor: [41, 128, 185], 
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: importBreaksToExport ? {
+        8: { cellWidth: 40 } // Breaks column width
+      } : {},
       margin: { top: 30 },
     });
     
@@ -207,6 +231,7 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     doc.save(filename);
     
     toast.success("PDF exported successfully");
+    console.log("PDF Export completed successfully");
   } catch (error) {
     console.error("PDF export failed:", error);
     toast.error("Failed to export PDF");

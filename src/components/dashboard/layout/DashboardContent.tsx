@@ -53,13 +53,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   // Get break intervals organized by shift
   const breakIntervalsByShift = useMemo(() => {
-    return getBreakIntervalsByShift();
+    const intervals = getBreakIntervalsByShift();
+    console.log("DashboardContent - Retrieved break intervals:", intervals);
+    return intervals;
   }, []);
 
   const handleImportBreaksToggle = () => {
     setImportBreaksToExport(prev => {
       const newValue = !prev;
-      console.log("Import breaks to export toggled:", newValue);
+      console.log("DashboardContent - Import breaks to export toggled:", newValue);
+      console.log("DashboardContent - Available break intervals:", breakIntervalsByShift);
+      console.log("DashboardContent - Number of shifts with breaks:", Object.keys(breakIntervalsByShift).length);
       return newValue;
     });
   };
