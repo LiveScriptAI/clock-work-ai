@@ -11,4 +11,5 @@ export interface ShiftEntry {
   payRate: number;
   payType: string;
   status: string;
+  breakIntervals?: { start: string; end: string }[];
 }
