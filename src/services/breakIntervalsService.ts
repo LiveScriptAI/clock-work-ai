@@ -6,26 +6,6 @@ export interface BreakInterval {
   end: string;
 }
 
-// Get the current shift ID from localStorage or generate one based on shift data
-const getCurrentShiftId = (): string | null => {
-  try {
-    // Check for active shift data
-    const activeShiftKey = "clockwork_active_shift";
-    const activeShift = localStorage.getItem(activeShiftKey);
-    if (activeShift) {
-      const shiftData = JSON.parse(activeShift);
-      // Create a shift ID based on start time if available
-      if (shiftData.startTime) {
-        return `shift_${new Date(shiftData.startTime).getTime()}`;
-      }
-    }
-    return null;
-  } catch (error) {
-    console.error("Error getting current shift ID:", error);
-    return null;
-  }
-};
-
 // Save break intervals for a specific shift
 export const saveBreakIntervalsForShift = (shiftId: string, intervals: BreakInterval[]): void => {
   try {
@@ -39,6 +19,19 @@ export const saveBreakIntervalsForShift = (shiftId: string, intervals: BreakInte
     console.log("BreakIntervalsService - Saved break intervals for shift:", shiftId, intervals);
   } catch (error) {
     console.error("BreakIntervalsService - Error saving break intervals:", error);
+  }
+};
+
+// Delete break intervals for a specific shift
+export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boolean> => {
+  try {
+    const key = `shift_${shiftId}_breaks`;
+    localStorage.removeItem(key);
+    console.log("BreakIntervalsService - Deleted break intervals for shift:", shiftId);
+    return true;
+  } catch (error) {
+    console.error("BreakIntervalsService - Error deleting break intervals:", error);
+    return false;
   }
 };
 
@@ -67,7 +60,7 @@ export const saveCurrentBreakStateAsIntervals = (): void => {
     // Generate a shift ID based on today's date to group breaks by day
     const today = new Date();
     const dateKey = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const shiftId = `shift_${dateKey}`;
+    const shiftId = dateKey; // Use date directly as shift ID
     
     // Check if we already have breaks for today and merge them
     const existingData = localStorage.getItem(`shift_${shiftId}_breaks`);
@@ -143,10 +136,7 @@ export const getBreakIntervalsByShift = (): Record<string, BreakInterval[]> => {
               console.log("BreakIntervalsService - Completed intervals for shift", shiftId, ":", completedIntervals);
               
               if (completedIntervals.length > 0) {
-                // Only add if we don't already have this shift ID to prevent duplicates
-                if (!breakIntervalsByShift[shiftId]) {
-                  breakIntervalsByShift[shiftId] = completedIntervals;
-                }
+                breakIntervalsByShift[shiftId] = completedIntervals;
               }
             }
           }
@@ -163,31 +153,5 @@ export const getBreakIntervalsByShift = (): Record<string, BreakInterval[]> => {
   } catch (error) {
     console.error("BreakIntervalsService - Error retrieving break intervals:", error);
     return {};
-  }
-};
-
-// Create some test data for debugging
-export const createTestBreakData = (): void => {
-  try {
-    const testIntervals: BreakInterval[] = [
-      {
-        start: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        end: new Date(Date.now() - 3300000).toISOString()    // 55 minutes ago (5 min break)
-      },
-      {
-        start: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
-        end: new Date(Date.now() - 900000).toISOString()     // 15 minutes ago (15 min break)
-      }
-    ];
-    
-    // Use today's date for test shift ID
-    const today = new Date();
-    const dateKey = today.toISOString().split('T')[0];
-    const testShiftId = `shift_${dateKey}`;
-    
-    saveBreakIntervalsForShift(testShiftId, testIntervals);
-    console.log("BreakIntervalsService - Created test break data for shift:", testShiftId);
-  } catch (error) {
-    console.error("BreakIntervalsService - Error creating test data:", error);
   }
 };

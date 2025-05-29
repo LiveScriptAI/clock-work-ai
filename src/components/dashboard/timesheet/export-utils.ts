@@ -1,4 +1,3 @@
-
 import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -282,4 +281,120 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
     console.error("PDF export failed:", error);
     toast.error("Failed to export PDF");
   }
+};
+
+// Export breaks to CSV for specific shift
+export const exportBreaksToCSV = async (breakData: Record<string, Array<{start: string; end: string}>>) => {
+  try {
+    const csvContent = generateBreaksCSV(breakData);
+    downloadFile(csvContent, `breaks-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+  } catch (error) {
+    console.error('Error exporting breaks to CSV:', error);
+    throw error;
+  }
+};
+
+// Export breaks to PDF for specific shift
+export const exportBreaksToPDF = async (breakData: Record<string, Array<{start: string; end: string}>>) => {
+  try {
+    const { jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('Break Summary Report', 20, 20);
+    
+    // Add generation date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, 20, 35);
+    
+    let yPosition = 50;
+    
+    Object.entries(breakData).forEach(([shiftId, intervals]) => {
+      // Add shift date
+      doc.setFontSize(14);
+      const shiftDate = formatShiftDisplay(shiftId);
+      doc.text(`Date: ${shiftDate}`, 20, yPosition);
+      yPosition += 10;
+      
+      // Create table data for breaks
+      const tableData = intervals.map((interval, index) => [
+        `Break ${index + 1}`,
+        format(parseISO(interval.start), 'HH:mm'),
+        format(parseISO(interval.end), 'HH:mm'),
+        formatDuration(differenceInSeconds(parseISO(interval.end), parseISO(interval.start)))
+      ]);
+      
+      // Add breaks table
+      (doc as any).autoTable({
+        startY: yPosition,
+        head: [['Break', 'Start Time', 'End Time', 'Duration']],
+        body: tableData,
+        margin: { left: 20, right: 20 },
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [66, 139, 202] }
+      });
+      
+      yPosition = (doc as any).lastAutoTable.finalY + 20;
+    });
+    
+    doc.save(`breaks-${new Date().toISOString().split('T')[0]}.pdf`);
+  } catch (error) {
+    console.error('Error exporting breaks to PDF:', error);
+    throw error;
+  }
+};
+
+const generateBreaksCSV = (breakData: Record<string, Array<{start: string; end: string}>>) => {
+  const headers = ['Date', 'Break Number', 'Start Time', 'End Time', 'Duration'];
+  const rows = [headers];
+  
+  Object.entries(breakData).forEach(([shiftId, intervals]) => {
+    const shiftDate = formatShiftDisplay(shiftId);
+    
+    intervals.forEach((interval, index) => {
+      const duration = formatDuration(differenceInSeconds(parseISO(interval.end), parseISO(interval.start)));
+      rows.push([
+        shiftDate,
+        `Break ${index + 1}`,
+        format(parseISO(interval.start), 'HH:mm'),
+        format(parseISO(interval.end), 'HH:mm'),
+        duration
+      ]);
+    });
+  });
+  
+  return rows.map(row => row.join(',')).join('\n');
+};
+
+const formatShiftDisplay = (shiftId: string): string => {
+  // Check if shiftId is in date format (YYYY-MM-DD)
+  if (shiftId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    try {
+      const date = parseISO(shiftId);
+      return format(date, 'MMMM d, yyyy');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return shiftId;
+    }
+  }
+  
+  return shiftId;
+};
+
+// Function to download file
+const downloadFile = (content: string, filename: string, type: string) => {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.display = "none";
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

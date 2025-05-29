@@ -6,12 +6,10 @@ import TimesheetLog from "@/components/dashboard/TimesheetLog";
 import BreaksSummary from "@/components/dashboard/BreaksSummary";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
-import { Button } from "@/components/ui/button";
 import { useBreakTime } from "@/hooks/useBreakTime";
 import { 
   getBreakIntervalsByShift, 
-  saveCurrentBreakStateAsIntervals,
-  createTestBreakData 
+  saveCurrentBreakStateAsIntervals
 } from "@/services/breakIntervalsService";
 
 interface DashboardContentProps {
@@ -53,7 +51,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   calculateEarnings,
 }) => {
   const { breakIntervals, isBreakActive } = useBreakTime();
-  const [importBreaksToExport, setImportBreaksToExport] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Get break intervals organized by shift - refresh when refreshKey changes
@@ -63,31 +60,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     return intervals;
   }, [refreshKey]);
 
-  const handleImportBreaksToggle = () => {
-    setImportBreaksToExport(prev => {
-      const newValue = !prev;
-      console.log("DashboardContent - Import breaks to export toggled:", newValue);
-      console.log("DashboardContent - Available break intervals:", breakIntervalsByShift);
-      console.log("DashboardContent - Number of shifts with breaks:", Object.keys(breakIntervalsByShift).length);
-      
-      // If turning on, try to save current break state as intervals
-      if (newValue) {
-        saveCurrentBreakStateAsIntervals();
-        // Refresh the break intervals after saving
-        setRefreshKey(prev => prev + 1);
-      }
-      
-      return newValue;
-    });
-  };
-
-  const handleCreateTestData = () => {
-    createTestBreakData();
-    setRefreshKey(prev => prev + 1);
-    console.log("DashboardContent - Test break data created and refreshed");
-  };
-
-  const handleRefreshBreaks = () => {
+  // Function to refresh break intervals after operations
+  const refreshBreakIntervals = () => {
     setRefreshKey(prev => prev + 1);
     console.log("DashboardContent - Break intervals refreshed");
   };
@@ -125,42 +99,15 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       
       {/* Timesheet Log Component */}
       <div className="mt-6">
-        <TimesheetLog importBreaksToExport={importBreaksToExport} />
-      </div>
-
-      {/* Import Breaks Toggle Button */}
-      <div className="mt-6 flex justify-center gap-2">
-        <Button
-          variant={importBreaksToExport ? "default" : "outline"}
-          onClick={handleImportBreaksToggle}
-          className="flex items-center gap-2"
-        >
-          {importBreaksToExport ? "✓ Breaks Included in Export" : "Import Breaks to CSV/PDF"}
-        </Button>
-        
-        {/* Debug buttons */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefreshBreaks}
-          className="text-xs"
-        >
-          Refresh Breaks
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCreateTestData}
-          className="text-xs"
-        >
-          Create Test Data
-        </Button>
+        <TimesheetLog importBreaksToExport={false} />
       </div>
 
       {/* Breaks Summary Component */}
       <div className="mt-6">
-        <BreaksSummary breakIntervalsByShift={breakIntervalsByShift} />
+        <BreaksSummary 
+          breakIntervalsByShift={breakIntervalsByShift} 
+          onBreakDeleted={refreshBreakIntervals}
+        />
       </div>
 
       {/* Invoice Form Component */}
