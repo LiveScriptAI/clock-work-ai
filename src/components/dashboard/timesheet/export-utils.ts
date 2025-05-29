@@ -2,8 +2,9 @@ import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInSeconds } from "date-fns";
 import { getBreakIntervalsByShift } from "@/services/breakIntervalsService";
+import { formatDuration } from "@/components/dashboard/utils";
 
 // Format date for CSV and PDF
 const formatDate = (date: Date): string => {
