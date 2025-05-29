@@ -26,9 +26,26 @@ export const saveBreakIntervalsForShift = (shiftId: string, intervals: BreakInte
 export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boolean> => {
   try {
     const key = `shift_${shiftId}_breaks`;
+    console.log("BreakIntervalsService - Deleting key:", key);
+    
+    // Check if the key exists before deletion
+    const existingData = localStorage.getItem(key);
+    if (!existingData) {
+      console.log("BreakIntervalsService - Key not found:", key);
+      return false;
+    }
+    
     localStorage.removeItem(key);
-    console.log("BreakIntervalsService - Deleted break intervals for shift:", shiftId);
-    return true;
+    
+    // Verify deletion
+    const verifyDeleted = localStorage.getItem(key);
+    if (verifyDeleted === null) {
+      console.log("BreakIntervalsService - Successfully deleted break intervals for shift:", shiftId);
+      return true;
+    } else {
+      console.error("BreakIntervalsService - Failed to delete key:", key);
+      return false;
+    }
   } catch (error) {
     console.error("BreakIntervalsService - Error deleting break intervals:", error);
     return false;

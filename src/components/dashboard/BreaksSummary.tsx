@@ -51,18 +51,23 @@ const formatShiftDisplay = (shiftId: string): string => {
 const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, onBreakDeleted }) => {
   const hasBreaks = Object.keys(breakIntervalsByShift).length > 0;
 
-  const handleDeleteBreak = async (shiftId: string) => {
+  const handleDeleteBreak = async (targetShiftId: string) => {
+    console.log("BreaksSummary - Attempting to delete break for shift:", targetShiftId);
+    
     try {
-      const success = await deleteBreakIntervalsForShift(shiftId);
+      const success = await deleteBreakIntervalsForShift(targetShiftId);
       
       if (success) {
+        console.log("BreaksSummary - Successfully deleted break for shift:", targetShiftId);
         toast.success("Break deleted successfully");
+        // Force a refresh of the break intervals
         onBreakDeleted?.();
       } else {
+        console.error("BreaksSummary - Failed to delete break for shift:", targetShiftId);
         toast.error("Failed to delete break");
       }
     } catch (error) {
-      console.error("Error deleting break:", error);
+      console.error("BreaksSummary - Error deleting break:", error);
       toast.error("An error occurred while deleting the break");
     }
   };
@@ -97,13 +102,21 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
     );
   }
 
+  // Sort entries by shift ID to ensure consistent ordering
+  const sortedEntries = Object.entries(breakIntervalsByShift).sort(([a], [b]) => {
+    // Sort by timestamp if available, otherwise alphabetically
+    const aTime = a.startsWith('current_shift_') ? parseInt(a.split('_').pop() || '0') : 0;
+    const bTime = b.startsWith('current_shift_') ? parseInt(b.split('_').pop() || '0') : 0;
+    return bTime - aTime; // Most recent first
+  });
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Breaks Summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {Object.entries(breakIntervalsByShift).map(([shiftId, intervals]) => (
+        {sortedEntries.map(([shiftId, intervals]) => (
           <Card key={shiftId} className="border border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
