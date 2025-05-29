@@ -1,3 +1,4 @@
+
 import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -289,6 +290,7 @@ export const exportBreaksToCSV = async (breakData: Record<string, Array<{start: 
   try {
     const csvContent = generateBreaksCSV(breakData);
     downloadFile(csvContent, `breaks-${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+    console.log("Breaks CSV export completed successfully");
   } catch (error) {
     console.error('Error exporting breaks to CSV:', error);
     throw error;
@@ -298,8 +300,7 @@ export const exportBreaksToCSV = async (breakData: Record<string, Array<{start: 
 // Export breaks to PDF for specific shift
 export const exportBreaksToPDF = async (breakData: Record<string, Array<{start: string; end: string}>>) => {
   try {
-    const { jsPDF } = await import('jspdf');
-    await import('jspdf-autotable');
+    console.log("Starting breaks PDF export with data:", breakData);
     
     const doc = new jsPDF();
     
@@ -314,9 +315,9 @@ export const exportBreaksToPDF = async (breakData: Record<string, Array<{start: 
     let yPosition = 50;
     
     Object.entries(breakData).forEach(([shiftId, intervals]) => {
-      // Add shift date
+      // Add shift date using the same formatting logic as CSV
       doc.setFontSize(14);
-      const shiftDate = formatShiftDisplay(shiftId);
+      const shiftDate = formatShiftDisplayForExport(shiftId);
       doc.text(`Date: ${shiftDate}`, 20, yPosition);
       yPosition += 10;
       
@@ -328,8 +329,8 @@ export const exportBreaksToPDF = async (breakData: Record<string, Array<{start: 
         formatDuration(differenceInSeconds(parseISO(interval.end), parseISO(interval.start)))
       ]);
       
-      // Add breaks table
-      (doc as any).autoTable({
+      // Add breaks table using autoTable correctly
+      autoTable(doc, {
         startY: yPosition,
         head: [['Break', 'Start Time', 'End Time', 'Duration']],
         body: tableData,
@@ -338,10 +339,18 @@ export const exportBreaksToPDF = async (breakData: Record<string, Array<{start: 
         headStyles: { fillColor: [66, 139, 202] }
       });
       
+      // Update yPosition after table
       yPosition = (doc as any).lastAutoTable.finalY + 20;
+      
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
     });
     
     doc.save(`breaks-${new Date().toISOString().split('T')[0]}.pdf`);
+    console.log("Breaks PDF export completed successfully");
   } catch (error) {
     console.error('Error exporting breaks to PDF:', error);
     throw error;
@@ -353,7 +362,7 @@ const generateBreaksCSV = (breakData: Record<string, Array<{start: string; end: 
   const rows = [headers];
   
   Object.entries(breakData).forEach(([shiftId, intervals]) => {
-    const shiftDate = formatShiftDisplay(shiftId);
+    const shiftDate = formatShiftDisplayForExport(shiftId);
     
     intervals.forEach((interval, index) => {
       const duration = formatDuration(differenceInSeconds(parseISO(interval.end), parseISO(interval.start)));
@@ -368,6 +377,36 @@ const generateBreaksCSV = (breakData: Record<string, Array<{start: string; end: 
   });
   
   return rows.map(row => row.join(',')).join('\n');
+};
+
+// Helper function for formatting shift display in exports
+const formatShiftDisplayForExport = (shiftId: string): string => {
+  // Check if shiftId is in date format (YYYY-MM-DD)
+  if (shiftId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    try {
+      const date = parseISO(shiftId);
+      return format(date, 'MMMM d, yyyy');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return shiftId;
+    }
+  }
+  
+  // For legacy timestamp-based IDs, try to extract date
+  if (shiftId.startsWith('current_shift_') || shiftId.startsWith('test_shift_')) {
+    const timestamp = shiftId.split('_').pop();
+    if (timestamp && !isNaN(Number(timestamp))) {
+      try {
+        const date = new Date(Number(timestamp));
+        return format(date, 'MMMM d, yyyy');
+      } catch (error) {
+        console.error("Error formatting timestamp:", error);
+        return shiftId;
+      }
+    }
+  }
+  
+  return shiftId;
 };
 
 const formatShiftDisplay = (shiftId: string): string => {
