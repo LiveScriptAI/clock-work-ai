@@ -13,6 +13,35 @@ interface BreaksSummaryProps {
   breakIntervalsByShift: Record<string, BreakInterval[]>;
 }
 
+const formatShiftDisplay = (shiftId: string): string => {
+  // Check if shiftId is in date format (YYYY-MM-DD)
+  if (shiftId.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    try {
+      const date = parseISO(shiftId);
+      return format(date, 'MMMM d, yyyy');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return shiftId;
+    }
+  }
+  
+  // For legacy timestamp-based IDs, try to extract date
+  if (shiftId.startsWith('current_shift_') || shiftId.startsWith('test_shift_')) {
+    const timestamp = shiftId.split('_').pop();
+    if (timestamp && !isNaN(Number(timestamp))) {
+      try {
+        const date = new Date(Number(timestamp));
+        return format(date, 'MMMM d, yyyy');
+      } catch (error) {
+        console.error("Error formatting timestamp:", error);
+        return shiftId;
+      }
+    }
+  }
+  
+  return shiftId;
+};
+
 const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift }) => {
   const hasBreaks = Object.keys(breakIntervalsByShift).length > 0;
 
@@ -39,7 +68,7 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift }) 
           <Card key={shiftId} className="border border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
-                <h4 className="font-medium">Shift ID: {shiftId}</h4>
+                <h4 className="font-medium">{formatShiftDisplay(shiftId)}</h4>
                 <Badge variant="outline">{intervals.length} break{intervals.length !== 1 ? 's' : ''}</Badge>
               </div>
               <div className="grid gap-2">
