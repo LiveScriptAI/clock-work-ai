@@ -382,6 +382,20 @@ const formatShiftDisplay = (shiftId: string): string => {
     }
   }
   
+  // For legacy timestamp-based IDs, try to extract date
+  if (shiftId.startsWith('current_shift_') || shiftId.startsWith('test_shift_')) {
+    const timestamp = shiftId.split('_').pop();
+    if (timestamp && !isNaN(Number(timestamp))) {
+      try {
+        const date = new Date(Number(timestamp));
+        return format(date, 'MMMM d, yyyy');
+      } catch (error) {
+        console.error("Error formatting timestamp:", error);
+        return shiftId;
+      }
+    }
+  }
+  
   return shiftId;
 };
 
