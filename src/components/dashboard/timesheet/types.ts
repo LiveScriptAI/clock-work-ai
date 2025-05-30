@@ -12,4 +12,5 @@ export interface ShiftEntry {
   payType: string;
   status: string;
   breakIntervals?: { start: string; end: string }[];
+  clientEmail?: string; // Add optional client email field
 }

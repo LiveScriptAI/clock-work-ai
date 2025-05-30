@@ -1,9 +1,9 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
+import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 
 interface LineItem {
   id: string;
@@ -62,7 +62,42 @@ const loadImage = (url: string): Promise<string> => {
   });
 };
 
-export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
+// Convert ShiftEntry to InvoiceData
+export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = ''): InvoiceData => {
+  const lineItem: LineItem = {
+    id: shift.id,
+    date: shift.date,
+    description: `Work performed for ${shift.employer}`,
+    rateType: shift.payType,
+    quantity: shift.hoursWorked,
+    unitPrice: shift.payRate
+  };
+
+  const subtotal = shift.earnings;
+  const vatAmount = subtotal * 0.2; // 20% VAT
+  const total = subtotal + vatAmount;
+
+  return {
+    customer: shift.employer,
+    invoiceDate: shift.date,
+    reference: shift.id,
+    lineItems: [lineItem],
+    notes: "Thank you for your business",
+    terms: "Payment due within 30 days",
+    subtotal: subtotal.toFixed(2),
+    vat: vatAmount.toFixed(2),
+    total: total.toFixed(2),
+    address1: "",
+    address2: "",
+    city: "",
+    county: "",
+    postcode: "",
+    country: ""
+  };
+};
+
+// Generate PDF as Blob
+export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<Blob> => {
   try {
     // Initialize new PDF document
     const doc = new jsPDF();
@@ -231,9 +266,34 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       doc.text(invoice.terms, 110, notesY + 7, { maxWidth: 80 });
     }
     
-    // Save the PDF
+    // Return PDF as Blob instead of saving
+    return doc.output('blob');
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    throw new Error("Failed to generate invoice PDF");
+  }
+};
+
+// Keep existing downloadInvoicePDF function but refactor to use generateInvoicePDF
+export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
+  try {
+    const pdfBlob = await generateInvoicePDF(invoice, sender);
+    
+    // Create download link
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement("a");
     const filename = `invoice-${invoice.reference || "draft"}-${new Date().toISOString().split("T")[0]}.pdf`;
-    doc.save(filename);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.display = "none";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up
+    URL.revokeObjectURL(url);
     
     toast.success("Invoice PDF created successfully");
   } catch (error) {

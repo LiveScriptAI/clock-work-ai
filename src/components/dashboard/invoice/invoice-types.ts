@@ -1,4 +1,6 @@
 
+import { ShiftEntry } from "@/components/dashboard/timesheet/types";
+
 export interface LineItem {
   id: string;
   date: Date | undefined;
@@ -26,3 +28,6 @@ export interface InvoiceData {
   postcode: string;
   country: string;
 }
+
+// Re-export ShiftEntry for convenience
+export type { ShiftEntry };
