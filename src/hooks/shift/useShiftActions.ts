@@ -93,26 +93,6 @@ export function useShiftActions(
     console.log("ShiftActions - Saving break intervals for completed shift:", shiftId);
     saveBreakIntervalsForCompletedShift(shiftId);
 
-    // Calculate hours worked and earnings
-    const hoursWorked = startTime ? (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60) : 0;
-    const adjustedHours = Math.max(0, hoursWorked - (totalBreakDuration / 3600));
-    
-    let earnings = 0;
-    switch (rateType) {
-      case "Per Hour":
-        earnings = adjustedHours * payRate;
-        break;
-      case "Per Day":
-        earnings = payRate;
-        break;
-      case "Per Week":
-        earnings = payRate;
-        break;
-      case "Per Month":
-        earnings = payRate;
-        break;
-    }
-
     // Save to Supabase if user is authenticated
     if (userId && startTime) {
       try {
@@ -123,12 +103,13 @@ export function useShiftActions(
             start_time: startTime.toISOString(),
             end_time: endTime.toISOString(),
             break_duration: Math.round(totalBreakDuration / 60), // Convert to minutes
-            hours_worked: adjustedHours,
-            earnings: earnings,
             pay_rate: payRate,
-            pay_type: rateType,
-            employer: employerName,
-            status: 'Completed'
+            rate_type: rateType,
+            employer_name: employerName,
+            manager_start_name: managerName,
+            manager_end_name: endManagerName,
+            manager_start_signature: startSignatureData,
+            manager_end_signature: endSignatureData
           });
 
         if (error) {
