@@ -55,19 +55,30 @@ export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boo
 // Convert current break state to intervals and save for a completed shift
 export const saveBreakIntervalsForCompletedShift = (shiftId: string): void => {
   try {
+    console.log("BreakIntervalsService - Loading break state for shift:", shiftId);
     const breakState = loadBreakState();
+    
     if (!breakState || !breakState.breakIntervals || breakState.breakIntervals.length === 0) {
       console.log("BreakIntervalsService - No break intervals to save for completed shift");
       return;
     }
 
+    console.log("BreakIntervalsService - Raw break intervals from state:", breakState.breakIntervals);
+
     // Filter completed intervals (those with both start and end)
     const completedIntervals: BreakInterval[] = breakState.breakIntervals
-      .filter(interval => interval.start && interval.end)
+      .filter(interval => {
+        const hasStart = interval.start && interval.start !== null;
+        const hasEnd = interval.end && interval.end !== null;
+        console.log("BreakIntervalsService - Checking interval:", interval, "hasStart:", hasStart, "hasEnd:", hasEnd);
+        return hasStart && hasEnd;
+      })
       .map(interval => ({
         start: interval.start,
-        end: interval.end
+        end: interval.end!
       }));
+
+    console.log("BreakIntervalsService - Completed intervals:", completedIntervals);
 
     if (completedIntervals.length === 0) {
       console.log("BreakIntervalsService - No completed break intervals to save for shift");
