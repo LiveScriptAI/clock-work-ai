@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteBreakIntervalsForShift } from "@/services/breakIntervalsService";
 import { exportBreaksToCSV, exportBreaksToPDF } from "@/components/dashboard/timesheet/export-utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BreakInterval {
   start: string;
@@ -49,6 +50,7 @@ const formatShiftDisplay = (shiftId: string): string => {
 };
 
 const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, onBreakDeleted }) => {
+  const isMobile = useIsMobile();
   const hasBreaks = Object.keys(breakIntervalsByShift).length > 0;
 
   const handleDeleteBreak = async (targetShiftId: string) => {
@@ -60,7 +62,6 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
       if (success) {
         console.log("BreaksSummary - Successfully deleted break for shift:", targetShiftId);
         toast.success("Break deleted successfully");
-        // Force a refresh of the break intervals
         onBreakDeleted?.();
       } else {
         console.error("BreaksSummary - Failed to delete break for shift:", targetShiftId);
@@ -102,7 +103,7 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
     );
   }
 
-  // Sort entries by shift ID to ensure consistent ordering
+  // Sort entries by shift ID to ensure consistent ordering (most recent first)
   const sortedEntries = Object.entries(breakIntervalsByShift).sort(([a], [b]) => {
     // Sort by timestamp if available, otherwise alphabetically
     const aTime = a.startsWith('current_shift_') ? parseInt(a.split('_').pop() || '0') : 0;
@@ -118,18 +119,20 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
       <CardContent className="space-y-4">
         {sortedEntries.map(([shiftId, intervals]) => (
           <Card key={shiftId} className="border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium">{formatShiftDisplay(shiftId)}</h4>
-                  <Badge variant="outline">{intervals.length} break{intervals.length !== 1 ? 's' : ''}</Badge>
+            <CardContent className="p-3 sm:p-4">
+              <div className={`flex items-start justify-between mb-3 ${isMobile ? 'flex-col space-y-2' : 'flex-row'}`}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-medium text-sm sm:text-base">{formatShiftDisplay(shiftId)}</h4>
+                  <Badge variant="outline" className="text-xs">
+                    {intervals.length} break{intervals.length !== 1 ? 's' : ''}
+                  </Badge>
                 </div>
-                <div className="flex gap-2">
+                <div className={`flex gap-1 sm:gap-2 ${isMobile ? 'w-full flex-wrap' : ''}`}>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleExportBreaks(shiftId, intervals, 'csv')}
-                    className="text-xs"
+                    className={`text-xs px-2 py-1 ${isMobile ? 'flex-1' : ''}`}
                   >
                     Export CSV
                   </Button>
@@ -137,7 +140,7 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
                     variant="outline"
                     size="sm"
                     onClick={() => handleExportBreaks(shiftId, intervals, 'pdf')}
-                    className="text-xs"
+                    className={`text-xs px-2 py-1 ${isMobile ? 'flex-1' : ''}`}
                   >
                     Export PDF
                   </Button>
@@ -145,7 +148,7 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteBreak(shiftId)}
-                    className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className={`text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 ${isMobile ? 'min-w-[40px]' : ''}`}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -153,9 +156,9 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
               </div>
               <div className="grid gap-2">
                 {intervals.map((interval, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Break {index + 1}:</span>
-                    <span className="font-mono">
+                  <div key={index} className="flex items-center gap-2 text-xs sm:text-sm">
+                    <span className="text-muted-foreground min-w-[60px]">Break {index + 1}:</span>
+                    <span className="font-mono text-xs sm:text-sm">
                       {format(parseISO(interval.start), 'HH:mm')} – {format(parseISO(interval.end), 'HH:mm')}
                     </span>
                   </div>

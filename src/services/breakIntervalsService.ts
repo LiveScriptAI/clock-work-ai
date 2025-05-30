@@ -52,12 +52,12 @@ export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boo
   }
 };
 
-// Convert current break state to intervals and save for current shift
-export const saveCurrentBreakStateAsIntervals = (): void => {
+// Convert current break state to intervals and save for a completed shift
+export const saveBreakIntervalsForCompletedShift = (shiftId: string): void => {
   try {
     const breakState = loadBreakState();
     if (!breakState || !breakState.breakIntervals || breakState.breakIntervals.length === 0) {
-      console.log("BreakIntervalsService - No break intervals to save");
+      console.log("BreakIntervalsService - No break intervals to save for completed shift");
       return;
     }
 
@@ -70,50 +70,21 @@ export const saveCurrentBreakStateAsIntervals = (): void => {
       }));
 
     if (completedIntervals.length === 0) {
-      console.log("BreakIntervalsService - No completed break intervals to save");
+      console.log("BreakIntervalsService - No completed break intervals to save for shift");
       return;
     }
 
-    // Generate a shift ID based on today's date to group breaks by day
-    const today = new Date();
-    const dateKey = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const shiftId = dateKey; // Use date directly as shift ID
-    
-    // Check if we already have breaks for today and merge them
-    const existingData = localStorage.getItem(`shift_${shiftId}_breaks`);
-    let allIntervals = completedIntervals;
-    
-    if (existingData) {
-      try {
-        const parsed = JSON.parse(existingData);
-        if (parsed.breakIntervals) {
-          // Merge existing intervals with new ones, avoiding duplicates
-          const existingIntervals = parsed.breakIntervals;
-          const intervalSet = new Set();
-          
-          // Add existing intervals to set for deduplication
-          existingIntervals.forEach((interval: BreakInterval) => {
-            intervalSet.add(`${interval.start}-${interval.end}`);
-          });
-          
-          // Only add new intervals that aren't already present
-          const newIntervals = completedIntervals.filter(interval => {
-            const key = `${interval.start}-${interval.end}`;
-            return !intervalSet.has(key);
-          });
-          
-          allIntervals = [...existingIntervals, ...newIntervals];
-        }
-      } catch (error) {
-        console.error("Error parsing existing break data:", error);
-      }
-    }
-    
-    saveBreakIntervalsForShift(shiftId, allIntervals);
-    console.log("BreakIntervalsService - Saved current break state as intervals:", allIntervals);
+    // Save breaks for this specific completed shift
+    saveBreakIntervalsForShift(shiftId, completedIntervals);
+    console.log("BreakIntervalsService - Saved completed shift break intervals:", completedIntervals);
   } catch (error) {
-    console.error("BreakIntervalsService - Error saving current break state:", error);
+    console.error("BreakIntervalsService - Error saving completed shift break intervals:", error);
   }
+};
+
+// Convert current break state to intervals and save for current shift (deprecated - use saveBreakIntervalsForCompletedShift instead)
+export const saveCurrentBreakStateAsIntervals = (): void => {
+  console.log("BreakIntervalsService - saveCurrentBreakStateAsIntervals is deprecated, use saveBreakIntervalsForCompletedShift instead");
 };
 
 // Retrieve break intervals organized by shift ID from localStorage
