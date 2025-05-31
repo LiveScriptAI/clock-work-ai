@@ -63,10 +63,11 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setCountry = () => {},
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
+        {/* Customer Name Field - Full Width on Mobile */}
         <div className="space-y-2">
-          <Label htmlFor="customer">Customer</Label>
+          <Label htmlFor="customer" className="text-sm font-medium">Customer</Label>
           <Input
             id="customer"
             placeholder="Select or enter customer name"
@@ -76,8 +77,9 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           />
         </div>
         
+        {/* Customer Email Field - Full Width on Mobile */}
         <div className="space-y-2">
-          <Label htmlFor="customerEmail">Customer Email</Label>
+          <Label htmlFor="customerEmail" className="text-sm font-medium">Customer Email</Label>
           <Input
             id="customerEmail"
             placeholder="Enter customer email"
@@ -89,20 +91,22 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="invoiceDate">Invoice Date</Label>
+          <Label htmlFor="invoiceDate" className="text-sm font-medium">Invoice Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal h-10",
                   !invoiceDate && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {invoiceDate ? format(invoiceDate, "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">
+                  {invoiceDate ? format(invoiceDate, "PPP") : "Pick a date"}
+                </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -118,7 +122,7 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="reference">Invoice Reference (Optional)</Label>
+          <Label htmlFor="reference" className="text-sm font-medium">Invoice Reference (Optional)</Label>
           <Input 
             id="reference" 
             placeholder="INV-001" 
@@ -130,62 +134,72 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
       </div>
       
       {/* Billing Address Section */}
-      <div className="space-y-2">
-        <h3 className="font-medium">Billing Address</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="address1">Address Line 1</Label>
+      <div className="space-y-3">
+        <h3 className="font-medium text-sm sm:text-base">Billing Address</h3>
+        <div className="grid grid-cols-1 gap-3 sm:gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="address1" className="text-sm font-medium">Address Line 1</Label>
             <Input
               id="address1"
               placeholder="Address Line 1"
               value={address1}
               onChange={(e) => setAddress1(e.target.value)}
+              className="w-full"
             />
           </div>
-          <div>
-            <Label htmlFor="address2">Address Line 2</Label>
+          <div className="space-y-2">
+            <Label htmlFor="address2" className="text-sm font-medium">Address Line 2</Label>
             <Input
               id="address2" 
               placeholder="Address Line 2 (Optional)"
               value={address2}
               onChange={(e) => setAddress2(e.target.value)}
+              className="w-full"
             />
           </div>
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              placeholder="City"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city" className="text-sm font-medium">City</Label>
+              <Input
+                id="city"
+                placeholder="City"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="county" className="text-sm font-medium">County/State</Label>
+              <Input
+                id="county"
+                placeholder="County/State"
+                value={county}
+                onChange={(e) => setCounty(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="county">County/State</Label>
-            <Input
-              id="county"
-              placeholder="County/State"
-              value={county}
-              onChange={(e) => setCounty(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="postcode">Postcode/ZIP</Label>
-            <Input
-              id="postcode"
-              placeholder="Postcode/ZIP"
-              value={postcode}
-              onChange={(e) => setPostcode(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
-              placeholder="Country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="postcode" className="text-sm font-medium">Postcode/ZIP</Label>
+              <Input
+                id="postcode"
+                placeholder="Postcode/ZIP"
+                value={postcode}
+                onChange={(e) => setPostcode(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country" className="text-sm font-medium">Country</Label>
+              <Input
+                id="country"
+                placeholder="Country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </div>
