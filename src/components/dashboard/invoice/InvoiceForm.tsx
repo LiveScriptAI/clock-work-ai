@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -13,7 +12,9 @@ import LineItemsTable from "./LineItemsTable";
 import NotesAndTerms from "./NotesAndTerms";
 import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
+import InvoiceActions from "./InvoiceActions";
 import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
+import { convertInvoiceToShift } from "./invoice-conversion-utils";
 import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
 import { toast } from "@/hooks/use-toast";
@@ -42,6 +43,7 @@ const InvoiceForm = () => {
   const { user } = useAuth();
   const today = new Date();
   const [customer, setCustomer] = useState<string>("");
+  const [customerEmail, setCustomerEmail] = useState<string>("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
   const [reference, setReference] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -98,6 +100,7 @@ const InvoiceForm = () => {
     
     // Update invoice form fields with company data
     setCustomer(companyData.company_name || "");
+    setCustomerEmail(companyData.email || "");
     
     // Update address fields
     setAddress1(companyData.address1 || "");
@@ -228,6 +231,11 @@ const InvoiceForm = () => {
     return (subtotal + vat).toFixed(2);
   };
 
+  // Convert invoice data to shift for InvoiceActions
+  const getShiftData = (): ShiftEntry => {
+    return convertInvoiceToShift(customer, invoiceDate, reference, lineItems, customerEmail);
+  };
+
   // Handler for Send Invoice button
   const handleSendInvoice = () => {
     // Include sender information with invoice data
@@ -334,6 +342,8 @@ const InvoiceForm = () => {
           <InvoiceHeader 
             customer={customer}
             setCustomer={setCustomer}
+            customerEmail={customerEmail}
+            setCustomerEmail={setCustomerEmail}
             invoiceDate={invoiceDate}
             setInvoiceDate={setInvoiceDate}
             reference={reference}
@@ -382,7 +392,14 @@ const InvoiceForm = () => {
         <CardFooter className="flex flex-wrap gap-3 justify-end">
           <Button variant="outline" className="w-full sm:w-auto" onClick={handlePreviewInvoice}>Preview Invoice</Button>
           <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPDF}>Download PDF</Button>
-          <Button variant="default" className="w-full sm:w-auto" onClick={handleSendInvoice}>Send Invoice</Button>
+          
+          {/* New Invoice Actions Component */}
+          <div className="w-full sm:w-auto">
+            <InvoiceActions 
+              shift={getShiftData()}
+              clientEmail={customerEmail}
+            />
+          </div>
         </CardFooter>
       </Card>
 

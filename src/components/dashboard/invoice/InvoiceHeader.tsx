@@ -20,7 +20,10 @@ interface InvoiceHeaderProps {
   setInvoiceDate: (date: Date) => void;
   reference: string;
   setReference: (value: string) => void;
-  // Add new address props
+  // Add email props
+  customerEmail?: string;
+  setCustomerEmail?: (value: string) => void;
+  // Address props
   address1?: string;
   setAddress1?: (value: string) => void;
   address2?: string;
@@ -42,6 +45,9 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setInvoiceDate,
   reference,
   setReference,
+  // Email fields
+  customerEmail = "",
+  setCustomerEmail = () => {},
   // Address fields
   address1 = "",
   setAddress1 = () => {},
@@ -70,44 +76,56 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           />
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="invoiceDate">Invoice Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !invoiceDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {invoiceDate ? format(invoiceDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={invoiceDate}
-                  onSelect={(date) => date && setInvoiceDate(date)}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="reference">Invoice Reference (Optional)</Label>
-            <Input 
-              id="reference" 
-              placeholder="INV-001" 
-              className="w-full"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="customerEmail">Customer Email</Label>
+          <Input
+            id="customerEmail"
+            placeholder="Enter customer email"
+            type="email"
+            className="w-full"
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="invoiceDate">Invoice Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !invoiceDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {invoiceDate ? format(invoiceDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={invoiceDate}
+                onSelect={(date) => date && setInvoiceDate(date)}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="reference">Invoice Reference (Optional)</Label>
+          <Input 
+            id="reference" 
+            placeholder="INV-001" 
+            className="w-full"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+          />
         </div>
       </div>
       
