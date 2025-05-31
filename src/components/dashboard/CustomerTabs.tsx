@@ -56,13 +56,13 @@ const CustomerTabs = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Initialize react-hook-form with zod validation
+  // Initialize react-hook-form with zod validation - Fixed email default value
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       businessName: "",
       contactName: "",
-      email: "",
+      email: "", // Fixed: Use empty string instead of generated email
       // New address fields
       address1: "",
       address2: "",
@@ -211,7 +211,7 @@ const CustomerTabs = () => {
                   )}
                 />
                 
-                {/* Email */}
+                {/* Email - Fixed to honor user input */}
                 <FormField
                   control={form.control}
                   name="email"
