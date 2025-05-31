@@ -30,14 +30,7 @@ export const convertInvoiceToShift = (
     startTime: new Date(invoiceDate.getTime()),
     endTime: new Date(invoiceDate.getTime() + (totalHours * 60 * 60 * 1000)),
     breakDuration: 0,
-    managerStartName: "",
-    managerEndName: "",
-    managerStartSignature: "",
-    managerEndSignature: "",
-    userId: "",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    rateType: lineItems[0]?.rateType || "Per Hour"
+    status: "completed"
   };
 
   return shiftData;
