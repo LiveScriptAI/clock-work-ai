@@ -134,33 +134,16 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       if (isMobileDevice) {
         console.log("Opening email client on mobile...");
         
-        // Simplified mobile email handling - let the OS handle it properly
+        // Gmail-friendly approach - use window.location directly without DOM manipulation
         const emailUrl = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
         
-        // Give download time to complete, then open email cleanly
+        // Give download time to complete, then open email with minimal interference
         setTimeout(() => {
           try {
             if (isIOS) {
-              console.log("Opening email app on iOS...");
-              // Create a clean, invisible link that won't interfere with Gmail
-              const emailLink = document.createElement('a');
-              emailLink.href = emailUrl;
-              emailLink.style.position = 'absolute';
-              emailLink.style.left = '-9999px';
-              emailLink.style.opacity = '0';
-              emailLink.style.pointerEvents = 'none';
-              
-              document.body.appendChild(emailLink);
-              
-              // Click the link and immediately remove it to avoid interference
-              emailLink.click();
-              
-              // Remove the link after a short delay
-              setTimeout(() => {
-                if (document.body.contains(emailLink)) {
-                  document.body.removeChild(emailLink);
-                }
-              }, 50);
+              console.log("Opening email app on iOS with Gmail-friendly method...");
+              // Use window.location directly - this is less likely to interfere with Gmail
+              window.location.href = emailUrl;
               
             } else {
               console.log("Opening email app on Android...");
@@ -180,7 +163,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
               toast.success("Invoice downloaded. Please email it manually to: " + clientEmail);
             }
           }
-        }, 1000); // Give download time to complete
+        }, 2000); // Longer delay to ensure download completes and reduce interference
       } else {
         // Desktop behavior
         console.log("Opening email client on desktop...");
