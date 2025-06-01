@@ -135,21 +135,52 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       if (isMobileDevice) {
         console.log("Opening email client on mobile...");
         
-        // For mobile, use a simpler approach to avoid conflicts
+        // Enhanced mobile email handling with Gmail-specific support
         const emailUrl = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
         
-        // Use setTimeout to ensure the download completes first
+        // Use a longer delay and more robust approach for mobile email clients
         setTimeout(() => {
           try {
-            // For iOS, use window.location instead of window.open to avoid popup blocker issues
             if (isIOS) {
-              console.log("Using window.location for iOS...");
-              window.location.href = emailUrl;
+              console.log("Using enhanced iOS email handling...");
+              
+              // For iOS, create a user-initiated action to avoid popup blocking
+              const userInteraction = () => {
+                // Try opening email in current window first (works better for Gmail)
+                try {
+                  window.location.href = emailUrl;
+                } catch (error) {
+                  console.log("Direct location change failed, trying alternative...");
+                  // Fallback: create a temporary link and click it
+                  const tempLink = document.createElement('a');
+                  tempLink.href = emailUrl;
+                  tempLink.style.display = 'none';
+                  document.body.appendChild(tempLink);
+                  
+                  // Use a longer timeout to ensure Gmail has time to process
+                  setTimeout(() => {
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                  }, 100);
+                }
+              };
+              
+              // Execute immediately for better user experience
+              userInteraction();
+              
             } else {
-              console.log("Using window.open for Android...");
-              const emailWindow = window.open(emailUrl, '_self');
-              if (!emailWindow) {
-                // Fallback for Android
+              console.log("Using Android email handling...");
+              // For Android, try multiple approaches
+              try {
+                // First try: direct window.open
+                const emailWindow = window.open(emailUrl, '_blank');
+                if (!emailWindow) {
+                  // Second try: location change
+                  window.location.href = emailUrl;
+                }
+              } catch (error) {
+                console.log("Android email opening failed:", error);
+                // Fallback: location change
                 window.location.href = emailUrl;
               }
             }
@@ -166,7 +197,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
               toast.success("Invoice downloaded. Please email it manually to: " + clientEmail);
             }
           }
-        }, 500); // Small delay to ensure download starts
+        }, 750); // Increased delay to ensure download completes and email app has time to process
       } else {
         // Desktop behavior
         console.log("Opening email client on desktop...");
