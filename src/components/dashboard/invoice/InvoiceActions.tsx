@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, Download, AlertCircle } from "lucide-react";
@@ -135,54 +134,38 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       if (isMobileDevice) {
         console.log("Opening email client on mobile...");
         
-        // Enhanced mobile email handling with Gmail-specific support
+        // Simplified mobile email handling - let the OS handle it properly
         const emailUrl = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
         
-        // Use a longer delay and more robust approach for mobile email clients
+        // Give download time to complete, then open email cleanly
         setTimeout(() => {
           try {
             if (isIOS) {
-              console.log("Using enhanced iOS email handling...");
+              console.log("Opening email app on iOS...");
+              // Create a clean, invisible link that won't interfere with Gmail
+              const emailLink = document.createElement('a');
+              emailLink.href = emailUrl;
+              emailLink.style.position = 'absolute';
+              emailLink.style.left = '-9999px';
+              emailLink.style.opacity = '0';
+              emailLink.style.pointerEvents = 'none';
               
-              // For iOS, create a user-initiated action to avoid popup blocking
-              const userInteraction = () => {
-                // Try opening email in current window first (works better for Gmail)
-                try {
-                  window.location.href = emailUrl;
-                } catch (error) {
-                  console.log("Direct location change failed, trying alternative...");
-                  // Fallback: create a temporary link and click it
-                  const tempLink = document.createElement('a');
-                  tempLink.href = emailUrl;
-                  tempLink.style.display = 'none';
-                  document.body.appendChild(tempLink);
-                  
-                  // Use a longer timeout to ensure Gmail has time to process
-                  setTimeout(() => {
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
-                  }, 100);
+              document.body.appendChild(emailLink);
+              
+              // Click the link and immediately remove it to avoid interference
+              emailLink.click();
+              
+              // Remove the link after a short delay
+              setTimeout(() => {
+                if (document.body.contains(emailLink)) {
+                  document.body.removeChild(emailLink);
                 }
-              };
-              
-              // Execute immediately for better user experience
-              userInteraction();
+              }, 50);
               
             } else {
-              console.log("Using Android email handling...");
-              // For Android, try multiple approaches
-              try {
-                // First try: direct window.open
-                const emailWindow = window.open(emailUrl, '_blank');
-                if (!emailWindow) {
-                  // Second try: location change
-                  window.location.href = emailUrl;
-                }
-              } catch (error) {
-                console.log("Android email opening failed:", error);
-                // Fallback: location change
-                window.location.href = emailUrl;
-              }
+              console.log("Opening email app on Android...");
+              // For Android, direct window.location works better
+              window.location.href = emailUrl;
             }
           } catch (error) {
             console.error("Error opening email client:", error);
@@ -197,7 +180,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
               toast.success("Invoice downloaded. Please email it manually to: " + clientEmail);
             }
           }
-        }, 750); // Increased delay to ensure download completes and email app has time to process
+        }, 1000); // Give download time to complete
       } else {
         // Desktop behavior
         console.log("Opening email client on desktop...");
