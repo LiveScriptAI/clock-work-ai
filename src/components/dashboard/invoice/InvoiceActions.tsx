@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, Download, AlertCircle } from "lucide-react";
@@ -66,45 +67,34 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
       const file = new File([pdfBlob], `Invoice-${shift.id}.pdf`, { type: 'application/pdf' });
 
-      // Enhanced mobile detection
+      // Enhanced mobile detection and sharing
       const isMobileDevice = isMobile || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       
-      console.log("Mobile device detected:", isMobileDevice);
-      console.log("iOS device detected:", isIOS);
-
-      // Try Web Share API first for mobile devices
+      // Try Web Share API first (especially good for mobile)
       if (navigator.share && isMobileDevice) {
         try {
-          console.log("Attempting Web Share API...");
-          
-          // Check if we can share files
+          // For mobile, try sharing with files if supported
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            console.log("Sharing with file attachment...");
             await navigator.share({
               files: [file],
               title: `Invoice #${shift.id}`,
-              text: `Invoice #${shift.id} for work on ${shift.date.toLocaleDateString()}. Total: £${shift.earnings.toFixed(2)}`,
+              text: `Please find attached Invoice #${shift.id} for work performed on ${shift.date.toLocaleDateString()}. Total amount: £${shift.earnings.toFixed(2)}`,
             });
             toast.success("Invoice shared successfully");
             return;
           } else {
-            console.log("File sharing not supported, sharing text only...");
+            // Fallback for mobile - share without file but with email info
             await navigator.share({
               title: `Invoice #${shift.id}`,
-              text: `Invoice #${shift.id} for work performed on ${shift.date.toLocaleDateString()}. Total amount: £${shift.earnings.toFixed(2)}. Please find the PDF attachment in your downloads.`,
+              text: `Please find attached Invoice #${shift.id} for work performed on ${shift.date.toLocaleDateString()}. Total amount: £${shift.earnings.toFixed(2)}. Email: ${clientEmail}`,
             });
-            
-            // Download the PDF separately
+            // Still download the PDF for manual attachment
             const url = URL.createObjectURL(pdfBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `Invoice-${shift.id}.pdf`;
-            document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
             toast.success("Invoice downloaded and sharing options opened");
             return;
           }
@@ -114,59 +104,47 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
         }
       }
 
-      // Fallback: Download PDF first, then handle email
-      console.log("Using fallback method...");
+      // Fallback for all devices: download PDF and open email client
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `Invoice-${shift.id}.pdf`;
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Construct email parameters
+      // Construct email with better mobile support
       const subject = encodeURIComponent(`Invoice #${shift.id}`);
       const body = encodeURIComponent(
         `Hi,\n\nPlease find attached Invoice #${shift.id} for work performed on ${shift.date.toLocaleDateString()}.\n\nTotal amount: £${shift.earnings.toFixed(2)}\n\nThanks!`
       );
       
+      // Use different approaches for mobile vs desktop
       if (isMobileDevice) {
-        console.log("Opening email client on mobile...");
-        
-        // Gmail-friendly approach - use window.location directly without DOM manipulation
+        // For mobile, try different email schemes
         const emailUrl = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
         
-        // Give download time to complete, then open email with minimal interference
-        setTimeout(() => {
-          try {
-            if (isIOS) {
-              console.log("Opening email app on iOS with Gmail-friendly method...");
-              // Use window.location directly - this is less likely to interfere with Gmail
-              window.location.href = emailUrl;
-              
-            } else {
-              console.log("Opening email app on Android...");
-              // For Android, direct window.location works better
-              window.location.href = emailUrl;
-            }
-          } catch (error) {
-            console.error("Error opening email client:", error);
-            // Copy email to clipboard as last resort
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText(clientEmail).then(() => {
-                toast.success("Email address copied to clipboard. Please attach the downloaded PDF manually.");
-              }).catch(() => {
-                toast.success("Invoice downloaded. Please email it manually to: " + clientEmail);
-              });
-            } else {
-              toast.success("Invoice downloaded. Please email it manually to: " + clientEmail);
-            }
+        // Try to open email app
+        try {
+          const emailWindow = window.open(emailUrl, '_self');
+          // If window.open returns null, try alternative method
+          if (!emailWindow) {
+            // Create a temporary link and click it
+            const emailLink = document.createElement('a');
+            emailLink.href = emailUrl;
+            emailLink.style.display = 'none';
+            document.body.appendChild(emailLink);
+            emailLink.click();
+            document.body.removeChild(emailLink);
           }
-        }, 2000); // Longer delay to ensure download completes and reduce interference
+        } catch (error) {
+          console.error("Error opening email client on mobile:", error);
+          // Last resort - copy email to clipboard
+          navigator.clipboard?.writeText(clientEmail).then(() => {
+            toast.success("Email address copied to clipboard. Please attach the downloaded PDF manually.");
+          });
+        }
       } else {
         // Desktop behavior
-        console.log("Opening email client on desktop...");
         window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
       }
       
