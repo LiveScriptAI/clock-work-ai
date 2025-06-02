@@ -1,3 +1,4 @@
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -103,45 +104,48 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     const doc = new jsPDF();
     
     // Starting Y position for content after logo (if any)
-    let yPos = 15; // Default position
+    let yPos = 20;
     
     // Add logo if available
     if (sender.logo_url) {
       try {
         const logoDataUrl = await loadImage(sender.logo_url);
-        // Add the logo to the top left
+        // Add the logo to the top left with better positioning
         doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 20, undefined, 'FAST');
-        // Adjust yPos to place content below the logo
+        // Adjust yPos to place content below the logo with more space
         yPos = 40;
       } catch (err) {
         console.error('Error adding logo to PDF:', err);
       }
     }
     
-    // Add title and invoice number
+    // Add title and invoice number with better spacing
     doc.setFontSize(20);
     doc.text("INVOICE", 14, yPos);
     
     doc.setFontSize(10);
-    doc.text(`Reference: ${invoice.reference || "N/A"}`, 14, yPos + 7);
+    doc.text(`Reference: ${invoice.reference || "N/A"}`, 14, yPos + 8);
     
-    // Add date
+    // Add date with better alignment
     const formattedDate = invoice.invoiceDate.toLocaleDateString();
     doc.text(`Date: ${formattedDate}`, 170, yPos, { align: "right" });
     
     // Due date (30 days from invoice date)
     const dueDate = new Date(invoice.invoiceDate);
     dueDate.setDate(dueDate.getDate() + 30);
-    doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, yPos + 7, { align: "right" });
+    doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, yPos + 8, { align: "right" });
+    
+    // Increase spacing before From/To sections
+    yPos += 25;
     
     // From section with sender information
     doc.setFontSize(11);
-    doc.text("From:", 14, yPos + 20);
+    doc.text("From:", 14, yPos);
     doc.setFontSize(10);
     
-    // Use sender information instead of hardcoded values
-    let senderY = yPos + 27;
-    const lineHeight = 7;
+    // Use sender information with proper line spacing
+    let senderY = yPos + 8;
+    const lineHeight = 5;
     
     doc.text(sender.business_name, 14, senderY);
     senderY += lineHeight;
@@ -171,25 +175,24 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       doc.text(sender.country, 14, senderY);
     }
     
-    // To section
+    // To section with better positioning
     doc.setFontSize(11);
-    doc.text("To:", 110, yPos + 20);
+    doc.text("To:", 110, yPos);
     doc.setFontSize(10);
-    doc.text(invoice.customer || "Client Name", 110, yPos + 27);
     
-    // Format the customer address using granular fields
-    let currentY = yPos + 34;
+    let toY = yPos + 8;
+    doc.text(invoice.customer || "Client Name", 110, toY);
+    toY += lineHeight;
     
-    // Address line 1
+    // Format the customer address using granular fields with proper spacing
     if (invoice.address1) {
-      doc.text(invoice.address1, 110, currentY);
-      currentY += 7;
+      doc.text(invoice.address1, 110, toY);
+      toY += lineHeight;
     }
     
-    // Address line 2
     if (invoice.address2) {
-      doc.text(invoice.address2, 110, currentY);
-      currentY += 7;
+      doc.text(invoice.address2, 110, toY);
+      toY += lineHeight;
     }
     
     // City, County, Postcode combined
@@ -200,20 +203,23 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     ].filter(Boolean).join(", ");
     
     if (cityCountyPostcode2) {
-      doc.text(cityCountyPostcode2, 110, currentY);
-      currentY += 7;
+      doc.text(cityCountyPostcode2, 110, toY);
+      toY += lineHeight;
     }
     
     // Country
     if (invoice.country) {
-      doc.text(invoice.country, 110, currentY);
-      currentY += 7;
+      doc.text(invoice.country, 110, toY);
+      toY += lineHeight;
     }
     
     // Email (based on customer name)
-    doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, currentY);
+    doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, toY);
     
-    // Line items table
+    // Calculate the maximum Y position from both From and To sections
+    const maxFromToY = Math.max(senderY, toY);
+    
+    // Line items table - ensure it starts well below the address sections
     const tableData = invoice.lineItems.map(item => [
       item.date ? item.date.toLocaleDateString() : "N/A",
       item.description || "N/A",
@@ -223,45 +229,63 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       `£${(item.quantity * item.unitPrice).toFixed(2)}`
     ]);
     
-    // Adjust table starting position if we have a logo
-    const tableStartY = sender.logo_url ? yPos + 60 : 65;
+    // Add extra spacing before table to prevent overlap
+    const tableStartY = maxFromToY + 15;
     
     autoTable(doc, {
       startY: tableStartY,
       head: [["Date", "Description", "Rate Type", "Hours Worked", "Unit Price", "Total"]],
       body: tableData,
       theme: 'striped',
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [75, 85, 99], textColor: 255 }
+      styles: { 
+        fontSize: 9,
+        cellPadding: 3
+      },
+      headStyles: { 
+        fillColor: [75, 85, 99], 
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      margin: { left: 14, right: 14 }
     });
     
     // Get the y position after the table
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     
-    // Totals
-    doc.text("Subtotal:", 140, finalY);
-    doc.text(`£${invoice.subtotal}`, 170, finalY, { align: "right" });
+    // Totals section with better spacing
+    const totalsX = 140;
+    const totalsValueX = 170;
     
-    doc.text("VAT (20%):", 140, finalY + 7);
-    doc.text(`£${invoice.vat}`, 170, finalY + 7, { align: "right" });
+    doc.setFontSize(10);
+    doc.text("Subtotal:", totalsX, finalY);
+    doc.text(`£${invoice.subtotal}`, totalsValueX, finalY, { align: "right" });
+    
+    doc.text("VAT (20%):", totalsX, finalY + 7);
+    doc.text(`£${invoice.vat}`, totalsValueX, finalY + 7, { align: "right" });
     
     doc.setFontSize(11);
-    doc.text("Total:", 140, finalY + 14);
-    doc.text(`£${invoice.total}`, 170, finalY + 14, { align: "right" });
+    doc.setFont(undefined, 'bold');
+    doc.text("Total:", totalsX, finalY + 16);
+    doc.text(`£${invoice.total}`, totalsValueX, finalY + 16, { align: "right" });
+    doc.setFont(undefined, 'normal');
     
-    // Notes and Terms
-    let notesY = finalY + 30;
+    // Notes and Terms with better spacing
+    let notesY = finalY + 35;
     
     if (invoice.notes) {
       doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
       doc.text("Notes:", 14, notesY);
+      doc.setFont(undefined, 'normal');
       doc.setFontSize(9);
       doc.text(invoice.notes, 14, notesY + 7, { maxWidth: 80 });
     }
     
     if (invoice.terms) {
       doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
       doc.text("Terms & Conditions:", 110, notesY);
+      doc.setFont(undefined, 'normal');
       doc.setFontSize(9);
       doc.text(invoice.terms, 110, notesY + 7, { maxWidth: 80 });
     }
