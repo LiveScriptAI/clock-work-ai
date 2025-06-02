@@ -4,9 +4,12 @@ import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { FileImage, File, Download } from "lucide-react";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
+import { FileAttachment } from "./invoice-types";
 
 interface LineItem {
   id: string;
@@ -15,6 +18,7 @@ interface LineItem {
   rateType: string;
   quantity: number;
   unitPrice: number;
+  attachments?: FileAttachment[];
 }
 
 interface PreviewInvoiceDialogProps {
@@ -63,6 +67,27 @@ const PreviewInvoiceDialog = ({
   sender,
 }: PreviewInvoiceDialogProps) => {
   const isMobile = useIsMobile();
+  
+  const handleAttachmentView = (attachment: FileAttachment) => {
+    if (attachment.type.startsWith('image/')) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head><title>${attachment.name}</title></head>
+            <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#000;">
+              <img src="${attachment.url}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="${attachment.name}" />
+            </body>
+          </html>
+        `);
+      }
+    } else {
+      const link = document.createElement('a');
+      link.href = attachment.url;
+      link.download = attachment.name;
+      link.click();
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -156,7 +181,32 @@ const PreviewInvoiceDialog = ({
                     {lineItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.date ? format(item.date, "dd/MM/yyyy") : "N/A"}</TableCell>
-                        <TableCell>{item.description || "N/A"}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p>{item.description || "N/A"}</p>
+                            {item.attachments && item.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {item.attachments.map((attachment) => (
+                                  <div key={attachment.id} className="flex items-center space-x-2">
+                                    {attachment.type.startsWith('image/') ? (
+                                      <FileImage className="h-3 w-3 text-blue-500" />
+                                    ) : (
+                                      <File className="h-3 w-3 text-gray-500" />
+                                    )}
+                                    <Button
+                                      variant="link"
+                                      size="sm"
+                                      className="p-0 h-auto text-xs text-blue-600 hover:text-blue-800"
+                                      onClick={() => handleAttachmentView(attachment)}
+                                    >
+                                      {attachment.name}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="hidden sm:table-cell">{item.rateType}</TableCell>
                         <TableCell>{formatHoursAndMinutes(item.quantity)}</TableCell>
                         <TableCell>£{item.unitPrice.toFixed(2)}</TableCell>

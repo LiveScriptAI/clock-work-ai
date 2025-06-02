@@ -1,6 +1,4 @@
 
-import { ShiftEntry } from "@/components/dashboard/timesheet/types";
-
 export interface LineItem {
   id: string;
   date: Date | undefined;
@@ -8,19 +6,26 @@ export interface LineItem {
   rateType: string;
   quantity: number;
   unitPrice: number;
+  attachments?: FileAttachment[];
 }
 
-export interface InvoiceData {
+export interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string; // Data URL or blob URL
+  uploadedAt: Date;
+}
+
+export interface InvoiceFormData {
   customer: string;
+  customerEmail: string;
   invoiceDate: Date;
   reference: string;
-  lineItems: LineItem[];
   notes: string;
   terms: string;
-  subtotal: string;
-  vat: string;
-  total: string;
-  // Add granular address fields
+  lineItems: LineItem[];
   address1: string;
   address2: string;
   city: string;
@@ -28,6 +33,3 @@ export interface InvoiceData {
   postcode: string;
   country: string;
 }
-
-// Re-export ShiftEntry for convenience
-export type { ShiftEntry };

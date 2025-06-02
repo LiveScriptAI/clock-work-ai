@@ -1,4 +1,3 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -13,6 +12,16 @@ interface LineItem {
   rateType: string;
   quantity: number;
   unitPrice: number;
+  attachments?: FileAttachment[];
+}
+
+interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploadedAt: Date;
 }
 
 interface InvoiceData {
@@ -220,14 +229,20 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     const maxFromToY = Math.max(senderY, toY);
     
     // Line items table - ensure it starts well below the address sections
-    const tableData = invoice.lineItems.map(item => [
-      item.date ? item.date.toLocaleDateString() : "N/A",
-      item.description || "N/A",
-      item.rateType,
-      formatHoursAndMinutes(item.quantity),
-      `£${item.unitPrice.toFixed(2)}`,
-      `£${(item.quantity * item.unitPrice).toFixed(2)}`
-    ]);
+    const tableData = invoice.lineItems.map(item => {
+      const attachmentText = item.attachments && item.attachments.length > 0 
+        ? ` (${item.attachments.length} attachment${item.attachments.length > 1 ? 's' : ''})`
+        : '';
+      
+      return [
+        item.date ? item.date.toLocaleDateString() : "N/A",
+        (item.description || "N/A") + attachmentText,
+        item.rateType,
+        formatHoursAndMinutes(item.quantity),
+        `£${item.unitPrice.toFixed(2)}`,
+        `£${(item.quantity * item.unitPrice).toFixed(2)}`
+      ];
+    });
     
     // Add extra spacing before table to prevent overlap
     const tableStartY = maxFromToY + 15;
@@ -251,6 +266,25 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     
     // Get the y position after the table
     const finalY = (doc as any).lastAutoTable.finalY + 15;
+    
+    // Add attachments section if there are any
+    const allAttachments = invoice.lineItems.flatMap(item => item.attachments || []);
+    if (allAttachments.length > 0) {
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text("Attachments:", 14, finalY);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      
+      let attachmentY = finalY + 7;
+      allAttachments.forEach((attachment, index) => {
+        doc.text(`${index + 1}. ${attachment.name}`, 14, attachmentY);
+        attachmentY += 5;
+      });
+      
+      // Update finalY to account for attachments
+      finalY = attachmentY + 10;
+    }
     
     // Totals section with better spacing
     const totalsX = 140;

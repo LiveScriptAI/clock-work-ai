@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from "react";
-import { Upload, Camera, FileImage, File } from "lucide-react";
+import { Upload, Camera, FileImage, File, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,15 +9,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { FileAttachment } from "./invoice-types";
 
 interface FileUploadButtonProps {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+  attachments?: FileAttachment[];
+  onRemoveAttachment?: (attachmentId: string) => void;
+  onViewAttachment?: (attachment: FileAttachment) => void;
 }
 
 const FileUploadButton: React.FC<FileUploadButtonProps> = ({ 
   onFileSelect, 
-  disabled = false 
+  disabled = false,
+  attachments = [],
+  onRemoveAttachment,
+  onViewAttachment
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +84,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   return (
-    <>
+    <div className="space-y-2">
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button 
@@ -120,6 +127,46 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Display attachments */}
+      {attachments.length > 0 && (
+        <div className="space-y-1">
+          {attachments.map((attachment) => (
+            <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border text-xs">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                {attachment.type.startsWith('image/') ? (
+                  <FileImage className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                ) : (
+                  <File className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                )}
+                <span className="truncate text-gray-700">{attachment.name}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                {onViewAttachment && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => onViewAttachment(attachment)}
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                )}
+                {onRemoveAttachment && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-red-500 hover:text-red-700"
+                    onClick={() => onRemoveAttachment(attachment.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
@@ -140,7 +187,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({
         style={{ display: 'none' }}
         multiple={false}
       />
-    </>
+    </div>
   );
 };
 
