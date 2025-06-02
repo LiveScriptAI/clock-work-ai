@@ -264,8 +264,8 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       margin: { left: 14, right: 14 }
     });
     
-    // Get the y position after the table
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    // Get the y position after the table - change from const to let
+    let finalY = (doc as any).lastAutoTable.finalY + 15;
     
     // Add attachments section if there are any
     const allAttachments = invoice.lineItems.flatMap(item => item.attachments || []);
