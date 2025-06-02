@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Trash2, Upload } from "lucide-react";
+import { CalendarIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { LineItem } from "./invoice-types";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
+import FileUploadButton from "./FileUploadButton";
 
 interface LineItemRowProps {
   item: LineItem;
@@ -37,6 +38,13 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
   isRemoveDisabled,
   calculateLineTotal 
 }) => {
+  const handleFileUpload = (file: File) => {
+    console.log("File uploaded for line item:", item.id, file);
+    // Here you would typically upload the file to your storage service
+    // and update the line item with the file reference
+    // For now, we'll just log it
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -121,10 +129,7 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
         £{calculateLineTotal(item.quantity, item.unitPrice)}
       </TableCell>
       <TableCell>
-        <Button variant="outline" size="sm" className="w-full">
-          <Upload className="h-3 w-3 mr-1" />
-          Upload
-        </Button>
+        <FileUploadButton onFileSelect={handleFileUpload} />
       </TableCell>
       <TableCell>
         <Button
