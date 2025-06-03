@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -415,11 +414,26 @@ const InvoiceForm = () => {
           <Button variant="outline" className="w-full sm:w-auto" onClick={handlePreviewInvoice}>Preview Invoice</Button>
           <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPDF}>Download PDF</Button>
           
-          {/* New Invoice Actions Component */}
+          {/* Updated Invoice Actions Component with all address props */}
           <div className="w-full sm:w-auto">
             <InvoiceActions 
               shift={getShiftData()}
               clientEmail={customerEmail}
+              customer={customer}
+              invoiceDate={invoiceDate}
+              reference={reference}
+              lineItems={lineItems}
+              notes={notes}
+              terms={terms}
+              subtotal={calculateSubtotal()}
+              vat={calculateVAT()}
+              total={calculateTotal()}
+              address1={address1}
+              address2={address2}
+              city={city}
+              county={county}
+              postcode={postcode}
+              country={country}
             />
           </div>
         </CardFooter>
