@@ -73,14 +73,15 @@ const loadImage = (url: string): Promise<string> => {
 };
 
 // Convert ShiftEntry to InvoiceData
-export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = ''): InvoiceData => {
+export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '', attachments: FileAttachment[] = []): InvoiceData => {
   const lineItem: LineItem = {
     id: shift.id,
     date: shift.date,
     description: `Work performed for ${shift.employer}`,
     rateType: shift.payType,
     quantity: shift.hoursWorked,
-    unitPrice: shift.payRate
+    unitPrice: shift.payRate,
+    attachments: attachments // Include attachments in the line item
   };
 
   const subtotal = shift.earnings;
