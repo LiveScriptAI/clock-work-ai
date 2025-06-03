@@ -1,3 +1,4 @@
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -176,7 +177,7 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       doc.text(sender.country, 14, senderY);
     }
     
-    // To section with better positioning
+    // To section with better positioning and complete address
     doc.setFontSize(11);
     doc.text("To:", 110, yPos);
     doc.setFontSize(10);
@@ -185,40 +186,41 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text(invoice.customer || "Client Name", 110, toY);
     toY += lineHeight;
     
-    // Format the customer address using granular fields with proper spacing
-    if (invoice.address1) {
+    // Add complete address fields with proper validation
+    if (invoice.address1 && invoice.address1.trim()) {
       doc.text(invoice.address1, 110, toY);
       toY += lineHeight;
     }
     
-    if (invoice.address2) {
+    if (invoice.address2 && invoice.address2.trim()) {
       doc.text(invoice.address2, 110, toY);
       toY += lineHeight;
     }
     
-    // City, County, Postcode combined
+    // City, County, Postcode combined - only add if at least one field has content
     const cityCountyPostcode2 = [
       invoice.city,
       invoice.county,
       invoice.postcode
-    ].filter(Boolean).join(", ");
+    ].filter(field => field && field.trim()).join(", ");
     
     if (cityCountyPostcode2) {
       doc.text(cityCountyPostcode2, 110, toY);
       toY += lineHeight;
     }
     
-    // Country
-    if (invoice.country) {
+    // Country - only add if it has content
+    if (invoice.country && invoice.country.trim()) {
       doc.text(invoice.country, 110, toY);
       toY += lineHeight;
     }
     
-    // Email (based on customer name)
-    doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, toY);
+    // Email (generate from customer name if not provided)
+    const customerEmail = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com";
+    doc.text(customerEmail, 110, toY);
     
     // Calculate the maximum Y position from both From and To sections
-    const maxFromToY = yPos + 60; // Approximate based on address sections
+    const maxFromToY = yPos + 70; // Increased to accommodate more address lines
     
     // Line items table - ensure it starts well below the address sections
     const tableData = invoice.lineItems.map(item => [
