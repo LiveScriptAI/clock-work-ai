@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -241,6 +242,7 @@ const InvoiceForm = () => {
     // Include sender information with invoice data
     const invoiceData = {
       customer,
+      customerEmail, // Include the actual customer email
       invoiceDate,
       reference,
       notes,
@@ -428,6 +430,7 @@ const InvoiceForm = () => {
         isOpen={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
         customer={customer}
+        customerEmail={customerEmail}
         invoiceDate={invoiceDate}
         reference={reference}
         lineItems={lineItems}

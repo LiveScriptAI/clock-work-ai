@@ -20,6 +20,7 @@ interface PreviewInvoiceDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   customer: string;
+  customerEmail: string;
   invoiceDate: Date;
   reference: string;
   lineItems: LineItem[];
@@ -43,6 +44,7 @@ const PreviewInvoiceDialog = ({
   isOpen,
   onOpenChange,
   customer,
+  customerEmail,
   invoiceDate,
   reference,
   lineItems,
@@ -132,7 +134,7 @@ const PreviewInvoiceDialog = ({
                   ].filter(Boolean).join(", ")}
                 </p>
                 {country && <p>{country}</p>}
-                <p>{customer ? `${customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com"}</p>
+                <p>{customerEmail && customerEmail.trim() ? customerEmail : "No email provided"}</p>
               </div>
             </div>
 
