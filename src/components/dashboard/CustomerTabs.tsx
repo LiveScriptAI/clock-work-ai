@@ -24,7 +24,7 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 
-// Define the form schema with Zod
+// Define the form schema with Zod - removed payment details fields
 const formSchema = z.object({
   businessName: z.string().min(1, { message: "Business name is required" }),
   contactName: z.string().min(1, { message: "Contact name is required" }),
@@ -37,16 +37,9 @@ const formSchema = z.object({
   country: z.string().optional(),
   phoneNumber: z.string().optional(),
   vatNumber: z.string().optional(),
-  // Payment Details Tab fields
-  paymentTerms: z.string().optional(),
-  creditTerms: z.number().optional().or(z.string().optional()),
+  // Terms and conditions moved to notes tab
   termsAndConditions: z.string().optional(),
-  bankAccountName: z.string().optional(),
-  sortCode: z.string().optional(),
-  accountNumber: z.string().optional(),
-  bicSwift: z.string().optional(),
-  iban: z.string().optional(),
-  // Notes Tab field
+  // Notes field
   notes: z.string().optional(),
 });
 
@@ -56,14 +49,14 @@ const CustomerTabs = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Initialize react-hook-form with zod validation - Fixed email default value
+  // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       businessName: "",
       contactName: "",
-      email: "", // Fixed: Use empty string instead of generated email
-      // New address fields
+      email: "",
+      // Address fields
       address1: "",
       address2: "",
       city: "",
@@ -72,15 +65,8 @@ const CustomerTabs = () => {
       country: "",
       phoneNumber: "",
       vatNumber: "",
-      // Payment Details defaults
-      paymentTerms: "",
-      creditTerms: "",
+      // Terms and conditions default
       termsAndConditions: "",
-      bankAccountName: "",
-      sortCode: "",
-      accountNumber: "",
-      bicSwift: "",
-      iban: "",
       // Notes default
       notes: "",
     },
@@ -98,12 +84,7 @@ const CustomerTabs = () => {
     }
 
     try {
-      // Convert creditTerms to number if it's a string
-      const creditTermsValue = data.creditTerms ? 
-        typeof data.creditTerms === 'string' ? parseFloat(data.creditTerms as string) || null : data.creditTerms : 
-        null;
-
-      // Map form data to database fields
+      // Map form data to database fields - removed payment details
       const payload = {
         user_id: user.id,
         company_name: data.businessName,
@@ -119,17 +100,18 @@ const CustomerTabs = () => {
         // Keep other fields
         phone_number: data.phoneNumber || null,
         vat_number: data.vatNumber || null,
-        // Payment Details fields
-        payment_terms: data.paymentTerms || null,
-        credit_terms: creditTermsValue,
+        // Terms and conditions field
         terms_conditions: data.termsAndConditions || null,
-        bank_account_name: data.bankAccountName || null,
-        sort_code: data.sortCode || null,
-        account_number: data.accountNumber || null,
-        bic_swift: data.bicSwift || null,
-        iban: data.iban || null,
         // Notes field
         notes: data.notes || null,
+        // Set payment details fields to null since we removed them
+        payment_terms: null,
+        credit_terms: null,
+        bank_account_name: null,
+        sort_code: null,
+        account_number: null,
+        bic_swift: null,
+        iban: null,
       };
 
       // Save to Supabase
@@ -169,10 +151,9 @@ const CustomerTabs = () => {
       </div>
 
       <Tabs defaultValue="customer-details" className="w-full">
-        <TabsList className="grid grid-cols-3">
+        <TabsList className="grid grid-cols-2">
           <TabsTrigger value="customer-details">Customer Details</TabsTrigger>
-          <TabsTrigger value="payment-details">Payment Details</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsTrigger value="notes">T&C/Notes</TabsTrigger>
         </TabsList>
 
         <Form {...form}>
@@ -211,7 +192,7 @@ const CustomerTabs = () => {
                   )}
                 />
                 
-                {/* Email - Fixed to honor user input */}
+                {/* Email */}
                 <FormField
                   control={form.control}
                   name="email"
@@ -236,7 +217,6 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Input placeholder="Enter phone number" {...field} />
                       </FormControl>
-                
                       <FormMessage />
                     </FormItem>
                   )}
@@ -350,122 +330,15 @@ const CustomerTabs = () => {
               </div>
             </TabsContent>
             
-            {/* Payment Details Tab */}
-            <TabsContent value="payment-details" className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Payment Terms */}
-                <FormField
-                  control={form.control}
-                  name="paymentTerms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Terms</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Net 30" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Credit Terms */}
-                <FormField
-                  control={form.control}
-                  name="creditTerms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Credit Terms</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter credit limit" type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Bank Account Name */}
-                <FormField
-                  control={form.control}
-                  name="bankAccountName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bank Account Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter bank account name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Sort Code */}
-                <FormField
-                  control={form.control}
-                  name="sortCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sort Code</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., 12-34-56" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Account Number */}
-                <FormField
-                  control={form.control}
-                  name="accountNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter account number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* BIC/SWIFT */}
-                <FormField
-                  control={form.control}
-                  name="bicSwift"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>BIC/SWIFT</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter BIC/SWIFT code" {...field} />
-                      </FormControl>
-                      <FormDescription>Optional</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* IBAN */}
-                <FormField
-                  control={form.control}
-                  name="iban"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>IBAN</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter IBAN" {...field} />
-                      </FormControl>
-                      <FormDescription>Optional</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
+            {/* T&C/Notes Tab */}
+            <TabsContent value="notes" className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 gap-6">
                 {/* Terms and Conditions */}
                 <FormField
                   control={form.control}
                   name="termsAndConditions"
                   render={({ field }) => (
-                    <FormItem className="col-span-1 md:col-span-2">
+                    <FormItem>
                       <FormLabel>Terms and Conditions</FormLabel>
                       <FormControl>
                         <Textarea 
@@ -478,12 +351,7 @@ const CustomerTabs = () => {
                     </FormItem>
                   )}
                 />
-              </div>
-            </TabsContent>
-            
-            {/* Notes Tab */}
-            <TabsContent value="notes" className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 gap-6">
+                
                 {/* Notes */}
                 <FormField
                   control={form.control}
@@ -494,7 +362,7 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Textarea 
                           placeholder="Enter additional notes about this customer" 
-                          className="min-h-[200px]" 
+                          className="min-h-[120px]" 
                           {...field} 
                         />
                       </FormControl>
