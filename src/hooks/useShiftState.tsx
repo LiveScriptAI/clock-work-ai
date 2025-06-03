@@ -87,6 +87,18 @@ export function useShiftState() {
     endSignatureData
   );
 
+  // Type-safe handler for rate type changes
+  const handleRateTypeChange = (value: string) => {
+    if (
+      value === "Per Hour" ||
+      value === "Per Day" ||
+      value === "Per Week" ||
+      value === "Per Month"
+    ) {
+      setRateType(value);
+    }
+  };
+
   return {
     // State
     isShiftActive,
@@ -119,7 +131,7 @@ export function useShiftState() {
     setShowValidationAlert: validation.setShowValidationAlert,
     setEmployerName,
     setPayRate,
-    setRateType,
+    setRateType: handleRateTypeChange,
     setStartSignatureData,
     setEndSignatureData,
     setBreakStart,

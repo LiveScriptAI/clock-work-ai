@@ -14,7 +14,7 @@ import TimeTabContent from "./timesheet/TimeTabContent";
 import BreaksSummary from "./BreaksSummary";
 import { ShiftEntry } from "./timesheet/types";
 import { getBreakIntervalsByShift } from "@/services/breakIntervalsService";
-import { convertSupabaseShiftToShiftEntry } from "./timesheet/timesheet-utils";
+import { transformShiftData } from "@/services/shiftService";
 
 const TimesheetLog = () => {
   const { user } = useAuth();
@@ -40,13 +40,7 @@ const TimesheetLog = () => {
       }
 
       // Convert Supabase data to ShiftEntry format
-      const shiftEntries: ShiftEntry[] = [];
-      
-      for (const shift of data || []) {
-        const shiftEntry = await convertSupabaseShiftToShiftEntry(shift);
-        shiftEntries.push(shiftEntry);
-      }
-
+      const shiftEntries: ShiftEntry[] = (data || []).map(transformShiftData);
       return shiftEntries;
     },
     enabled: !!user?.id,
@@ -121,6 +115,15 @@ const TimesheetLog = () => {
   const filteredShifts = getFilteredShifts(shifts, activeTab);
   const isDateRangeActive = !!customDateRange;
 
+  // Handle date range change with proper typing
+  const handleDateRangeChange = (range: { from?: Date; to?: Date } | null) => {
+    if (range && range.from && range.to) {
+      setCustomDateRange({ from: range.from, to: range.to });
+    } else {
+      setCustomDateRange(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -132,10 +135,10 @@ const TimesheetLog = () => {
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <DateRangePicker 
-                onDateRangeChange={setCustomDateRange}
-                currentRange={customDateRange}
+                onDateRangeChange={handleDateRangeChange}
+                dateRange={customDateRange}
               />
-              <ExportActions shifts={filteredShifts} />
+              <ExportActions />
             </div>
           </div>
         </CardHeader>
@@ -165,7 +168,6 @@ const TimesheetLog = () => {
         </CardContent>
       </Card>
 
-      {/* Updated BreaksSummary without props */}
       <BreaksSummary onBreakDeleted={handleBreakDeleted} />
     </div>
   );

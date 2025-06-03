@@ -98,7 +98,7 @@ export function useShiftActions(
     if (isBreakActive && breakStart) {
       const now = new Date();
       const additionalBreakTime = Math.floor((now.getTime() - breakStart.getTime()) / 1000);
-      setTotalBreakDuration(prev => prev + additionalBreakTime);
+      setTotalBreakDuration(totalBreakDuration + additionalBreakTime);
       setBreakStart(null);
       setIsBreakActive(false);
     }
