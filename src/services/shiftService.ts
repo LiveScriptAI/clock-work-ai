@@ -1,27 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { startOfDay, endOfDay, subDays } from "date-fns";
-
-// Save shift data to Supabase
-export async function saveShift(shiftData: any): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from("shifts")
-      .insert(shiftData)
-      .select();
-
-    if (error) {
-      console.error("Error saving shift:", error);
-      return false;
-    }
-
-    console.log("Shift saved successfully:", data);
-    return true;
-  } catch (error) {
-    console.error("Exception when saving shift:", error);
-    return false;
-  }
-}
 
 // Fetch shifts for the current authenticated user
 export async function fetchUserShifts(): Promise<ShiftEntry[]> {

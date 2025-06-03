@@ -20,12 +20,12 @@ export function useShiftActions(
   endManagerName: string,
   employerName: string,
   setShowValidationAlert: (show: boolean) => void,
-  setValidationType: (type: 'start' | 'end') => void,
+  setValidationType: (type: string) => void,
   setIsShiftActive: (active: boolean) => void,
   setStartTime: (time: Date | null) => void,
   setIsShiftComplete: (complete: boolean) => void,
   setEndTime: (time: Date | null) => void,
-  setTotalBreakDuration: (duration: number | ((prev: number) => number)) => void,
+  setTotalBreakDuration: (duration: number) => void,
   setBreakStart: (time: Date | null) => void,
   setIsBreakActive: (active: boolean) => void,
   isBreakActive: boolean,
@@ -41,13 +41,13 @@ export function useShiftActions(
   const handleStartShift = useCallback(() => {
     if (!managerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("start");
+      setValidationType("manager");
       return;
     }
     
     if (!employerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("start");
+      setValidationType("employer");
       return;
     }
     
@@ -57,7 +57,7 @@ export function useShiftActions(
   const handleEndShift = useCallback(() => {
     if (!endManagerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("end");
+      setValidationType("endManager");
       return;
     }
     
@@ -67,7 +67,7 @@ export function useShiftActions(
   const confirmShiftStart = useCallback(() => {
     if (isStartSignatureEmpty) {
       setShowValidationAlert(true);
-      setValidationType("start");
+      setValidationType("startSignature");
       return;
     }
 
@@ -91,7 +91,7 @@ export function useShiftActions(
   const confirmShiftEnd = useCallback(async (userId?: string) => {
     if (isEndSignatureEmpty) {
       setShowValidationAlert(true);
-      setValidationType("end");
+      setValidationType("endSignature");
       return;
     }
 
@@ -133,12 +133,8 @@ export function useShiftActions(
           user_id: userId
         };
 
-        const success = await saveShift(shiftData);
-        if (success) {
-          console.log("useShiftActions - Shift data saved to database");
-        } else {
-          console.error("useShiftActions - Failed to save shift data");
-        }
+        await saveShift(shiftData);
+        console.log("useShiftActions - Shift data saved to database");
       }
 
       // Clear local storage states

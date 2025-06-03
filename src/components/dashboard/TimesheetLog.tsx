@@ -7,21 +7,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
-import { DateRange } from "react-day-picker";
 
 import DateRangePicker from "./DateRangePicker";
 import ExportActions from "./timesheet/ExportActions";
 import TimeTabContent from "./timesheet/TimeTabContent";
 import BreaksSummary from "./BreaksSummary";
 import { ShiftEntry } from "./timesheet/types";
+import { getBreakIntervalsByShift } from "@/services/breakIntervalsService";
 import { convertSupabaseShiftToShiftEntry } from "./timesheet/timesheet-utils";
 
 const TimesheetLog = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("week");
-  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
+  const [customDateRange, setCustomDateRange] = useState<{ from: Date; to: Date } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isExporting, setIsExporting] = useState<string | null>(null);
 
   // Fetch shifts from Supabase
   const { data: shifts = [], isLoading, error, refetch } = useQuery({
@@ -83,7 +82,7 @@ const TimesheetLog = () => {
     let startDate: Date;
     let endDate: Date;
 
-    if (customDateRange && customDateRange.from && customDateRange.to) {
+    if (customDateRange) {
       startDate = customDateRange.from;
       endDate = customDateRange.to;
     } else {
@@ -120,22 +119,7 @@ const TimesheetLog = () => {
   };
 
   const filteredShifts = getFilteredShifts(shifts, activeTab);
-  const isDateRangeActive = !!(customDateRange && customDateRange.from && customDateRange.to);
-
-  // Handle date range change
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setCustomDateRange(range);
-  };
-
-  // Handle applying the date range filter
-  const handleApplyFilter = () => {
-    // Filter is applied automatically when customDateRange changes
-  };
-
-  // Handle resetting the date range filter
-  const handleResetFilter = () => {
-    setCustomDateRange(undefined);
-  };
+  const isDateRangeActive = !!customDateRange;
 
   return (
     <div className="space-y-6">
@@ -148,18 +132,10 @@ const TimesheetLog = () => {
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <DateRangePicker 
-                dateRange={customDateRange}
-                onDateRangeChange={handleDateRangeChange}
-                onApplyFilter={handleApplyFilter}
-                onResetFilter={handleResetFilter}
-                isLoading={isLoading}
+                onDateRangeChange={setCustomDateRange}
+                currentRange={customDateRange}
               />
-              <ExportActions 
-                filteredShifts={filteredShifts}
-                isLoading={isLoading}
-                isExporting={isExporting}
-                setIsExporting={setIsExporting}
-              />
+              <ExportActions shifts={filteredShifts} />
             </div>
           </div>
         </CardHeader>
@@ -189,6 +165,7 @@ const TimesheetLog = () => {
         </CardContent>
       </Card>
 
+      {/* Updated BreaksSummary without props */}
       <BreaksSummary onBreakDeleted={handleBreakDeleted} />
     </div>
   );

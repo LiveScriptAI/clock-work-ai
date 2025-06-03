@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ interface BreakInterval {
 }
 
 interface BreaksSummaryProps {
+  // Remove the prop since we'll fetch data internally
   onBreakDeleted?: () => void;
 }
 
@@ -59,17 +61,7 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ onBreakDeleted }) => {
       console.log("BreaksSummary - Fetching break data...");
       const data = await getBreakIntervalsByShift();
       console.log("BreaksSummary - Received break data:", data);
-      
-      // Remove duplicate entries by ensuring unique shift IDs
-      const uniqueData: Record<string, BreakInterval[]> = {};
-      Object.entries(data).forEach(([shiftId, intervals]) => {
-        // Only keep the first occurrence of each shift ID to prevent duplicates
-        if (!uniqueData[shiftId]) {
-          uniqueData[shiftId] = intervals;
-        }
-      });
-      
-      setBreakIntervalsByShift(uniqueData);
+      setBreakIntervalsByShift(data);
     } catch (error) {
       console.error("BreaksSummary - Error fetching break data:", error);
       toast.error("Failed to load break data");
