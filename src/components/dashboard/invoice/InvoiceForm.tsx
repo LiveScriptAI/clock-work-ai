@@ -13,7 +13,7 @@ import NotesAndTerms from "./NotesAndTerms";
 import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
 import InvoiceActions from "./InvoiceActions";
-import { downloadInvoicePDF, sendInvoice } from "./invoice-utils";
+import { sendInvoice, generateInvoicePDF } from "./invoice-utils";
 import { convertInvoiceToShift } from "./invoice-conversion-utils";
 import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
@@ -265,7 +265,7 @@ const InvoiceForm = () => {
   };
 
   // Handler for Download PDF button
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!sender) {
       toast({
         title: "Missing company information",
@@ -293,7 +293,26 @@ const InvoiceForm = () => {
       country
     };
     
-    downloadInvoicePDF(invoiceData, sender);
+    try {
+      const pdfBlob = await generateInvoicePDF(invoiceData, sender);
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice-${reference || Date.now()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Success",
+        description: "Invoice PDF downloaded successfully"
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice PDF",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
