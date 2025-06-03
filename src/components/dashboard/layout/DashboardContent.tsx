@@ -7,10 +7,6 @@ import BreaksSummary from "@/components/dashboard/BreaksSummary";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
 import { useBreakTime } from "@/hooks/useBreakTime";
-import { 
-  getBreakIntervalsByShift, 
-  saveCurrentBreakStateAsIntervals
-} from "@/services/breakIntervalsService";
 
 interface DashboardContentProps {
   // Shift state
@@ -53,13 +49,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const { breakIntervals, isBreakActive } = useBreakTime();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Get break intervals organized by shift - refresh when refreshKey changes
-  const breakIntervalsByShift = useMemo(() => {
-    const intervals = getBreakIntervalsByShift();
-    console.log("DashboardContent - Retrieved break intervals:", intervals);
-    return intervals;
-  }, [refreshKey]);
-
   // Function to refresh break intervals after operations
   const refreshBreakIntervals = () => {
     setRefreshKey(prev => prev + 1);
@@ -99,15 +88,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       
       {/* Timesheet Log Component */}
       <div className="mt-6">
-        <TimesheetLog importBreaksToExport={false} />
+        <TimesheetLog />
       </div>
 
       {/* Breaks Summary Component */}
       <div className="mt-6">
-        <BreaksSummary 
-          breakIntervalsByShift={breakIntervalsByShift} 
-          onBreakDeleted={refreshBreakIntervals}
-        />
+        <BreaksSummary onBreakDeleted={refreshBreakIntervals} />
       </div>
 
       {/* Invoice Form Component */}

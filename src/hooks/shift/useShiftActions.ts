@@ -25,7 +25,7 @@ export function useShiftActions(
   setStartTime: (time: Date | null) => void,
   setIsShiftComplete: (complete: boolean) => void,
   setEndTime: (time: Date | null) => void,
-  setTotalBreakDuration: (duration: number) => void,
+  setTotalBreakDuration: (duration: number | ((prev: number) => number)) => void,
   setBreakStart: (time: Date | null) => void,
   setIsBreakActive: (active: boolean) => void,
   isBreakActive: boolean,
@@ -133,8 +133,12 @@ export function useShiftActions(
           user_id: userId
         };
 
-        await saveShift(shiftData);
-        console.log("useShiftActions - Shift data saved to database");
+        const success = await saveShift(shiftData);
+        if (success) {
+          console.log("useShiftActions - Shift data saved to database");
+        } else {
+          console.error("useShiftActions - Failed to save shift data");
+        }
       }
 
       // Clear local storage states
