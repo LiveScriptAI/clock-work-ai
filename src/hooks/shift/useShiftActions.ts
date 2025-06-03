@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   clearShiftState, 
   clearBreakState,
-  resetBreakState 
+  resetBreakState,
+  loadBreakState
 } from "@/services/storageService";
-import { saveBreakIntervalsForCompletedShift } from "@/services/breakIntervalsService";
+import { saveBreakIntervalsToSupabase } from "@/services/breakDataService";
 
 export function useShiftActions(
   setIsStartSignatureOpen: (open: boolean) => void,
@@ -89,11 +90,31 @@ export function useShiftActions(
     // Generate shift ID for saving breaks
     const shiftId = startTime ? startTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
     
-    // Save break intervals for this completed shift
-    console.log("ShiftActions - Saving break intervals for completed shift:", shiftId);
-    saveBreakIntervalsForCompletedShift(shiftId);
+    // Save break intervals to Supabase if user is authenticated
+    if (userId) {
+      try {
+        const breakState = loadBreakState();
+        if (breakState?.breakIntervals && breakState.breakIntervals.length > 0) {
+          // Filter completed intervals (those with both start and end)
+          const completedIntervals = breakState.breakIntervals
+            .filter(interval => interval.start && interval.end)
+            .map(interval => ({
+              start: interval.start,
+              end: interval.end!
+            }));
 
-    // Save to Supabase if user is authenticated
+          if (completedIntervals.length > 0) {
+            console.log("ShiftActions - Saving break intervals to Supabase:", completedIntervals);
+            await saveBreakIntervalsToSupabase(shiftId, completedIntervals, userId);
+          }
+        }
+      } catch (error) {
+        console.error("ShiftActions - Error saving break intervals to Supabase:", error);
+        toast.error("Failed to save break data");
+      }
+    }
+
+    // Save shift to Supabase if user is authenticated
     if (userId && startTime) {
       try {
         const { error } = await supabase

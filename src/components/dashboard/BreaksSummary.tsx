@@ -4,21 +4,12 @@ import { format, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteBreakIntervalsForShift } from "@/services/breakIntervalsService";
 import { exportBreaksToCSV, exportBreaksToPDF } from "@/components/dashboard/timesheet/export-utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface BreakInterval {
-  start: string;
-  end: string;
-}
-
-interface BreaksSummaryProps {
-  breakIntervalsByShift: Record<string, BreakInterval[]>;
-  onBreakDeleted?: () => void;
-}
+import { useBreakData } from "@/hooks/useBreakData";
+import { BreakInterval } from "@/services/breakDataService";
 
 const formatShiftDisplay = (shiftId: string): string => {
   // Check if shiftId is in date format (YYYY-MM-DD)
@@ -49,27 +40,21 @@ const formatShiftDisplay = (shiftId: string): string => {
   return shiftId;
 };
 
-const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, onBreakDeleted }) => {
+const BreaksSummary: React.FC = () => {
   const isMobile = useIsMobile();
+  const { breakIntervalsByShift, isLoading, error, deleteBreakForShift } = useBreakData();
+  
   const hasBreaks = Object.keys(breakIntervalsByShift).length > 0;
 
   const handleDeleteBreak = async (targetShiftId: string) => {
     console.log("BreaksSummary - Attempting to delete break for shift:", targetShiftId);
     
-    try {
-      const success = await deleteBreakIntervalsForShift(targetShiftId);
-      
-      if (success) {
-        console.log("BreaksSummary - Successfully deleted break for shift:", targetShiftId);
-        toast.success("Break deleted successfully");
-        onBreakDeleted?.();
-      } else {
-        console.error("BreaksSummary - Failed to delete break for shift:", targetShiftId);
-        toast.error("Failed to delete break");
-      }
-    } catch (error) {
-      console.error("BreaksSummary - Error deleting break:", error);
-      toast.error("An error occurred while deleting the break");
+    const success = await deleteBreakForShift(targetShiftId);
+    
+    if (success) {
+      toast.success("Break deleted successfully");
+    } else {
+      toast.error("Failed to delete break");
     }
   };
 
@@ -89,6 +74,32 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
       toast.error("Failed to export break data");
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Breaks Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Breaks Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-500">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!hasBreaks) {
     return (
