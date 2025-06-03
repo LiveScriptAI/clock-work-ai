@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, Download, AlertCircle, Copy, Share } from "lucide-react";
@@ -195,7 +194,7 @@ Thanks!`;
             className="w-full sm:w-auto"
           >
             <Download className="w-4 h-4 mr-2" />
-            {isGenerating ? "Generating..." : "Download Invoice"}
+            {isGenerating ? "Generating..." : "Download Invoice PDF"}
           </Button>
           <Button 
             disabled={true}
@@ -227,7 +226,7 @@ Thanks!`;
           className="w-full sm:w-auto"
         >
           <Download className="w-4 h-4 mr-2" />
-          {isGenerating ? "Generating..." : "Download Invoice"}
+          {isGenerating ? "Generating..." : "Download Invoice PDF"}
         </Button>
         <Button 
           onClick={handleEmailInvoice}
