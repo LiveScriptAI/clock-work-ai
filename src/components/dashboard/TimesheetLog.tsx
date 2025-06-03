@@ -19,7 +19,7 @@ import { convertSupabaseShiftToShiftEntry } from "./timesheet/timesheet-utils";
 const TimesheetLog = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("week");
-  const [customDateRange, setCustomDateRange] = useState<DateRange | null>(null);
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
@@ -124,11 +124,17 @@ const TimesheetLog = () => {
 
   // Handle date range change
   const handleDateRangeChange = (range: DateRange | undefined) => {
-    if (range && range.from && range.to) {
-      setCustomDateRange({ from: range.from, to: range.to });
-    } else {
-      setCustomDateRange(null);
-    }
+    setCustomDateRange(range);
+  };
+
+  // Handle applying the date range filter
+  const handleApplyFilter = () => {
+    // Filter is applied automatically when customDateRange changes
+  };
+
+  // Handle resetting the date range filter
+  const handleResetFilter = () => {
+    setCustomDateRange(undefined);
   };
 
   return (
@@ -142,15 +148,17 @@ const TimesheetLog = () => {
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <DateRangePicker 
+                dateRange={customDateRange}
                 onDateRangeChange={handleDateRangeChange}
-                currentRange={customDateRange}
+                onApplyFilter={handleApplyFilter}
+                onResetFilter={handleResetFilter}
+                isLoading={isLoading}
               />
               <ExportActions 
                 filteredShifts={filteredShifts}
                 isLoading={isLoading}
                 isExporting={isExporting}
                 setIsExporting={setIsExporting}
-                importBreaksToExport={true}
               />
             </div>
           </div>
@@ -181,7 +189,6 @@ const TimesheetLog = () => {
         </CardContent>
       </Card>
 
-      {/* Updated BreaksSummary without props */}
       <BreaksSummary onBreakDeleted={handleBreakDeleted} />
     </div>
   );
