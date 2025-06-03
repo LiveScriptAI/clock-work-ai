@@ -6,16 +6,6 @@ export interface LineItem {
   rateType: string;
   quantity: number;
   unitPrice: number;
-  attachments?: FileAttachment[];
-}
-
-export interface FileAttachment {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  url: string; // Data URL or blob URL
-  uploadedAt: Date;
 }
 
 export interface InvoiceFormData {

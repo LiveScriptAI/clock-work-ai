@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,8 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { LineItem, FileAttachment } from "./invoice-types";
+import { LineItem } from "./invoice-types";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
-import FileUploadButton from "./FileUploadButton";
-import { toast } from "sonner";
 
 interface LineItemRowProps {
   item: LineItem;
@@ -39,61 +37,6 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
   isRemoveDisabled,
   calculateLineTotal 
 }) => {
-  const [viewingAttachment, setViewingAttachment] = useState<FileAttachment | null>(null);
-
-  const handleFileUpload = (file: File) => {
-    console.log("File uploaded for line item:", item.id, file);
-    
-    // Create file reader to convert file to data URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileAttachment: FileAttachment = {
-        id: `attachment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: e.target?.result as string,
-        uploadedAt: new Date()
-      };
-
-      // Add attachment to line item
-      const currentAttachments = item.attachments || [];
-      const updatedAttachments = [...currentAttachments, fileAttachment];
-      updateLineItem(item.id, "attachments", updatedAttachments);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveAttachment = (attachmentId: string) => {
-    const currentAttachments = item.attachments || [];
-    const updatedAttachments = currentAttachments.filter(att => att.id !== attachmentId);
-    updateLineItem(item.id, "attachments", updatedAttachments);
-    toast.success("Attachment removed");
-  };
-
-  const handleViewAttachment = (attachment: FileAttachment) => {
-    if (attachment.type.startsWith('image/')) {
-      // For images, we can show them in a modal or open in new tab
-      const newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write(`
-          <html>
-            <head><title>${attachment.name}</title></head>
-            <body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#000;">
-              <img src="${attachment.url}" style="max-width:100%;max-height:100%;object-fit:contain;" alt="${attachment.name}" />
-            </body>
-          </html>
-        `);
-      }
-    } else {
-      // For other files, download them
-      const link = document.createElement('a');
-      link.href = attachment.url;
-      link.download = attachment.name;
-      link.click();
-    }
-  };
-
   return (
     <TableRow>
       <TableCell>
@@ -176,14 +119,6 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
       </TableCell>
       <TableCell>
         £{calculateLineTotal(item.quantity, item.unitPrice)}
-      </TableCell>
-      <TableCell>
-        <FileUploadButton 
-          onFileSelect={handleFileUpload}
-          attachments={item.attachments}
-          onRemoveAttachment={handleRemoveAttachment}
-          onViewAttachment={handleViewAttachment}
-        />
       </TableCell>
       <TableCell>
         <Button

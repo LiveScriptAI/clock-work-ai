@@ -39,7 +39,6 @@ const LineItemsTable: React.FC<LineItemsTableProps> = ({
               <TableHead>Hours Worked</TableHead>
               <TableHead>Unit Price</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Receipt</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

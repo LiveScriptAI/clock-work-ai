@@ -12,16 +12,6 @@ interface LineItem {
   rateType: string;
   quantity: number;
   unitPrice: number;
-  attachments?: FileAttachment[];
-}
-
-interface FileAttachment {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  url: string;
-  uploadedAt: Date;
 }
 
 interface InvoiceData {
@@ -73,15 +63,14 @@ const loadImage = (url: string): Promise<string> => {
 };
 
 // Convert ShiftEntry to InvoiceData
-export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '', attachments: FileAttachment[] = []): InvoiceData => {
+export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = ''): InvoiceData => {
   const lineItem: LineItem = {
     id: shift.id,
     date: shift.date,
     description: `Work performed for ${shift.employer}`,
     rateType: shift.payType,
     quantity: shift.hoursWorked,
-    unitPrice: shift.payRate,
-    attachments: attachments // Include attachments in the line item
+    unitPrice: shift.payRate
   };
 
   const subtotal = shift.earnings;
@@ -107,59 +96,11 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
   };
 };
 
-// Helper function to embed images in PDF
-const embedImageInPDF = async (doc: jsPDF, attachment: FileAttachment, x: number, y: number, maxWidth: number = 80, maxHeight: number = 60): Promise<number> => {
-  try {
-    if (attachment.type.startsWith('image/')) {
-      console.log('Embedding image in PDF:', attachment.name);
-      
-      // For data URLs, use them directly
-      if (attachment.url.startsWith('data:')) {
-        // Create a temporary image to get dimensions
-        const img = new Image();
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = attachment.url;
-        });
-        
-        const aspectRatio = img.width / img.height;
-        let width = maxWidth;
-        let height = maxWidth / aspectRatio;
-        
-        if (height > maxHeight) {
-          height = maxHeight;
-          width = maxHeight * aspectRatio;
-        }
-        
-        doc.addImage(attachment.url, 'JPEG', x, y, width, height);
-        console.log('Image embedded successfully:', attachment.name);
-        return y + height + 10; // Return next Y position with spacing
-      }
-    }
-    
-    // For non-images or failed image embedding, just add a link reference
-    doc.setFontSize(9);
-    doc.setTextColor(0, 0, 255); // Blue color for links
-    doc.text(`📎 ${attachment.name} (${(attachment.size / 1024).toFixed(1)} KB)`, x, y);
-    doc.setTextColor(0, 0, 0); // Reset to black
-    return y + 6;
-  } catch (error) {
-    console.error('Error embedding image in PDF:', error);
-    // Fallback: just show the filename
-    doc.setFontSize(9);
-    doc.text(`📎 ${attachment.name} (Error loading)`, x, y);
-    return y + 6;
-  }
-};
-
 // Generate PDF as Blob
 export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<Blob> => {
   try {
     console.log('Generating PDF with invoice data:', {
-      lineItems: invoice.lineItems.length,
-      totalAttachments: invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+      lineItems: invoice.lineItems.length
     });
 
     // Initialize new PDF document
@@ -280,20 +221,14 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     const maxFromToY = yPos + 60; // Approximate based on address sections
     
     // Line items table - ensure it starts well below the address sections
-    const tableData = invoice.lineItems.map(item => {
-      const attachmentText = item.attachments && item.attachments.length > 0 
-        ? ` (${item.attachments.length} attachment${item.attachments.length > 1 ? 's' : ''})`
-        : '';
-      
-      return [
-        item.date ? item.date.toLocaleDateString() : "N/A",
-        (item.description || "N/A") + attachmentText,
-        item.rateType,
-        formatHoursAndMinutes(item.quantity),
-        `£${item.unitPrice.toFixed(2)}`,
-        `£${(item.quantity * item.unitPrice).toFixed(2)}`
-      ];
-    });
+    const tableData = invoice.lineItems.map(item => [
+      item.date ? item.date.toLocaleDateString() : "N/A",
+      item.description || "N/A",
+      item.rateType,
+      formatHoursAndMinutes(item.quantity),
+      `£${item.unitPrice.toFixed(2)}`,
+      `£${(item.quantity * item.unitPrice).toFixed(2)}`
+    ]);
     
     // Add extra spacing before table to prevent overlap
     const tableStartY = maxFromToY + 15;
@@ -317,61 +252,6 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     
     // Get the y position after the table
     let finalY = (doc as any).lastAutoTable.finalY + 15;
-    
-    // Add attachments section with embedded images/files
-    const allAttachments = invoice.lineItems.flatMap(item => item.attachments || []);
-    console.log('Processing attachments for PDF:', allAttachments.length);
-    
-    if (allAttachments.length > 0) {
-      // Check if we need a new page for attachments
-      if (finalY > 200) {
-        doc.addPage();
-        finalY = 20;
-      }
-      
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.text("Attachments:", 14, finalY);
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      
-      let attachmentY = finalY + 10;
-      
-      // Process each attachment
-      for (let i = 0; i < allAttachments.length; i++) {
-        const attachment = allAttachments[i];
-        console.log('Processing attachment:', attachment.name, attachment.type);
-        
-        // Add attachment header
-        doc.setFont(undefined, 'bold');
-        doc.text(`${i + 1}. ${attachment.name}`, 14, attachmentY);
-        doc.setFont(undefined, 'normal');
-        attachmentY += 6;
-        
-        // Try to embed the attachment
-        if (attachment.type.startsWith('image/') && attachment.url.startsWith('data:')) {
-          try {
-            attachmentY = await embedImageInPDF(doc, attachment, 14, attachmentY, 80, 60);
-          } catch (error) {
-            console.error('Error embedding attachment:', error);
-            doc.text(`📎 File: ${attachment.name} (Error loading image)`, 14, attachmentY);
-            attachmentY += 6;
-          }
-        } else {
-          doc.text(`📎 File: ${attachment.name} (${(attachment.size / 1024).toFixed(1)} KB)`, 14, attachmentY);
-          attachmentY += 6;
-        }
-        
-        // Check if we need a new page
-        if (attachmentY > 250) {
-          doc.addPage();
-          attachmentY = 20;
-        }
-      }
-      
-      // Update finalY to account for attachments
-      finalY = attachmentY + 10;
-    }
     
     // Check if we need a new page for totals
     if (finalY > 220) {
@@ -434,9 +314,8 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
 // Keep existing downloadInvoicePDF function but refactor to use generateInvoicePDF
 export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
   try {
-    console.log('Starting PDF download with attachments:', {
-      lineItems: invoice.lineItems.length,
-      totalAttachments: invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+    console.log('Starting PDF download with invoice data:', {
+      lineItems: invoice.lineItems.length
     });
 
     const pdfBlob = await generateInvoicePDF(invoice, sender);
@@ -457,33 +336,25 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     // Clean up
     URL.revokeObjectURL(url);
     
-    const attachmentCount = invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0);
-    const attachmentText = attachmentCount > 0 ? ` with ${attachmentCount} attachment${attachmentCount > 1 ? 's' : ''}` : '';
-    toast.success(`Invoice PDF created successfully${attachmentText}`);
+    toast.success("Invoice PDF created successfully");
   } catch (error) {
     console.error("PDF export failed:", error);
     toast.error("Failed to generate invoice PDF");
   }
 };
 
-// Function to send an invoice with granular address fields and attachments
+// Function to send an invoice with granular address fields
 export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
   console.log('Sending invoice with data:', {
     customer: invoice.customer,
-    lineItems: invoice.lineItems?.length,
-    totalAttachments: invoice.lineItems?.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+    lineItems: invoice.lineItems?.length
   });
 
   // This is just a placeholder function that would normally connect to a backend
   const email = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "customer@email.com";
   
-  // Count total attachments
-  const totalAttachments = invoice.lineItems?.reduce((total, item) => {
-    return total + (item.attachments?.length || 0);
-  }, 0) || 0;
-  
   // Log the full invoice data being sent (in a real implementation, this would go to an API)
-  console.log("Sending invoice with address details and attachments:", {
+  console.log("Sending invoice with address details:", {
     customer: invoice.customer,
     email,
     address1: invoice.address1,
@@ -492,19 +363,11 @@ export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
     county: invoice.county,
     postcode: invoice.postcode,
     country: invoice.country,
-    totalAttachments,
-    lineItemsWithAttachments: invoice.lineItems?.map(item => ({
-      description: item.description,
-      attachments: item.attachments?.map(att => ({
-        name: att.name,
-        type: att.type,
-        size: att.size,
-        url: att.url // This would be processed by the backend
-      }))
+    lineItems: invoice.lineItems?.map(item => ({
+      description: item.description
     }))
   });
   
-  // Show success toast with the customer email and attachment info
-  const attachmentText = totalAttachments > 0 ? ` with ${totalAttachments} attachment${totalAttachments > 1 ? 's' : ''}` : '';
-  toast.success(`Invoice sent successfully to ${email}${attachmentText}`);
+  // Show success toast with the customer email
+  toast.success(`Invoice sent successfully to ${email}`);
 };

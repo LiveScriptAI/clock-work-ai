@@ -9,7 +9,6 @@ import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { FileAttachment } from "./invoice-types";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +20,9 @@ import {
 interface InvoiceActionsProps {
   shift: ShiftEntry;
   clientEmail?: string;
-  attachments?: FileAttachment[];
 }
 
-const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail, attachments = [] }) => {
+const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEmailOptions, setShowEmailOptions] = useState(false);
   const { user } = useAuth();
@@ -44,8 +42,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail, att
         return;
       }
 
-      console.log('Downloading invoice with attachments:', attachments.length);
-      const invoiceData = convertShiftToInvoice(shift, clientEmail, attachments);
+      const invoiceData = convertShiftToInvoice(shift, clientEmail);
       await downloadInvoicePDF(invoiceData, senderInfo);
     } catch (error) {
       console.error("Error generating invoice:", error);
@@ -84,8 +81,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail, att
         return;
       }
 
-      console.log('Emailing invoice with attachments:', attachments.length);
-      const invoiceData = convertShiftToInvoice(shift, clientEmail, attachments);
+      const invoiceData = convertShiftToInvoice(shift, clientEmail);
       const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
       const file = new File([pdfBlob], `Invoice-${shift.id}.pdf`, { type: 'application/pdf' });
 
@@ -140,8 +136,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail, att
         return;
       }
 
-      console.log('Mobile email option with attachments:', attachments.length);
-      const invoiceData = convertShiftToInvoice(shift, clientEmail, attachments);
+      const invoiceData = convertShiftToInvoice(shift, clientEmail);
       
       if (option === 'download') {
         // Just download the PDF
