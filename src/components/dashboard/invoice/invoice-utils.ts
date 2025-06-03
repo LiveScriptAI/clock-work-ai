@@ -1,4 +1,3 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -108,18 +107,20 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
 };
 
 // Helper function to embed images in PDF
-const embedImageInPDF = async (doc: jsPDF, attachment: FileAttachment, x: number, y: number, maxWidth: number = 100, maxHeight: number = 80): Promise<number> => {
+const embedImageInPDF = async (doc: jsPDF, attachment: FileAttachment, x: number, y: number, maxWidth: number = 80, maxHeight: number = 60): Promise<number> => {
   try {
     if (attachment.type.startsWith('image/')) {
+      console.log('Embedding image in PDF:', attachment.name);
+      
       // For data URLs, use them directly
       if (attachment.url.startsWith('data:')) {
-        // Calculate dimensions to fit within max bounds while maintaining aspect ratio
+        // Create a temporary image to get dimensions
         const img = new Image();
-        img.src = attachment.url;
         
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
+          img.src = attachment.url;
         });
         
         const aspectRatio = img.width / img.height;
@@ -132,28 +133,34 @@ const embedImageInPDF = async (doc: jsPDF, attachment: FileAttachment, x: number
         }
         
         doc.addImage(attachment.url, 'JPEG', x, y, width, height);
-        return y + height + 5; // Return next Y position
+        console.log('Image embedded successfully:', attachment.name);
+        return y + height + 10; // Return next Y position with spacing
       }
     }
     
     // For non-images or failed image embedding, just add a link reference
     doc.setFontSize(9);
     doc.setTextColor(0, 0, 255); // Blue color for links
-    doc.text(`📎 ${attachment.name}`, x, y);
+    doc.text(`📎 ${attachment.name} (${(attachment.size / 1024).toFixed(1)} KB)`, x, y);
     doc.setTextColor(0, 0, 0); // Reset to black
-    return y + 5;
+    return y + 6;
   } catch (error) {
     console.error('Error embedding image in PDF:', error);
     // Fallback: just show the filename
     doc.setFontSize(9);
-    doc.text(`📎 ${attachment.name}`, x, y);
-    return y + 5;
+    doc.text(`📎 ${attachment.name} (Error loading)`, x, y);
+    return y + 6;
   }
 };
 
 // Generate PDF as Blob
 export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<Blob> => {
   try {
+    console.log('Generating PDF with invoice data:', {
+      lineItems: invoice.lineItems.length,
+      totalAttachments: invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+    });
+
     // Initialize new PDF document
     const doc = new jsPDF();
     
@@ -164,9 +171,7 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     if (sender.logo_url) {
       try {
         const logoDataUrl = await loadImage(sender.logo_url);
-        // Add the logo to the top left with better positioning
         doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 20, undefined, 'FAST');
-        // Adjust yPos to place content below the logo with more space
         yPos = 40;
       } catch (err) {
         console.error('Error adding logo to PDF:', err);
@@ -271,7 +276,7 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text(invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com", 110, toY);
     
     // Calculate the maximum Y position from both From and To sections
-    const maxFromToY = Math.max(senderY, toY);
+    const maxFromToY = yPos + 60; // Approximate based on address sections
     
     // Line items table - ensure it starts well below the address sections
     const tableData = invoice.lineItems.map(item => {
@@ -309,12 +314,20 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       margin: { left: 14, right: 14 }
     });
     
-    // Get the y position after the table - change from const to let
+    // Get the y position after the table
     let finalY = (doc as any).lastAutoTable.finalY + 15;
     
     // Add attachments section with embedded images/files
     const allAttachments = invoice.lineItems.flatMap(item => item.attachments || []);
+    console.log('Processing attachments for PDF:', allAttachments.length);
+    
     if (allAttachments.length > 0) {
+      // Check if we need a new page for attachments
+      if (finalY > 200) {
+        doc.addPage();
+        finalY = 20;
+      }
+      
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.text("Attachments:", 14, finalY);
@@ -326,26 +339,26 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       // Process each attachment
       for (let i = 0; i < allAttachments.length; i++) {
         const attachment = allAttachments[i];
+        console.log('Processing attachment:', attachment.name, attachment.type);
         
         // Add attachment header
         doc.setFont(undefined, 'bold');
         doc.text(`${i + 1}. ${attachment.name}`, 14, attachmentY);
         doc.setFont(undefined, 'normal');
-        attachmentY += 5;
+        attachmentY += 6;
         
-        // Try to embed the attachment (images will be embedded, others will show as links)
-        if (attachment.type.startsWith('image/')) {
+        // Try to embed the attachment
+        if (attachment.type.startsWith('image/') && attachment.url.startsWith('data:')) {
           try {
-            attachmentY = await embedImageInPDF(doc, attachment, 14, attachmentY, 100, 80);
-            attachmentY += 5; // Extra spacing after image
+            attachmentY = await embedImageInPDF(doc, attachment, 14, attachmentY, 80, 60);
           } catch (error) {
             console.error('Error embedding attachment:', error);
-            doc.text(`📎 File: ${attachment.name}`, 14, attachmentY);
-            attachmentY += 5;
+            doc.text(`📎 File: ${attachment.name} (Error loading image)`, 14, attachmentY);
+            attachmentY += 6;
           }
         } else {
           doc.text(`📎 File: ${attachment.name} (${(attachment.size / 1024).toFixed(1)} KB)`, 14, attachmentY);
-          attachmentY += 5;
+          attachmentY += 6;
         }
         
         // Check if we need a new page
@@ -420,6 +433,11 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
 // Keep existing downloadInvoicePDF function but refactor to use generateInvoicePDF
 export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
   try {
+    console.log('Starting PDF download with attachments:', {
+      lineItems: invoice.lineItems.length,
+      totalAttachments: invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+    });
+
     const pdfBlob = await generateInvoicePDF(invoice, sender);
     
     // Create download link
@@ -438,7 +456,9 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     // Clean up
     URL.revokeObjectURL(url);
     
-    toast.success("Invoice PDF created successfully");
+    const attachmentCount = invoice.lineItems.reduce((sum, item) => sum + (item.attachments?.length || 0), 0);
+    const attachmentText = attachmentCount > 0 ? ` with ${attachmentCount} attachment${attachmentCount > 1 ? 's' : ''}` : '';
+    toast.success(`Invoice PDF created successfully${attachmentText}`);
   } catch (error) {
     console.error("PDF export failed:", error);
     toast.error("Failed to generate invoice PDF");
@@ -447,6 +467,12 @@ export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
 
 // Function to send an invoice with granular address fields and attachments
 export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
+  console.log('Sending invoice with data:', {
+    customer: invoice.customer,
+    lineItems: invoice.lineItems?.length,
+    totalAttachments: invoice.lineItems?.reduce((sum, item) => sum + (item.attachments?.length || 0), 0)
+  });
+
   // This is just a placeholder function that would normally connect to a backend
   const email = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "customer@email.com";
   
@@ -471,7 +497,8 @@ export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
       attachments: item.attachments?.map(att => ({
         name: att.name,
         type: att.type,
-        size: att.size
+        size: att.size,
+        url: att.url // This would be processed by the backend
       }))
     }))
   });
