@@ -1,3 +1,4 @@
+
 import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -33,16 +34,16 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
       return;
     }
 
-    // Get break intervals if needed with proper typing
-    const breakIntervalsByShift: Record<string, Array<{start: string; end: string}>> = importBreaksToExport ? getBreakIntervalsByShift() : {};
+    // Get break intervals if needed
+    const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
     console.log("CSV Export - breakIntervalsByShift:", breakIntervalsByShift);
     console.log("CSV Export - Total shifts with breaks found:", Object.keys(breakIntervalsByShift).length);
     
     // Calculate max number of breaks across all shifts for dynamic headers
     let maxBreaks = 0;
     if (importBreaksToExport) {
-      Object.values(breakIntervalsByShift).forEach((intervals: Array<{start: string; end: string}>) => {
-        if (intervals && intervals.length > maxBreaks) {
+      Object.values(breakIntervalsByShift).forEach(intervals => {
+        if (intervals.length > maxBreaks) {
           maxBreaks = intervals.length;
         }
       });
@@ -174,8 +175,8 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
       return;
     }
     
-    // Get break intervals if needed with proper typing
-    const breakIntervalsByShift: Record<string, Array<{start: string; end: string}>> = importBreaksToExport ? getBreakIntervalsByShift() : {};
+    // Get break intervals if needed
+    const breakIntervalsByShift = importBreaksToExport ? getBreakIntervalsByShift() : {};
     console.log("PDF Export - breakIntervalsByShift:", breakIntervalsByShift);
     console.log("PDF Export - Total shifts with breaks found:", Object.keys(breakIntervalsByShift).length);
     

@@ -59,7 +59,7 @@ export function useShiftState() {
     setBreakStart
   );
   
-  // Use our actions hook with proper validation type handler
+  // Use our actions hook
   const actions = useShiftActions(
     setIsStartSignatureOpen,
     setIsEndSignatureOpen,
@@ -69,7 +69,7 @@ export function useShiftState() {
     endManagerName,
     employerName,
     validation.setShowValidationAlert,
-    (type: string) => validation.setValidationType(type as "start" | "end"), // Fix type conversion here
+    validation.setValidationType,
     setIsShiftActive,
     setStartTime,
     setIsShiftComplete,
@@ -86,18 +86,6 @@ export function useShiftState() {
     startSignatureData,
     endSignatureData
   );
-
-  // Type-safe handler for rate type changes
-  const handleRateTypeChange = (value: string) => {
-    if (
-      value === "Per Hour" ||
-      value === "Per Day" ||
-      value === "Per Week" ||
-      value === "Per Month"
-    ) {
-      setRateType(value);
-    }
-  };
 
   return {
     // State
@@ -131,7 +119,7 @@ export function useShiftState() {
     setShowValidationAlert: validation.setShowValidationAlert,
     setEmployerName,
     setPayRate,
-    setRateType: handleRateTypeChange,
+    setRateType,
     setStartSignatureData,
     setEndSignatureData,
     setBreakStart,

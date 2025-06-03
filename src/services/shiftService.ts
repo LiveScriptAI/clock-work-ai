@@ -3,28 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { startOfDay, endOfDay, subDays } from "date-fns";
 
-// Save a new shift to the database
-export async function saveShift(shiftData: any): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from("shifts")
-      .insert(shiftData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error saving shift:", error);
-      return false;
-    }
-
-    console.log("Shift saved successfully:", data);
-    return true;
-  } catch (error) {
-    console.error("Exception when saving shift:", error);
-    return false;
-  }
-}
-
 // Fetch shifts for the current authenticated user
 export async function fetchUserShifts(): Promise<ShiftEntry[]> {
   try {
@@ -113,8 +91,8 @@ export function filterShiftsByDateRange(
   });
 }
 
-// Transform Supabase shift data to ShiftEntry format - NOW EXPORTED
-export function transformShiftData(shiftData: any): ShiftEntry {
+// Transform Supabase shift data to ShiftEntry format
+function transformShiftData(shiftData: any): ShiftEntry {
   const startTime = new Date(shiftData.start_time);
   const endTime = new Date(shiftData.end_time);
   
