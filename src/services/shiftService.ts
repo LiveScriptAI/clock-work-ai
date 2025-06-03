@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { startOfDay, endOfDay, subDays } from "date-fns";
@@ -112,8 +113,8 @@ export function filterShiftsByDateRange(
   });
 }
 
-// Transform Supabase shift data to ShiftEntry format
-function transformShiftData(shiftData: any): ShiftEntry {
+// Transform Supabase shift data to ShiftEntry format - NOW EXPORTED
+export function transformShiftData(shiftData: any): ShiftEntry {
   const startTime = new Date(shiftData.start_time);
   const endTime = new Date(shiftData.end_time);
   

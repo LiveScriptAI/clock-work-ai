@@ -59,7 +59,7 @@ export function useShiftState() {
     setBreakStart
   );
   
-  // Use our actions hook
+  // Use our actions hook with proper validation type handler
   const actions = useShiftActions(
     setIsStartSignatureOpen,
     setIsEndSignatureOpen,
@@ -69,7 +69,7 @@ export function useShiftState() {
     endManagerName,
     employerName,
     validation.setShowValidationAlert,
-    validation.setValidationType,
+    (type: string) => validation.setValidationType(type as "start" | "end"), // Fix type conversion here
     setIsShiftActive,
     setStartTime,
     setIsShiftComplete,

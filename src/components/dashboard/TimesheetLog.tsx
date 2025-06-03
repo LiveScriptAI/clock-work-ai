@@ -21,6 +21,8 @@ const TimesheetLog = () => {
   const [activeTab, setActiveTab] = useState("week");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date; to: Date } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // Fetch shifts from Supabase
   const { data: shifts = [], isLoading, error, refetch } = useQuery({
@@ -116,12 +118,35 @@ const TimesheetLog = () => {
   const isDateRangeActive = !!customDateRange;
 
   // Handle date range change with proper typing
-  const handleDateRangeChange = (range: { from?: Date; to?: Date } | null) => {
+  const handleDateRangeChange = (range: { from?: Date; to?: Date } | undefined) => {
     if (range && range.from && range.to) {
       setCustomDateRange({ from: range.from, to: range.to });
     } else {
       setCustomDateRange(null);
     }
+  };
+
+  // Handle applying the date range filter
+  const handleApplyFilter = () => {
+    if (customDateRange?.from && customDateRange?.to) {
+      setIsFilterLoading(true);
+      
+      // Simulate loading delay
+      setTimeout(() => {
+        setIsFilterLoading(false);
+      }, 300);
+    }
+  };
+
+  // Handle resetting the date range filter
+  const handleResetFilter = () => {
+    setIsFilterLoading(true);
+    
+    // Simulate loading delay
+    setTimeout(() => {
+      setCustomDateRange(null);
+      setIsFilterLoading(false);
+    }, 200);
   };
 
   return (
@@ -135,24 +160,30 @@ const TimesheetLog = () => {
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <DateRangePicker 
-                onDateRangeChange={handleDateRangeChange}
                 dateRange={customDateRange}
+                onDateRangeChange={handleDateRangeChange}
+                onApplyFilter={handleApplyFilter}
+                onResetFilter={handleResetFilter}
+                isLoading={isFilterLoading}
               />
-              <ExportActions />
+              <ExportActions 
+                filteredShifts={filteredShifts}
+                isLoading={isLoading}
+                isExporting={isExporting}
+                setIsExporting={setIsExporting}
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="week">This Week</TabsTrigger>
               <TabsTrigger value="month">This Month</TabsTrigger>
-              <TabsTrigger value="last7">Last 7 Days</TabsTrigger>
-              <TabsTrigger value="last30">Last 30 Days</TabsTrigger>
             </TabsList>
             
-            {["today", "week", "month", "last7", "last30"].map((period) => (
+            {["today", "week", "month"].map((period) => (
               <TimeTabContent
                 key={period}
                 period={period}
