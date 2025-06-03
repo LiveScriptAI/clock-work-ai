@@ -16,6 +16,7 @@ interface LineItem {
 
 interface InvoiceData {
   customer: string;
+  customerEmail?: string; // Add customerEmail field
   invoiceDate: Date;
   reference: string;
   lineItems: LineItem[];
@@ -79,6 +80,7 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
 
   return {
     customer: shift.employer,
+    customerEmail: clientEmail, // Use the actual client email
     invoiceDate: shift.date,
     reference: shift.id,
     lineItems: [lineItem],
@@ -100,7 +102,8 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
 export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<Blob> => {
   try {
     console.log('Generating PDF with invoice data:', {
-      lineItems: invoice.lineItems.length
+      lineItems: invoice.lineItems.length,
+      customerEmail: invoice.customerEmail
     });
 
     // Initialize new PDF document
@@ -214,8 +217,10 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       toY += lineHeight;
     }
     
-    // Email (generate from customer name if not provided)
-    const customerEmail = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "client@email.com";
+    // Use actual customer email if provided, otherwise display "No email provided"
+    const customerEmail = invoice.customerEmail && invoice.customerEmail.trim() 
+      ? invoice.customerEmail 
+      : "No email provided";
     doc.text(customerEmail, 110, toY);
     
     // Calculate the maximum Y position from both From and To sections
@@ -316,11 +321,14 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
 export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
   console.log('Sending invoice with data:', {
     customer: invoice.customer,
+    customerEmail: invoice.customerEmail,
     lineItems: invoice.lineItems?.length
   });
 
-  // This is just a placeholder function that would normally connect to a backend
-  const email = invoice.customer ? `${invoice.customer.toLowerCase().replace(/\s/g, "")}@email.com` : "customer@email.com";
+  // Use the actual customer email if provided
+  const email = invoice.customerEmail && invoice.customerEmail.trim() 
+    ? invoice.customerEmail 
+    : "customer@email.com";
   
   // Log the full invoice data being sent (in a real implementation, this would go to an API)
   console.log("Sending invoice with address details:", {

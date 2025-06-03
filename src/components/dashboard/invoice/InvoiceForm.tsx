@@ -277,6 +277,7 @@ const InvoiceForm = () => {
     
     const invoiceData = {
       customer,
+      customerEmail, // Include the actual customer email
       invoiceDate,
       reference,
       lineItems,

@@ -37,8 +37,16 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
         return;
       }
 
+      // Convert shift to invoice data with the actual client email
       const invoiceData = convertShiftToInvoice(shift, clientEmail);
-      const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
+      
+      // Add the customerEmail to the invoice data for PDF generation
+      const invoiceWithEmail = {
+        ...invoiceData,
+        customerEmail: clientEmail
+      };
+      
+      const pdfBlob = await generateInvoicePDF(invoiceWithEmail, senderInfo);
       
       // Download the PDF
       const url = URL.createObjectURL(pdfBlob);
@@ -48,12 +56,13 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       a.click();
       URL.revokeObjectURL(url);
 
-      // Open email client with pre-filled content
+      // Open email client with pre-filled content using the actual client email
       const subject = encodeURIComponent(`Invoice #${shift.id}`);
       const body = encodeURIComponent(
         `Hi,\n\nPlease find attached Invoice #${shift.id} for work performed on ${shift.date.toLocaleDateString()}.\n\nTotal amount: £${shift.earnings.toFixed(2)}\n\nPlease attach the downloaded PDF file to this email before sending.\n\nThanks!`
       );
       
+      // Use the actual client email in the mailto link
       window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
       
       toast.success("Invoice downloaded and email client opened. Please attach the PDF to your email.");
