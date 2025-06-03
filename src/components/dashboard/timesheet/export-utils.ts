@@ -97,8 +97,8 @@ export const downloadCSV = (shifts: ShiftEntry[], importBreaksToExport: boolean 
         formatDate(shift.startTime),
         formatDate(shift.endTime),
         `${shift.hoursWorked.toFixed(2)} hours`,
-        `$${shift.payRate} ${shift.payType}`,
-        `$${shift.earnings.toFixed(2)}`,
+        `£${shift.payRate} ${shift.payType}`,
+        `£${shift.earnings.toFixed(2)}`,
         shift.status
       ];
 
@@ -223,8 +223,8 @@ export const downloadPDF = (shifts: ShiftEntry[], importBreaksToExport: boolean 
         format(shift.startTime, 'HH:mm'),
         format(shift.endTime, 'HH:mm'),
         `${shift.hoursWorked.toFixed(2)}h`,
-        `$${shift.payRate}/${shift.payType}`,
-        `$${shift.earnings.toFixed(2)}`,
+        `£${shift.payRate}/${shift.payType}`,
+        `£${shift.earnings.toFixed(2)}`,
         shift.status
       ];
 
