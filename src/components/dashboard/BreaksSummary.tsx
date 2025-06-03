@@ -1,12 +1,12 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteBreakIntervalsForShift } from "@/services/breakIntervalsService";
+import { deleteBreakIntervalsForShift, getBreakIntervalsByShift } from "@/services/breakIntervalsService";
 import { exportBreaksToCSV, exportBreaksToPDF } from "@/components/dashboard/timesheet/export-utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -16,7 +16,7 @@ interface BreakInterval {
 }
 
 interface BreaksSummaryProps {
-  breakIntervalsByShift: Record<string, BreakInterval[]>;
+  // Remove the prop since we'll fetch data internally
   onBreakDeleted?: () => void;
 }
 
@@ -49,8 +49,32 @@ const formatShiftDisplay = (shiftId: string): string => {
   return shiftId;
 };
 
-const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, onBreakDeleted }) => {
+const BreaksSummary: React.FC<BreaksSummaryProps> = ({ onBreakDeleted }) => {
   const isMobile = useIsMobile();
+  const [breakIntervalsByShift, setBreakIntervalsByShift] = useState<Record<string, BreakInterval[]>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch break data from Supabase
+  const fetchBreakData = async () => {
+    setIsLoading(true);
+    try {
+      console.log("BreaksSummary - Fetching break data...");
+      const data = await getBreakIntervalsByShift();
+      console.log("BreaksSummary - Received break data:", data);
+      setBreakIntervalsByShift(data);
+    } catch (error) {
+      console.error("BreaksSummary - Error fetching break data:", error);
+      toast.error("Failed to load break data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchBreakData();
+  }, []);
+
   const hasBreaks = Object.keys(breakIntervalsByShift).length > 0;
 
   const handleDeleteBreak = async (targetShiftId: string) => {
@@ -62,6 +86,9 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
       if (success) {
         console.log("BreaksSummary - Successfully deleted break for shift:", targetShiftId);
         toast.success("Break deleted successfully");
+        
+        // Refresh the data
+        await fetchBreakData();
         onBreakDeleted?.();
       } else {
         console.error("BreaksSummary - Failed to delete break for shift:", targetShiftId);
@@ -89,6 +116,20 @@ const BreaksSummary: React.FC<BreaksSummaryProps> = ({ breakIntervalsByShift, on
       toast.error("Failed to export break data");
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Breaks Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Loading break data...</span>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!hasBreaks) {
     return (

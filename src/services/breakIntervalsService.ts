@@ -1,50 +1,60 @@
 
 import { loadBreakState } from "./storageService";
+import { 
+  getBreakIntervalsByUser, 
+  saveBreakIntervalsForShift as saveBreakIntervalsToSupabase,
+  deleteBreakIntervalsForShift as deleteBreakIntervalsFromSupabase,
+  migrateLocalStorageToSupabase,
+  BreakIntervalDisplay
+} from "./breakDataService";
 
 export interface BreakInterval {
   start: string;
   end: string;
 }
 
-// Save break intervals for a specific shift
-export const saveBreakIntervalsForShift = (shiftId: string, intervals: BreakInterval[]): void => {
+// Save break intervals for a specific shift (now uses Supabase)
+export const saveBreakIntervalsForShift = async (shiftId: string, intervals: BreakInterval[]): Promise<void> => {
   try {
-    const key = `shift_${shiftId}_breaks`;
-    const breakData = {
-      shiftId,
-      breakIntervals: intervals,
-      savedAt: new Date().toISOString()
-    };
-    localStorage.setItem(key, JSON.stringify(breakData));
-    console.log("BreakIntervalsService - Saved break intervals for shift:", shiftId, intervals);
+    console.log("BreakIntervalsService - Saving break intervals for shift:", shiftId, intervals);
+    
+    const success = await saveBreakIntervalsToSupabase(shiftId, intervals);
+    if (success) {
+      console.log("BreakIntervalsService - Successfully saved to Supabase");
+    } else {
+      console.error("BreakIntervalsService - Failed to save to Supabase, falling back to localStorage");
+      // Fallback to localStorage if Supabase fails
+      const key = `shift_${shiftId}_breaks`;
+      const breakData = {
+        shiftId,
+        breakIntervals: intervals,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(key, JSON.stringify(breakData));
+    }
   } catch (error) {
     console.error("BreakIntervalsService - Error saving break intervals:", error);
   }
 };
 
-// Delete break intervals for a specific shift
+// Delete break intervals for a specific shift (now uses Supabase)
 export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boolean> => {
   try {
-    const key = `shift_${shiftId}_breaks`;
-    console.log("BreakIntervalsService - Deleting key:", key);
+    console.log("BreakIntervalsService - Deleting break intervals for shift:", shiftId);
     
-    // Check if the key exists before deletion
-    const existingData = localStorage.getItem(key);
-    if (!existingData) {
-      console.log("BreakIntervalsService - Key not found:", key);
-      return false;
-    }
-    
-    localStorage.removeItem(key);
-    
-    // Verify deletion
-    const verifyDeleted = localStorage.getItem(key);
-    if (verifyDeleted === null) {
-      console.log("BreakIntervalsService - Successfully deleted break intervals for shift:", shiftId);
+    const success = await deleteBreakIntervalsFromSupabase(shiftId);
+    if (success) {
+      console.log("BreakIntervalsService - Successfully deleted from Supabase");
+      // Also remove from localStorage as backup
+      const key = `shift_${shiftId}_breaks`;
+      localStorage.removeItem(key);
       return true;
     } else {
-      console.error("BreakIntervalsService - Failed to delete key:", key);
-      return false;
+      console.error("BreakIntervalsService - Failed to delete from Supabase, trying localStorage");
+      // Fallback to localStorage
+      const key = `shift_${shiftId}_breaks`;
+      localStorage.removeItem(key);
+      return true;
     }
   } catch (error) {
     console.error("BreakIntervalsService - Error deleting break intervals:", error);
@@ -53,7 +63,7 @@ export const deleteBreakIntervalsForShift = async (shiftId: string): Promise<boo
 };
 
 // Convert current break state to intervals and save for a completed shift
-export const saveBreakIntervalsForCompletedShift = (shiftId: string): void => {
+export const saveBreakIntervalsForCompletedShift = async (shiftId: string): Promise<void> => {
   try {
     console.log("BreakIntervalsService - Loading break state for shift:", shiftId);
     const breakState = loadBreakState();
@@ -86,7 +96,7 @@ export const saveBreakIntervalsForCompletedShift = (shiftId: string): void => {
     }
 
     // Save breaks for this specific completed shift
-    saveBreakIntervalsForShift(shiftId, completedIntervals);
+    await saveBreakIntervalsForShift(shiftId, completedIntervals);
     console.log("BreakIntervalsService - Saved completed shift break intervals:", completedIntervals);
   } catch (error) {
     console.error("BreakIntervalsService - Error saving completed shift break intervals:", error);
@@ -98,9 +108,23 @@ export const saveCurrentBreakStateAsIntervals = (): void => {
   console.log("BreakIntervalsService - saveCurrentBreakStateAsIntervals is deprecated, use saveBreakIntervalsForCompletedShift instead");
 };
 
-// Retrieve break intervals organized by shift ID from localStorage
-export const getBreakIntervalsByShift = (): Record<string, BreakInterval[]> => {
+// Retrieve break intervals organized by shift ID (now from Supabase with localStorage fallback)
+export const getBreakIntervalsByShift = async (): Promise<Record<string, BreakInterval[]>> => {
   try {
+    console.log("BreakIntervalsService - Getting break intervals by shift");
+    
+    // Try to get data from Supabase first
+    const supabaseData = await getBreakIntervalsByUser();
+    console.log("BreakIntervalsService - Data from Supabase:", supabaseData);
+
+    if (Object.keys(supabaseData).length > 0) {
+      // If we have Supabase data, migrate any remaining localStorage data and return Supabase data
+      await migrateLocalStorageToSupabase();
+      return supabaseData;
+    }
+
+    // Fallback to localStorage if no Supabase data
+    console.log("BreakIntervalsService - No Supabase data, checking localStorage");
     const breakIntervalsByShift: Record<string, BreakInterval[]> = {};
     
     console.log("BreakIntervalsService - Starting localStorage scan...");
@@ -145,8 +169,13 @@ export const getBreakIntervalsByShift = (): Record<string, BreakInterval[]> => {
       }
     }
     
-    console.log("BreakIntervalsService - Final break intervals by shift:", breakIntervalsByShift);
-    console.log("BreakIntervalsService - Total shifts with breaks:", Object.keys(breakIntervalsByShift).length);
+    console.log("BreakIntervalsService - Final break intervals by shift from localStorage:", breakIntervalsByShift);
+    
+    // If we found localStorage data, migrate it to Supabase
+    if (Object.keys(breakIntervalsByShift).length > 0) {
+      console.log("BreakIntervalsService - Found localStorage data, triggering migration");
+      await migrateLocalStorageToSupabase();
+    }
     
     return breakIntervalsByShift;
   } catch (error) {
