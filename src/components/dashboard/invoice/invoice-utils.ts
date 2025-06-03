@@ -1,4 +1,3 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -310,38 +309,6 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
   } catch (error) {
     console.error("PDF generation failed:", error);
     throw new Error("Failed to generate invoice PDF");
-  }
-};
-
-// Keep existing downloadInvoicePDF function but refactor to use generateInvoicePDF
-export const downloadInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSettingsType): Promise<void> => {
-  try {
-    console.log('Starting PDF download with invoice data:', {
-      lineItems: invoice.lineItems.length
-    });
-
-    const pdfBlob = await generateInvoicePDF(invoice, sender);
-    
-    // Create download link
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement("a");
-    const filename = `invoice-${invoice.reference || "draft"}-${new Date().toISOString().split("T")[0]}.pdf`;
-    
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.display = "none";
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up
-    URL.revokeObjectURL(url);
-    
-    toast.success("Invoice PDF created successfully");
-  } catch (error) {
-    console.error("PDF export failed:", error);
-    toast.error("Failed to generate invoice PDF");
   }
 };
 

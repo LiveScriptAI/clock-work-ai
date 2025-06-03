@@ -1,10 +1,10 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mail, Download, AlertCircle, Copy, Share } from "lucide-react";
+import { Mail, AlertCircle, Copy, Share } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
-import { generateInvoicePDF, convertShiftToInvoice, downloadInvoicePDF } from "./invoice-utils";
+import { generateInvoicePDF, convertShiftToInvoice } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,30 +27,6 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
   const [showEmailOptions, setShowEmailOptions] = useState(false);
   const { user } = useAuth();
   const isMobile = useIsMobile();
-
-  const handleDownloadInvoice = async () => {
-    if (!user) {
-      toast.error("Please log in to generate invoices");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const senderInfo = await fetchInvoiceSettings(user.id);
-      if (!senderInfo) {
-        toast.error("Please set up your company information in Invoice Settings first");
-        return;
-      }
-
-      const invoiceData = convertShiftToInvoice(shift, clientEmail);
-      await downloadInvoicePDF(invoiceData, senderInfo);
-    } catch (error) {
-      console.error("Error generating invoice:", error);
-      toast.error("Failed to generate invoice PDF");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handleEmailInvoice = async () => {
     if (!clientEmail) {
@@ -139,8 +115,14 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({ shift, clientEmail }) =
       const invoiceData = convertShiftToInvoice(shift, clientEmail);
       
       if (option === 'download') {
-        // Just download the PDF
-        await downloadInvoicePDF(invoiceData, senderInfo);
+        // Generate and download the PDF
+        const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice-${shift.id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
         toast.success("Invoice downloaded! You can now attach it manually to your email.");
       } else if (option === 'copy') {
         // Copy email template to clipboard
@@ -171,7 +153,12 @@ Thanks!`;
           toast.success("Invoice shared successfully");
         } else {
           // Fallback to download
-          await downloadInvoicePDF(invoiceData, senderInfo);
+          const url = URL.createObjectURL(pdfBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Invoice-${shift.id}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
           toast.success("Invoice downloaded! Share feature not available on this device.");
         }
       }
@@ -188,15 +175,6 @@ Thanks!`;
     return (
       <div className="space-y-2">
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            onClick={handleDownloadInvoice}
-            disabled={isGenerating}
-            size="sm"
-            className="w-full sm:w-auto"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {isGenerating ? "Generating..." : "Download Invoice"}
-          </Button>
           <Button 
             disabled={true}
             size="sm"
@@ -220,15 +198,6 @@ Thanks!`;
   return (
     <>
       <div className="flex flex-col sm:flex-row gap-2">
-        <Button 
-          onClick={handleDownloadInvoice}
-          disabled={isGenerating}
-          size="sm"
-          className="w-full sm:w-auto"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          {isGenerating ? "Generating..." : "Download Invoice"}
-        </Button>
         <Button 
           onClick={handleEmailInvoice}
           disabled={isGenerating}
@@ -257,7 +226,7 @@ Thanks!`;
               className="w-full justify-start"
               variant="outline"
             >
-              <Download className="w-4 h-4 mr-3" />
+              <Mail className="w-4 h-4 mr-3" />
               Download PDF & Email Manually
             </Button>
             <Button 
