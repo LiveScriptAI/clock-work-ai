@@ -20,7 +20,7 @@ export function useShiftActions(
   endManagerName: string,
   employerName: string,
   setShowValidationAlert: (show: boolean) => void,
-  setValidationType: (type: string) => void,
+  setValidationType: (type: 'start' | 'end') => void,
   setIsShiftActive: (active: boolean) => void,
   setStartTime: (time: Date | null) => void,
   setIsShiftComplete: (complete: boolean) => void,
@@ -41,13 +41,13 @@ export function useShiftActions(
   const handleStartShift = useCallback(() => {
     if (!managerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("manager");
+      setValidationType("start");
       return;
     }
     
     if (!employerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("employer");
+      setValidationType("start");
       return;
     }
     
@@ -57,7 +57,7 @@ export function useShiftActions(
   const handleEndShift = useCallback(() => {
     if (!endManagerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("endManager");
+      setValidationType("end");
       return;
     }
     
@@ -67,7 +67,7 @@ export function useShiftActions(
   const confirmShiftStart = useCallback(() => {
     if (isStartSignatureEmpty) {
       setShowValidationAlert(true);
-      setValidationType("startSignature");
+      setValidationType("start");
       return;
     }
 
@@ -91,7 +91,7 @@ export function useShiftActions(
   const confirmShiftEnd = useCallback(async (userId?: string) => {
     if (isEndSignatureEmpty) {
       setShowValidationAlert(true);
-      setValidationType("endSignature");
+      setValidationType("end");
       return;
     }
 

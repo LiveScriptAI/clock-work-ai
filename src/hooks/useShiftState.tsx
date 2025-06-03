@@ -34,13 +34,6 @@ export function useShiftState() {
   // Use our validation hook
   const validation = useShiftValidation();
   
-  // Create a wrapper function for setValidationType that accepts a string
-  const handleSetValidationType = (type: string) => {
-    if (type === 'start' || type === 'end') {
-      validation.setValidationType(type);
-    }
-  };
-  
   // Use our persistence hook
   useShiftPersistence(
     isShiftActive,
@@ -76,7 +69,7 @@ export function useShiftState() {
     endManagerName,
     employerName,
     validation.setShowValidationAlert,
-    handleSetValidationType,
+    validation.setValidationType,
     setIsShiftActive,
     setStartTime,
     setIsShiftComplete,
