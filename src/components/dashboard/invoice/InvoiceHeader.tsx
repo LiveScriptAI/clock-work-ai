@@ -63,30 +63,26 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setCountry = () => {},
 }) => {
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 bg-white rounded-md shadow-sm">
-      <h2 className="font-inter text-xl font-semibold text-gray-900">Create Invoice</h2>
-      
-      <div className="grid grid-cols-1 gap-4 sm:gap-6">
-        {/* Customer Name Field - Full Width on Mobile */}
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        {/* Customer Name Field */}
         <div className="space-y-2">
           <Label htmlFor="customer" className="text-sm font-medium">Customer</Label>
           <Input
             id="customer"
             placeholder="Select or enter customer name"
-            className="w-full"
             value={customer}
             onChange={(e) => setCustomer(e.target.value)}
           />
         </div>
         
-        {/* Customer Email Field - Full Width on Mobile */}
+        {/* Customer Email Field */}
         <div className="space-y-2">
           <Label htmlFor="customerEmail" className="text-sm font-medium">Customer Email</Label>
           <Input
             id="customerEmail"
             placeholder="Enter customer email"
             type="email"
-            className="w-full"
             value={customerEmail}
             onChange={(e) => setCustomerEmail(e.target.value)}
           />
@@ -101,14 +97,12 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal h-10",
+                  "w-full justify-start text-left font-normal",
                   !invoiceDate && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">
-                  {invoiceDate ? format(invoiceDate, "PPP") : "Pick a date"}
-                </span>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {invoiceDate ? format(invoiceDate, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -117,7 +111,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 selected={invoiceDate}
                 onSelect={(date) => date && setInvoiceDate(date)}
                 initialFocus
-                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -128,7 +121,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
           <Input 
             id="reference" 
             placeholder="INV-001" 
-            className="w-full"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
           />
@@ -137,8 +129,8 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
       
       {/* Billing Address Section */}
       <div className="space-y-3">
-        <h3 className="font-medium text-sm sm:text-base">Billing Address</h3>
-        <div className="grid grid-cols-1 gap-3 sm:gap-4">
+        <h3 className="font-medium">Billing Address</h3>
+        <div className="grid grid-cols-1 gap-3">
           <div className="space-y-2">
             <Label htmlFor="address1" className="text-sm font-medium">Address Line 1</Label>
             <Input
@@ -146,7 +138,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
               placeholder="Address Line 1"
               value={address1}
               onChange={(e) => setAddress1(e.target.value)}
-              className="w-full"
             />
           </div>
           <div className="space-y-2">
@@ -156,10 +147,9 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
               placeholder="Address Line 2 (Optional)"
               value={address2}
               onChange={(e) => setAddress2(e.target.value)}
-              className="w-full"
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="city" className="text-sm font-medium">City</Label>
               <Input
@@ -167,7 +157,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 placeholder="City"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -177,11 +166,10 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 placeholder="County/State"
                 value={county}
                 onChange={(e) => setCounty(e.target.value)}
-                className="w-full"
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="postcode" className="text-sm font-medium">Postcode/ZIP</Label>
               <Input
@@ -189,7 +177,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 placeholder="Postcode/ZIP"
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value)}
-                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -199,7 +186,6 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
                 placeholder="Country"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full"
               />
             </div>
           </div>
