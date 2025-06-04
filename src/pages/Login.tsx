@@ -83,16 +83,16 @@ const LoginPage = () => {
         </div>
 
         {/* Clock Character with Login Form */}
-        <div className="relative">
+        <div className="relative w-full">
           {/* Clock Character */}
           <img 
-            src="/lovable-uploads/64352fd1-d5b9-4715-8db3-6ad74c6f8826.png" 
+            src="/lovable-uploads/6918a472-836a-440c-a330-302f00defa88.png" 
             alt="Clock character holding login form" 
-            className="w-96 h-auto mx-auto mb-4"
+            className="w-80 md:w-96 h-auto mx-auto mb-4 relative z-10"
           />
           
-          {/* Login Form positioned over the blank space */}
-          <Card className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 w-80 shadow-lg">
+          {/* Login Form positioned with proper mobile spacing */}
+          <Card className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 md:translate-y-6 w-80 shadow-lg z-20">
             <CardHeader className="pb-4">
               <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
             </CardHeader>
@@ -161,8 +161,8 @@ const LoginPage = () => {
           </Card>
         </div>
         
-        {/* Add some bottom spacing for the overlapping form */}
-        <div className="h-40"></div>
+        {/* Enhanced bottom spacing for mobile and desktop */}
+        <div className="h-48 md:h-40"></div>
       </div>
     </div>
   );
