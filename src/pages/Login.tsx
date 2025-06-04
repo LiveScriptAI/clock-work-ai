@@ -91,12 +91,12 @@ const LoginPage = () => {
         {/* Clock Character with Login Form */}
         <div className="relative">
           {/* Login Form */}
-          <Card className="w-80 shadow-lg relative z-10">
-            <CardHeader className="pb-4 pt-16">
+          <Card className="w-96 shadow-lg relative z-10 mt-12">
+            <CardHeader className="pb-4 pt-20">
               <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
             </CardHeader>
-            <CardContent className="pb-6">
-              <form onSubmit={handleLogin} className="space-y-4">
+            <CardContent className="pb-8 px-8">
+              <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="font-body text-brand-navy">Email</Label>
                   <Input 
@@ -106,7 +106,7 @@ const LoginPage = () => {
                     onChange={e => setEmail(e.target.value)} 
                     placeholder="your.email@example.com" 
                     required 
-                    className="font-body" 
+                    className="font-body h-12" 
                   />
                 </div>
                 
@@ -119,14 +119,14 @@ const LoginPage = () => {
                     onChange={e => setPassword(e.target.value)} 
                     placeholder="••••••••" 
                     required 
-                    className="font-body" 
+                    className="font-body h-12" 
                   />
                 </div>
                 
                 <Button 
                   type="submit" 
                   disabled={isLoading} 
-                  className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
+                  className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body h-12 text-base"
                 >
                   {isLoading ? (
                     <>
@@ -138,7 +138,7 @@ const LoginPage = () => {
                   )}
                 </Button>
                 
-                <div className="text-center mt-3">
+                <div className="text-center mt-4">
                   <Link to="/register" className="text-brand-navy text-sm hover:underline font-body">
                     Don't have an account? Sign up
                   </Link>
@@ -153,11 +153,11 @@ const LoginPage = () => {
             </CardContent>
           </Card>
 
-          {/* Clock Character positioned on top of form border */}
+          {/* Clock Character positioned to overlap the form border */}
           <img 
-            src="/lovable-uploads/bb3fa03a-6b12-46b3-a300-cb2d6f529b03.png" 
+            src="/lovable-uploads/6918a472-836a-440c-a330-302f00defa88.png" 
             alt="Clock character holding login form" 
-            className="w-32 h-auto absolute -top-8 left-1/2 transform -translate-x-1/2 z-20" 
+            className="w-40 h-auto absolute -top-4 left-1/2 transform -translate-x-1/2 z-20" 
           />
         </div>
         
