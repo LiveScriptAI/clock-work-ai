@@ -1,8 +1,9 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Clock, BarChart3, FileText, Share2, DollarSign } from "lucide-react";
+
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -15,6 +16,7 @@ const WelcomePage = () => {
       }
     }
   };
+
   const itemVariants = {
     hidden: {
       opacity: 0,
@@ -28,72 +30,138 @@ const WelcomePage = () => {
       }
     }
   };
-  const features = [{
-    icon: <Clock size={24} />,
-    title: "Live Time Tracking",
-    description: "Start and stop shifts (and breaks) in real time—your hours are recorded down to the minute, even across reloads and app restarts."
-  }, {
-    icon: <BarChart3 size={24} />,
-    title: "Smart Work Summaries",
-    description: "Instantly see your daily, weekly, or monthly totals (hours worked, breaks taken, earnings) in a clear, easy-to-read view."
-  }, {
-    icon: <FileText size={24} />,
-    title: "Easy Invoicing & PDF Export",
-    description: "Turn completed shifts into a professional invoice with company & client details, then download or share it as a PDF, no extra tools needed."
-  }, {
-    icon: <Share2 size={24} />,
-    title: "Instant Sharing",
-    description: "Send timesheets, summaries, or invoices via Email, WhatsApp, or direct download right from the app, so clients and managers always get what they need."
-  }, {
-    icon: <DollarSign size={24} />,
-    title: "Earnings Overview",
-    description: "Automatically calculate estimated pay based on your configured hourly/day rates, so you always know what you've earned."
-  }];
-  return <div className="flex flex-col min-h-screen bg-gray-50 px-5 py-8">
-      <motion.div className="flex-1 flex flex-col items-center justify-center" initial="hidden" animate="visible" variants={containerVariants}>
-        {/* App Header with Logo */}
-        <motion.div className="text-center mb-10" variants={itemVariants}>
-          <div className="mb-4">
-            <img alt="Clock Work Pal Logo" src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" className="h-20 w-20 mx-auto object-cover" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Clock Work Pal
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Smarter time tracking for workers, freelancers, and contractors.
-          </p>
+
+  const features = [
+    {
+      icon: "⌚",
+      title: "Live Time Tracking",
+      description: "Start, pause, and stop shifts & breaks in real time—minutes count toward your totals even if you reload the app."
+    },
+    {
+      icon: "📊",
+      title: "Smart Work Summaries", 
+      description: "Instant daily, weekly, and monthly dashboards that show total hours, breaks, and earnings, all at a glance."
+    },
+    {
+      icon: "📝",
+      title: "Easy Invoicing & PDF Export",
+      description: "Convert shifts into invoices—customize your company & client details, then download or email a PDF in seconds."
+    },
+    {
+      icon: "📤",
+      title: "Instant Sharing",
+      description: "Send timesheets, summaries, or invoices via Email, WhatsApp, or download—no extra apps needed."
+    },
+    {
+      icon: "💰",
+      title: "Earnings Overview",
+      description: "See what you've earned automatically based on your rates, including break deductions and day/hour calculations."
+    }
+  ];
+
+  return (
+    <div className="font-body">
+      {/* Hero Section */}
+      <motion.section 
+        className="min-h-screen flex flex-col items-center justify-center bg-hero-gradient text-white px-6"
+        initial="hidden" 
+        animate="visible" 
+        variants={containerVariants}
+      >
+        {/* Logo */}
+        <motion.div className="mb-8" variants={itemVariants}>
+          <img 
+            src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" 
+            alt="Clock Work Pal logo" 
+            className="w-48 h-auto mx-auto"
+          />
         </motion.div>
 
-        {/* Features List */}
-        <div className="w-full max-w-md space-y-4 mb-8">
-          {features.map((feature, index) => <motion.div key={index} className="p-4 bg-white rounded-xl shadow-sm border border-gray-100" variants={itemVariants}>
-              <div className="flex items-start">
-                <div className="p-2 rounded-full bg-indigo-50 mr-3">
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
-                </div>
-              </div>
-            </motion.div>)}
-        </div>
-      </motion.div>
+        {/* Headline */}
+        <motion.h1 
+          className="font-display text-5xl md:text-6xl text-white mb-4 text-center"
+          variants={itemVariants}
+        >
+          Smarter Time Tracking
+        </motion.h1>
 
-      {/* CTA Buttons */}
-      <motion.div className="w-full space-y-4" variants={containerVariants} initial="hidden" animate="visible">
-        <motion.div variants={itemVariants}>
-          <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-6">
-            <Link to="/register">Create Account</Link>
+        {/* Subtext */}
+        <motion.p 
+          className="font-body text-lg md:text-xl max-w-2xl text-white/90 text-center mb-8"
+          variants={itemVariants}
+        >
+          Live timers, smart summaries, instant sharing, and earnings overviews — all in one friendly app.
+        </motion.p>
+
+        {/* Buttons */}
+        <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
+          <Button asChild className="px-6 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
+            <Link to="/register">Get Started</Link>
           </Button>
+          <button className="px-6 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
+            <a href="#features">Learn More</a>
+          </button>
         </motion.div>
-        
-        <motion.div className="text-center" variants={itemVariants}>
-          <Link to="/login" className="text-indigo-600 text-sm hover:underline">
-            Already have an account? Sign in
-          </Link>
+      </motion.section>
+
+      {/* Features Section */}
+      <section id="features" className="bg-brand-neutralBg py-16 px-6">
+        <motion.div 
+          initial="hidden" 
+          whileInView="visible" 
+          viewport={{ once: true }}
+          variants={containerVariants}
+        >
+          <motion.h2 
+            className="font-display text-3xl md:text-4xl text-brand-navy text-center mb-12"
+            variants={itemVariants}
+          >
+            Key Features
+          </motion.h2>
+          
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="bg-white rounded-xl shadow-md p-6 flex flex-col items-start hover:shadow-lg transition-shadow"
+                variants={itemVariants}
+              >
+                <span className="text-4xl mb-4">{feature.icon}</span>
+                <h3 className="font-display text-2xl text-brand-navy mb-2">{feature.title}</h3>
+                <p className="font-body text-neutral-700">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
-      </motion.div>
-    </div>;
+      </section>
+
+      {/* CTA Section */}
+      <motion.section 
+        className="bg-white py-16 px-6 text-center"
+        initial="hidden" 
+        whileInView="visible" 
+        viewport={{ once: true }}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <h3 className="font-display text-3xl text-brand-navy mb-4">
+            Ready to Get Started?
+          </h3>
+          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+              <Link to="/register">Create Account</Link>
+            </Button>
+            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+              <Link to="/login">Sign In</Link>
+            </Button>
+          </div>
+        </motion.div>
+      </motion.section>
+    </div>
+  );
 };
+
 export default WelcomePage;

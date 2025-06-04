@@ -61,7 +61,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				brand: {
+					primaryStart: '#FF6B00',
+					primaryEnd: '#E10098',
+					accent: '#FFD200',
+					navy: '#073B6F',
+					neutralBg: '#F5F5F5'
 				}
+			},
+			backgroundImage: {
+				'hero-gradient': 'linear-gradient(135deg, #FF6B00 0%, #E10098 100%)'
+			},
+			fontFamily: {
+				display: ['"Fredoka One"', 'cursive'],
+				body: ['Inter', 'sans-serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
