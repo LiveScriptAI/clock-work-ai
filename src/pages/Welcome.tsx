@@ -35,27 +35,27 @@ const WelcomePage = () => {
     {
       icon: "⌚",
       title: "Live Time Tracking",
-      description: "Start, pause, and stop shifts & breaks in real time—minutes count toward your totals even if you reload the app."
+      description: "Start and end shifts and breaks in real time. Your time keeps counting even if you reload the app."
     },
     {
       icon: "📊",
       title: "Smart Work Summaries", 
-      description: "Instant daily, weekly, and monthly dashboards that show total hours, breaks, and earnings, all at a glance."
+      description: "Instant daily, weekly and monthly dashboards that show total hours, breaks and earnings all at a glance."
     },
     {
       icon: "📝",
-      title: "Easy Invoicing & PDF Export",
-      description: "Convert shifts into invoices—customize your company & client details, then download or email a PDF in seconds."
+      title: "Easy Invoicing and PDF Export",
+      description: "Convert shifts into invoices. Customise your company and client details, then download or email a PDF in seconds."
     },
     {
       icon: "📤",
       title: "Instant Sharing",
-      description: "Send timesheets, summaries, or invoices via Email, WhatsApp, or download—no extra apps needed."
+      description: "Send timesheets, summaries or invoices via Email, WhatsApp or download. No extra apps needed."
     },
     {
       icon: "💰",
       title: "Earnings Overview",
-      description: "See what you've earned automatically based on your rates, including break deductions and day/hour calculations."
+      description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
     }
   ];
 
