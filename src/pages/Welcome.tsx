@@ -73,7 +73,7 @@ const WelcomePage = () => {
           <img 
             src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
             alt="Clock Work Pal logo" 
-            className="w-48 h-auto mx-auto"
+            className="w-64 h-auto mx-auto"
           />
         </motion.div>
 
@@ -105,7 +105,7 @@ const WelcomePage = () => {
       </motion.section>
 
       {/* Features Section */}
-      <section id="features" className="bg-brand-neutralBg py-16 px-6">
+      <section id="features" className="bg-brand-neutralBg py-12 px-6">
         <motion.div 
           initial="hidden" 
           whileInView="visible" 
@@ -113,22 +113,22 @@ const WelcomePage = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="font-display text-3xl md:text-4xl text-brand-navy text-center mb-12"
+            className="font-display text-3xl md:text-4xl text-brand-navy text-center mb-8"
             variants={itemVariants}
           >
             Key Features
           </motion.h2>
           
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                className="bg-white rounded-xl shadow-md p-6 flex flex-col items-start hover:shadow-lg transition-shadow"
+                className="bg-white rounded-xl shadow-md p-5 flex flex-col items-start hover:shadow-lg transition-shadow"
                 variants={itemVariants}
               >
-                <span className="text-4xl mb-4">{feature.icon}</span>
+                <span className="text-4xl mb-3">{feature.icon}</span>
                 <h3 className="font-display text-2xl text-brand-navy mb-2">{feature.title}</h3>
-                <p className="font-body text-neutral-700">{feature.description}</p>
+                <p className="font-body text-neutral-700 leading-snug">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -137,7 +137,7 @@ const WelcomePage = () => {
 
       {/* CTA Section */}
       <motion.section 
-        className="bg-white py-16 px-6 text-center"
+        className="bg-white py-12 px-6 text-center"
         initial="hidden" 
         whileInView="visible" 
         viewport={{ once: true }}
