@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -95,10 +94,10 @@ const WelcomePage = () => {
 
         {/* Buttons */}
         <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
-          <Button asChild className="px-6 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
+          <Button asChild className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
             <Link to="/register">Get Started</Link>
           </Button>
-          <button className="px-6 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
+          <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
             <a href="#features">Learn More</a>
           </button>
         </motion.div>
