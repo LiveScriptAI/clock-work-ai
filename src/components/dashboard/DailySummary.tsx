@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -64,55 +63,61 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="border-brand-accent/20 shadow-lg">
       <CardHeader>
-        <CardTitle>Daily Summary</CardTitle>
+        <CardTitle className="font-display text-brand-navy">Daily Summary</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="font-body">
         <div className="space-y-4">
           {(isShiftActive || isShiftComplete) && employerName && (
             <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
-                <User className="h-4 w-4 mr-1" />
+                <User className="h-4 w-4 mr-1 text-brand-accent" />
                 Employer:
               </span>
-              <span className="font-medium">{employerName}</span>
+              <span className="font-medium text-brand-navy">{employerName}</span>
             </div>
           )}
           
           <div className="flex justify-between">
             <span className="text-gray-600">Hours Worked:</span>
-            <span className="font-medium">{formatDuration(timeWorked)}</span>
+            <span className="font-medium text-brand-navy">{formatDuration(timeWorked)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Estimated Earnings:</span>
-            <span className="font-medium">
+            <span className="font-medium text-brand-navy">
               £{earnings}
               <span className="text-xs text-gray-500 ml-1">({rateType})</span>
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Shift Status:</span>
-            <span className={`font-medium ${isShiftActive ? 'text-green-600' : isShiftComplete ? 'text-red-600' : 'text-gray-600'}`}>
+            <span className={`font-medium ${
+              isShiftActive 
+                ? (isBreakActive ? 'text-brand-accent' : 'text-green-600') 
+                : isShiftComplete 
+                  ? 'text-red-600' 
+                  : 'text-gray-600'
+            }`}>
               {isShiftActive ? (isBreakActive ? 'On Break' : 'Active') : isShiftComplete ? 'Completed' : 'Not Started'}
             </span>
           </div>
           
           {(isShiftActive || isShiftComplete) && (
             <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-brand-navy hover:text-brand-navy/80">
                 <span>Breaks</span>
                 {breaksOpen ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-brand-accent" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-brand-accent" />
                 )}
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 {breakIntervals && breakIntervals.length > 0 ? (
                   <div className="space-y-3 pt-2">
                     {breakIntervals.map((interval, i) => (
-                      <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                      <div key={i} className="text-sm text-gray-700 bg-brand-neutralBg p-3 rounded-md border border-brand-accent/20">
                         <div className="flex justify-between">
                           <span>Start:</span>
                           <span>{format(interval.start, 'HH:mm:ss')}</span>
@@ -121,7 +126,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                           <span>End:</span>
                           <span>{interval.end ? format(interval.end, 'HH:mm:ss') : 'Ongoing'}</span>
                         </div>
-                        <div className="flex justify-between font-medium">
+                        <div className="flex justify-between font-medium text-brand-navy">
                           <span>Duration:</span>
                           <span>{formatBreakDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
                         </div>
@@ -141,4 +146,3 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 };
 
 export default DailySummary;
-
