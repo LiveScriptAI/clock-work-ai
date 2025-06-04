@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -63,7 +64,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   };
 
   return (
-    <Card className="border-brand-accent/20 shadow-lg">
+    <Card>
       <CardHeader>
         <CardTitle>Daily Summary</CardTitle>
       </CardHeader>
@@ -72,7 +73,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           {(isShiftActive || isShiftComplete) && employerName && (
             <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
-                <User className="h-4 w-4 mr-1 text-brand-accent" />
+                <User className="h-4 w-4 mr-1" />
                 Employer:
               </span>
               <span className="font-medium">{employerName}</span>
@@ -92,32 +93,26 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Shift Status:</span>
-            <span className={`font-medium ${
-              isShiftActive 
-                ? (isBreakActive ? 'text-brand-accent' : 'text-green-600') 
-                : isShiftComplete 
-                  ? 'text-red-600' 
-                  : 'text-gray-600'
-            }`}>
+            <span className={`font-medium ${isShiftActive ? 'text-green-600' : isShiftComplete ? 'text-red-600' : 'text-gray-600'}`}>
               {isShiftActive ? (isBreakActive ? 'On Break' : 'Active') : isShiftComplete ? 'Completed' : 'Not Started'}
             </span>
           </div>
           
           {(isShiftActive || isShiftComplete) && (
             <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium hover:text-gray-700">
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
                 <span>Breaks</span>
                 {breaksOpen ? (
-                  <ChevronDown className="h-4 w-4 text-brand-accent" />
+                  <ChevronDown className="h-4 w-4" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-brand-accent" />
+                  <ChevronRight className="h-4 w-4" />
                 )}
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 {breakIntervals && breakIntervals.length > 0 ? (
                   <div className="space-y-3 pt-2">
                     {breakIntervals.map((interval, i) => (
-                      <div key={i} className="text-sm text-gray-700 bg-brand-neutralBg p-3 rounded-md border border-brand-accent/20">
+                      <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
                         <div className="flex justify-between">
                           <span>Start:</span>
                           <span>{format(interval.start, 'HH:mm:ss')}</span>
@@ -146,3 +141,4 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 };
 
 export default DailySummary;
+

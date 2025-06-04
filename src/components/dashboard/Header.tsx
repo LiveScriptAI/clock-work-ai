@@ -49,11 +49,11 @@ const Header: React.FC<HeaderProps> = ({
   }, [user]);
 
   return (
-    <header className="bg-brand-navy shadow-lg py-4 px-6">
+    <header className="bg-white shadow-sm py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Menu</span>
             </Button>
@@ -69,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({
                   />
                 </div>
               )}
-              <SheetTitle className="flex items-center gap-2 font-body">
+              <SheetTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
                 {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
               </SheetTitle>
@@ -78,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="mt-auto pt-6 border-t border-gray-200">
               <Button 
                 variant="outline" 
-                className="w-full justify-start font-body" 
+                className="w-full justify-start" 
                 onClick={handleSignOut}
               >
                 {t('Sign Out')}
@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({
           </SheetContent>
         </Sheet>
         
-        <div className="hidden md:flex items-center gap-2 text-white font-body">
+        <div className="hidden md:flex items-center gap-2">
           {logo && (
             <img 
               src={logo} 
@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({
               className="h-8 mr-2 object-contain" 
             />
           )}
-          <User className="h-5 w-5 text-white/80" />
+          <User className="h-5 w-5 text-gray-500" />
           {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
         </div>
         
@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
             variant="outline" 
             size="sm" 
             onClick={handleSignOut} 
-            className="hidden md:flex bg-white/10 text-white border-white/30 hover:bg-white/20 font-body"
+            className="hidden md:flex"
           >
             {t('Sign Out')}
           </Button>
@@ -112,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({
             value={i18n.language}
             onValueChange={(lng) => i18n.changeLanguage(lng)}
           >
-            <SelectTrigger className="ml-4 flex items-center gap-2 px-3 py-1.5 h-10 text-sm font-medium bg-white/10 text-white border-white/30 hover:bg-white/20 font-body">
+            <SelectTrigger className="ml-4 flex items-center gap-2 px-3 py-1.5 h-10 text-sm font-medium text-gray-700 hover:bg-gray-100">
               <ReactCountryFlag
                 countryCode={i18n.language === 'es' ? 'ES' : 'GB'}
                 svg
@@ -123,14 +123,14 @@ const Header: React.FC<HeaderProps> = ({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en" className="flex items-center gap-2 px-3 py-2 text-sm font-body">
+              <SelectItem value="en" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <div className="flex items-center gap-2 flex-1">
                   <ReactCountryFlag countryCode="GB" svg style={{ width: '1em', height: '1em' }} />
                   English
                 </div>
               </SelectItem>
 
-              <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm font-body">
+              <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <div className="flex items-center gap-2 flex-1">
                   <ReactCountryFlag countryCode="ES" svg style={{ width: '1em', height: '1em' }} />
                   Español

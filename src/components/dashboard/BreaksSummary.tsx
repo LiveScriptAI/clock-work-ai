@@ -77,7 +77,7 @@ const BreaksSummary: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="border-brand-accent">
+      <Card>
         <CardHeader>
           <CardTitle>Breaks Summary</CardTitle>
         </CardHeader>
@@ -90,7 +90,7 @@ const BreaksSummary: React.FC = () => {
 
   if (error) {
     return (
-      <Card className="border-brand-accent">
+      <Card>
         <CardHeader>
           <CardTitle>Breaks Summary</CardTitle>
         </CardHeader>
@@ -103,7 +103,7 @@ const BreaksSummary: React.FC = () => {
 
   if (!hasBreaks) {
     return (
-      <Card className="border-brand-accent">
+      <Card>
         <CardHeader>
           <CardTitle>Breaks Summary</CardTitle>
         </CardHeader>
@@ -123,7 +123,7 @@ const BreaksSummary: React.FC = () => {
   });
 
   return (
-    <Card className="border-brand-accent">
+    <Card>
       <CardHeader>
         <CardTitle>Breaks Summary</CardTitle>
       </CardHeader>

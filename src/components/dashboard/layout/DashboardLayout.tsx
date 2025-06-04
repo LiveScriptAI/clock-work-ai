@@ -14,7 +14,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   setSheetOpen,
 }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-brand-neutralBg font-body">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header Component */}
       <Header
         setSheetOpen={setSheetOpen}
