@@ -42,9 +42,9 @@ const TimesheetLog: React.FC<TimesheetLogProps> = ({ importBreaksToExport = fals
   } = useTimesheetLog();
 
   return (
-    <Card>
+    <Card className="border-2 border-yellow-400">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <CardTitle>Timesheet Log</CardTitle>
+        <CardTitle className="font-inter text-xl font-semibold text-gray-900">Timesheet Log</CardTitle>
         
         <ExportActions 
           filteredShifts={filteredShifts}

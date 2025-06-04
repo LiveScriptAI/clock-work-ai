@@ -77,9 +77,9 @@ const BreaksSummary: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-2 border-yellow-400">
         <CardHeader>
-          <CardTitle>Breaks Summary</CardTitle>
+          <CardTitle className="font-inter text-xl font-semibold text-gray-900">Breaks Summary</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -90,9 +90,9 @@ const BreaksSummary: React.FC = () => {
 
   if (error) {
     return (
-      <Card>
+      <Card className="border-2 border-yellow-400">
         <CardHeader>
-          <CardTitle>Breaks Summary</CardTitle>
+          <CardTitle className="font-inter text-xl font-semibold text-gray-900">Breaks Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-red-500">{error}</p>
@@ -103,9 +103,9 @@ const BreaksSummary: React.FC = () => {
 
   if (!hasBreaks) {
     return (
-      <Card>
+      <Card className="border-2 border-yellow-400">
         <CardHeader>
-          <CardTitle>Breaks Summary</CardTitle>
+          <CardTitle className="font-inter text-xl font-semibold text-gray-900">Breaks Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">No breaks recorded for any shifts.</p>
@@ -123,9 +123,9 @@ const BreaksSummary: React.FC = () => {
   });
 
   return (
-    <Card>
+    <Card className="border-2 border-yellow-400">
       <CardHeader>
-        <CardTitle>Breaks Summary</CardTitle>
+        <CardTitle className="font-inter text-xl font-semibold text-gray-900">Breaks Summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {sortedEntries.map(([shiftId, intervals]) => (

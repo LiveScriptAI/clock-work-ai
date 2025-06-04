@@ -47,7 +47,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="flex items-center">
+        <CardTitle className="flex items-center font-inter text-xl font-semibold text-gray-900">
           <Clock className="mr-2 h-5 w-5" />
           {t('Time Tracking')}
         </CardTitle>
@@ -93,7 +93,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button 
             size="lg" 
-            className={`${isShiftActive ? 'bg-gray-400 hover:bg-gray-500' : 'bg-green-600 hover:bg-green-700'}`} 
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:hover:bg-gray-500" 
             onClick={handleStartShift}
             disabled={isShiftActive || isShiftComplete}
           >

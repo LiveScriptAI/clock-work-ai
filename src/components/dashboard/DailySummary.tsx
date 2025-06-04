@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -66,7 +65,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Daily Summary</CardTitle>
+        <CardTitle className="font-inter text-xl font-semibold text-gray-900">Daily Summary</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -141,4 +140,3 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 };
 
 export default DailySummary;
-
