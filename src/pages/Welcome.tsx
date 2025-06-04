@@ -90,7 +90,7 @@ const WelcomePage = () => {
           className="font-body text-lg md:text-xl max-w-2xl text-white/90 text-center mb-8"
           variants={itemVariants}
         >
-          Live timers, smart summaries, instant sharing, and earnings overviews — all in one friendly app.
+          Workers, freelancers & contractors: track shifts on the go, clock in/out in seconds, view earnings and send invoices anywhere.
         </motion.p>
 
         {/* Buttons */}
