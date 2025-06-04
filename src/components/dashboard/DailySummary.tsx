@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { User, ChevronDown, ChevronRight } from "lucide-react";
 import { format, differenceInSeconds } from "date-fns";
-
 type DailySummaryProps = {
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
@@ -16,9 +14,11 @@ type DailySummaryProps = {
   employerName?: string;
   rateType?: string;
   payRate?: number;
-  breakIntervals?: { start: Date; end: Date | null }[];
+  breakIntervals?: {
+    start: Date;
+    end: Date | null;
+  }[];
 };
-
 const DailySummary: React.FC<DailySummaryProps> = ({
   formatDuration,
   calculateTimeWorked,
@@ -30,19 +30,19 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   employerName = "",
   rateType = "Per Hour",
   payRate = 15,
-  breakIntervals = [],
+  breakIntervals = []
 }) => {
   // State to store and refresh values
   const [timeWorked, setTimeWorked] = useState(calculateTimeWorked());
   const [earnings, setEarnings] = useState(calculateEarnings());
   const [breaksOpen, setBreaksOpen] = useState(false);
-  
+
   // Update values every second to ensure they're always accurate
   useEffect(() => {
     // Initial update
     setTimeWorked(calculateTimeWorked());
     setEarnings(calculateEarnings());
-    
+
     // Set interval to update values if shift is active
     const intervalId = setInterval(() => {
       if (isShiftActive || isBreakActive) {
@@ -50,34 +50,29 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         setEarnings(calculateEarnings());
       }
     }, 1000);
-    
     return () => clearInterval(intervalId);
   }, [isShiftActive, isBreakActive, calculateTimeWorked, calculateEarnings]);
 
   // Helper function to format duration in HH:mm:ss
   const formatBreakDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const minutes = Math.floor(seconds % 3600 / 60);
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
-        <CardTitle className="font-inter text-xl font-semibold text-gray-900">Daily Summary</CardTitle>
+        <CardTitle className="text-2xl font-bold">Daily Summary</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {(isShiftActive || isShiftComplete) && employerName && (
-            <div className="flex justify-between items-center">
+          {(isShiftActive || isShiftComplete) && employerName && <div className="flex justify-between items-center">
               <span className="text-gray-600 flex items-center">
                 <User className="h-4 w-4 mr-1" />
                 Employer:
               </span>
               <span className="font-medium">{employerName}</span>
-            </div>
-          )}
+            </div>}
           
           <div className="flex justify-between">
             <span className="text-gray-600">Hours Worked:</span>
@@ -93,25 +88,18 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           <div className="flex justify-between">
             <span className="text-gray-600">Shift Status:</span>
             <span className={`font-medium ${isShiftActive ? 'text-green-600' : isShiftComplete ? 'text-red-600' : 'text-gray-600'}`}>
-              {isShiftActive ? (isBreakActive ? 'On Break' : 'Active') : isShiftComplete ? 'Completed' : 'Not Started'}
+              {isShiftActive ? isBreakActive ? 'On Break' : 'Active' : isShiftComplete ? 'Completed' : 'Not Started'}
             </span>
           </div>
           
-          {(isShiftActive || isShiftComplete) && (
-            <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
+          {(isShiftActive || isShiftComplete) && <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
               <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
                 <span>Breaks</span>
-                {breaksOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
+                {breaksOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
-                {breakIntervals && breakIntervals.length > 0 ? (
-                  <div className="space-y-3 pt-2">
-                    {breakIntervals.map((interval, i) => (
-                      <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
+                {breakIntervals && breakIntervals.length > 0 ? <div className="space-y-3 pt-2">
+                    {breakIntervals.map((interval, i) => <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
                         <div className="flex justify-between">
                           <span>Start:</span>
                           <span>{format(interval.start, 'HH:mm:ss')}</span>
@@ -124,19 +112,12 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                           <span>Duration:</span>
                           <span>{formatBreakDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm italic text-gray-500 pt-2">No breaks taken</p>
-                )}
+                      </div>)}
+                  </div> : <p className="text-sm italic text-gray-500 pt-2">No breaks taken</p>}
               </CollapsibleContent>
-            </Collapsible>
-          )}
+            </Collapsible>}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default DailySummary;
