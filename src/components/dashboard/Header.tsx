@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -69,8 +69,7 @@ const Header: React.FC<HeaderProps> = ({
                     />
                   </div>
                 )}
-                <SheetTitle className="flex items-center gap-3 text-left">
-                  <User className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                <SheetTitle className="text-left">
                   <span className="text-base font-medium text-gray-900">
                     {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
                   </span>
@@ -89,21 +88,11 @@ const Header: React.FC<HeaderProps> = ({
             </SheetContent>
           </Sheet>
           
-          {/* Logo and Welcome text */}
-          <div className="flex items-center gap-3">
-            {logo && (
-              <img 
-                src={logo} 
-                alt="Company Logo" 
-                className="h-10 w-auto object-contain" 
-              />
-            )}
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-gray-500" />
-              <span className="text-lg font-semibold text-gray-900 hidden sm:block">
-                {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
-              </span>
-            </div>
+          {/* Welcome text (desktop only) */}
+          <div className="flex items-center">
+            <span className="text-lg font-semibold text-gray-900 hidden sm:block">
+              {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
+            </span>
           </div>
           
           {/* Right side actions */}
