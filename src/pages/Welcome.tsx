@@ -71,7 +71,7 @@ const WelcomePage = () => {
         {/* Logo */}
         <motion.div className="mb-8" variants={itemVariants}>
           <img 
-            src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" 
+            src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
             alt="Clock Work Pal logo" 
             className="w-48 h-auto mx-auto"
           />
