@@ -78,7 +78,7 @@ const LoginPage = () => {
           <img 
             src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
             alt="Clock Work Pal logo" 
-            className="w-48 h-auto mx-auto"
+            className="w-56 h-auto mx-auto"
           />
         </div>
 
@@ -86,13 +86,13 @@ const LoginPage = () => {
         <div className="relative">
           {/* Clock Character */}
           <img 
-            src="/lovable-uploads/ac85cde3-919d-4bc3-baa2-a33ff7092185.png" 
+            src="/lovable-uploads/64352fd1-d5b9-4715-8db3-6ad74c6f8826.png" 
             alt="Clock character holding login form" 
-            className="w-80 h-auto mx-auto mb-4"
+            className="w-96 h-auto mx-auto mb-4"
           />
           
           {/* Login Form positioned over the blank space */}
-          <Card className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-4 w-72 shadow-lg">
+          <Card className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 w-80 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
             </CardHeader>
@@ -162,7 +162,7 @@ const LoginPage = () => {
         </div>
         
         {/* Add some bottom spacing for the overlapping form */}
-        <div className="h-32"></div>
+        <div className="h-40"></div>
       </div>
     </div>
   );
