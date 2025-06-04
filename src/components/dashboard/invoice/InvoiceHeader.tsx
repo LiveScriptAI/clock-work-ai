@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -63,7 +62,7 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setCountry = () => {},
 }) => {
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 border border-brand-accent rounded-md bg-white">
       <div className="grid grid-cols-1 gap-4 sm:gap-6">
         {/* Customer Name Field - Full Width on Mobile */}
         <div className="space-y-2">

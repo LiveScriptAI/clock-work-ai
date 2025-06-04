@@ -1,3 +1,4 @@
+
 import React from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -142,7 +143,7 @@ const CustomerTabs = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 bg-white rounded-md shadow-sm">
+    <div className="space-y-6 p-4 bg-white rounded-md shadow-sm border border-brand-accent">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Customer Information</h2>
         <p className="text-sm text-muted-foreground">
