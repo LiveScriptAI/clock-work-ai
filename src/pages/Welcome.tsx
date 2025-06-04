@@ -69,7 +69,7 @@ const WelcomePage = () => {
         {/* Buttons */}
         <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
           <Button asChild className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
-            <Link to="/register" className="mx-0 px-[32px] py-[29px] my-px">Get Started</Link>
+            <Link to="/register" className="px-[32px] py-[29px] my-0 mx-0">Get Started</Link>
           </Button>
           <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
             <a href="#features">Learn More</a>
