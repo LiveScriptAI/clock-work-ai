@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     // Check if user is already logged in
     const checkSession = async () => {
@@ -38,6 +41,7 @@ const LoginPage = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -71,40 +75,67 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
       <div className="flex flex-col items-center max-w-md w-full">
         {/* Logo */}
         <div className="mb-8">
-          <img alt="Clock Work Pal logo" src="/lovable-uploads/23c64472-fc83-4fe1-8079-4d75918b0243.png" className="w-48 h-auto mx-auto object-fill" />
+          <img 
+            alt="Clock Work Pal logo" 
+            src="/lovable-uploads/23c64472-fc83-4fe1-8079-4d75918b0243.png" 
+            className="w-48 h-auto mx-auto object-fill" 
+          />
         </div>
 
         {/* Clock Character with Login Form */}
         <div className="relative">
-          {/* Clock Character */}
-          <img src="/lovable-uploads/ac85cde3-919d-4bc3-baa2-a33ff7092185.png" alt="Clock character holding login form" className="w-80 h-auto mx-auto mb-4" />
-          
-          {/* Login Form positioned over the blank space */}
-          <Card className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-4 w-72 shadow-lg">
-            <CardHeader className="pb-4">
+          {/* Login Form */}
+          <Card className="w-80 shadow-lg relative z-10">
+            <CardHeader className="pb-4 pt-16">
               <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
             </CardHeader>
             <CardContent className="pb-6">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="font-body text-brand-navy">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your.email@example.com" required className="font-body" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    placeholder="your.email@example.com" 
+                    required 
+                    className="font-body" 
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="font-body text-brand-navy">Password</Label>
-                  <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="font-body" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    placeholder="••••••••" 
+                    required 
+                    className="font-body" 
+                  />
                 </div>
                 
-                <Button type="submit" disabled={isLoading} className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body">
-                  {isLoading ? <>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading} 
+                  className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
+                >
+                  {isLoading ? (
+                    <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Logging in...
-                    </> : "Log In"}
+                    </>
+                  ) : (
+                    "Log In"
+                  )}
                 </Button>
                 
                 <div className="text-center mt-3">
@@ -121,11 +152,20 @@ const LoginPage = () => {
               </form>
             </CardContent>
           </Card>
+
+          {/* Clock Character positioned on top of form border */}
+          <img 
+            src="/lovable-uploads/bb3fa03a-6b12-46b3-a300-cb2d6f529b03.png" 
+            alt="Clock character holding login form" 
+            className="w-32 h-auto absolute -top-8 left-1/2 transform -translate-x-1/2 z-20" 
+          />
         </div>
         
-        {/* Add some bottom spacing for the overlapping form */}
-        <div className="h-32"></div>
+        {/* Add some bottom spacing */}
+        <div className="h-16"></div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default LoginPage;
