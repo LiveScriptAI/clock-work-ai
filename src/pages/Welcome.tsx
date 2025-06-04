@@ -63,13 +63,20 @@ const WelcomePage = () => {
         animate="visible"
         variants={containerVariants}
       >
-        {/* App Header */}
+        {/* App Header with Logo */}
         <motion.div 
           className="text-center mb-10"
           variants={itemVariants}
         >
+          <div className="mb-4">
+            <img 
+              src="/lovable-uploads/7210a4ef-1005-4b91-8781-0fd59a935334.png" 
+              alt="Clock Work Pal Logo" 
+              className="h-20 w-20 mx-auto object-contain"
+            />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Clock Work AI
+            Clock Work Pal
           </h1>
           <p className="mt-2 text-gray-600">
             Smarter time tracking for workers, freelancers, and contractors.
