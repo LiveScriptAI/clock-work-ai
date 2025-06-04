@@ -54,7 +54,7 @@ const WelcomePage = () => {
         {/* App Header with Logo */}
         <motion.div className="text-center mb-10" variants={itemVariants}>
           <div className="mb-4">
-            <img alt="Clock Work Pal Logo" className="h-20 w-20 mx-auto object-contain" src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" />
+            <img alt="Clock Work Pal Logo" src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" className="h-20 w-20 mx-auto object-cover" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Clock Work Pal
