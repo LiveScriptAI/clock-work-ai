@@ -75,7 +75,7 @@ const LoginPage = () => {
       <div className="flex flex-col items-center max-w-md w-full">
         {/* Logo */}
         <div className="mb-8">
-          <img alt="Clock Work Pal logo" className="w-48 h-auto mx-auto" src="/lovable-uploads/23c64472-fc83-4fe1-8079-4d75918b0243.png" />
+          <img alt="Clock Work Pal logo" src="/lovable-uploads/23c64472-fc83-4fe1-8079-4d75918b0243.png" className="w-48 h-auto mx-auto object-fill" />
         </div>
 
         {/* Clock Character with Login Form */}
