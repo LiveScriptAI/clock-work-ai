@@ -63,7 +63,7 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setCountry = () => {},
 }) => {
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 bg-white rounded-md shadow-sm border-2 border-yellow-400">
+    <div className="space-y-4 sm:space-y-6 p-4 bg-white rounded-md shadow-sm">
       <h2 className="font-inter text-xl font-semibold text-gray-900">Create Invoice</h2>
       
       <div className="grid grid-cols-1 gap-4 sm:gap-6">
