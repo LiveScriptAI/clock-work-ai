@@ -65,9 +65,9 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   return (
     <Card className="border-brand-accent/20 shadow-lg">
       <CardHeader>
-        <CardTitle className="font-display text-brand-navy">Daily Summary</CardTitle>
+        <CardTitle>Daily Summary</CardTitle>
       </CardHeader>
-      <CardContent className="font-body">
+      <CardContent>
         <div className="space-y-4">
           {(isShiftActive || isShiftComplete) && employerName && (
             <div className="flex justify-between items-center">
@@ -75,17 +75,17 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                 <User className="h-4 w-4 mr-1 text-brand-accent" />
                 Employer:
               </span>
-              <span className="font-medium text-brand-navy">{employerName}</span>
+              <span className="font-medium">{employerName}</span>
             </div>
           )}
           
           <div className="flex justify-between">
             <span className="text-gray-600">Hours Worked:</span>
-            <span className="font-medium text-brand-navy">{formatDuration(timeWorked)}</span>
+            <span className="font-medium">{formatDuration(timeWorked)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Estimated Earnings:</span>
-            <span className="font-medium text-brand-navy">
+            <span className="font-medium">
               £{earnings}
               <span className="text-xs text-gray-500 ml-1">({rateType})</span>
             </span>
@@ -105,7 +105,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
           
           {(isShiftActive || isShiftComplete) && (
             <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-brand-navy hover:text-brand-navy/80">
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium hover:text-gray-700">
                 <span>Breaks</span>
                 {breaksOpen ? (
                   <ChevronDown className="h-4 w-4 text-brand-accent" />
@@ -126,7 +126,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                           <span>End:</span>
                           <span>{interval.end ? format(interval.end, 'HH:mm:ss') : 'Ongoing'}</span>
                         </div>
-                        <div className="flex justify-between font-medium text-brand-navy">
+                        <div className="flex justify-between font-medium">
                           <span>Duration:</span>
                           <span>{formatBreakDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
                         </div>
