@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,7 @@ const WelcomePage = () => {
             onClick={handleStartTrial}
             className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition"
           >
-            Start Your 7 Day Free Trial
+            Register & Activate 7 Day Free Trial
           </Button>
           <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
             <a href="#features">Learn More</a>
@@ -141,7 +142,7 @@ const WelcomePage = () => {
           </motion.p>
           <motion.div variants={itemVariants}>
             <Button asChild size="lg" className="px-10 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg">
-              <Link to="/billing">View Plans & Pricing</Link>
+              <Link to="/billing">Register & Activate 7 Day Free Trial Today</Link>
             </Button>
           </motion.div>
         </motion.div>
