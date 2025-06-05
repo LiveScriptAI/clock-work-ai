@@ -20,11 +20,19 @@ export function useAuth() {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session);
+      
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
         navigate("/login");
-      } else {
+      } else if (event === 'SIGNED_IN' && session) {
+        setUser(session.user);
+        // Fetch profile data if user is authenticated
+        if (session.user?.id) {
+          fetchUserProfile(session.user.id);
+        }
+      } else if (session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {
@@ -53,25 +61,34 @@ export function useAuth() {
   }, [navigate]);
 
   const fetchUserProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("address1, address2, city, county, postcode, country")
-      .eq("id", userId)
-      .maybeSingle();
-    
-    setProfile(data);
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("address1, address2, city, county, postcode, country")
+        .eq("id", userId)
+        .maybeSingle();
+      
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
   };
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error("Error signing out:", error);
-      return;
+    try {
+      console.log("Attempting to sign out...");
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Error signing out:", error);
+        return;
+      }
+      
+      console.log("Sign out successful");
+      // The navigation will be handled by the auth state change listener
+    } catch (error) {
+      console.error("Unexpected error during sign out:", error);
     }
-    
-    // We don't need to navigate manually as the auth state change listener will handle it
-    // The navigation happens in the onAuthStateChange listener
   };
 
   return { user, profile, handleSignOut };
