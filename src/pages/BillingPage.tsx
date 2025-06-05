@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,9 +9,8 @@ import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield }
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
-// IMPORTANT: Replace this with your actual Stripe Price ID from your Stripe Dashboard
-// You can find this at: https://dashboard.stripe.com/products
-const STRIPE_PRICE_ID = 'price_YOUR_ACTUAL_PRICE_ID_HERE';
+// Updated with your actual Stripe Price ID
+const STRIPE_PRICE_ID = 'price_1RWdO5EC1YgoxpP0DJ5KJkUI';
 
 interface SubscriptionStatus {
   subscription_status: string | null;
@@ -97,23 +95,6 @@ export default function BillingPage() {
   };
 
   const handleSubscribe = async () => {
-    // Check if Price ID is still the placeholder
-    if (STRIPE_PRICE_ID === 'price_YOUR_ACTUAL_PRICE_ID_HERE') {
-      toast.error('Stripe Price ID not configured. Please check the console for setup instructions.');
-      console.error(`
-        🚨 STRIPE SETUP REQUIRED 🚨
-        
-        To fix this error, you need to:
-        1. Go to your Stripe Dashboard: https://dashboard.stripe.com/products
-        2. Create a product with a £3.99/month recurring price
-        3. Copy the Price ID (starts with 'price_')
-        4. Replace 'price_YOUR_ACTUAL_PRICE_ID_HERE' in BillingPage.tsx with your actual Price ID
-        
-        Current Price ID: ${STRIPE_PRICE_ID}
-      `);
-      return;
-    }
-
     // If user is not logged in, redirect to register page with a return parameter
     if (!user) {
       toast.error('Please create an account or log in to start your free trial.');
