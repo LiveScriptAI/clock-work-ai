@@ -6,14 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Zap } from 'lucide-react';
+import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Replace these with your actual Stripe Price IDs
-const STRIPE_PRICES = {
-  basic: 'price_1QdhlFEC1YgoxpP09PEPRRSs', // £10/month
-  pro: 'price_1QdhlFEC1YgoxpP0Ng1tO9cF'      // £25/month
-};
+// Update this with your actual Stripe Price ID for £3.99/month
+const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
 
 interface SubscriptionStatus {
   subscription_status: string | null;
@@ -96,7 +93,7 @@ export default function BillingPage() {
     }
   };
 
-  const handleSubscribe = async (priceId: string) => {
+  const handleSubscribe = async () => {
     if (!user) {
       toast.error('You must be logged in to subscribe.');
       return;
@@ -105,7 +102,7 @@ export default function BillingPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId }
+        body: { priceId: STRIPE_PRICE_ID }
       });
 
       if (error) throw error;
@@ -124,137 +121,157 @@ export default function BillingPage() {
   };
 
   const isSubscribed = subscriptionStatus?.subscription_status === 'active';
-  const currentTier = subscriptionStatus?.subscription_tier;
+
+  const features = [
+    {
+      icon: Clock,
+      title: "Live Time Tracking",
+      description: "Start and end shifts and breaks in real time"
+    },
+    {
+      icon: FileText,
+      title: "Professional Invoicing",
+      description: "Create and send custom branded invoices instantly"
+    },
+    {
+      icon: Calculator,
+      title: "Automatic Calculations",
+      description: "Earnings, hours, and break deductions calculated automatically"
+    },
+    {
+      icon: TrendingUp,
+      title: "Smart Analytics",
+      description: "Daily, weekly, and monthly work summaries"
+    },
+    {
+      icon: Share2,
+      title: "Easy Sharing",
+      description: "Send timesheets via Email, WhatsApp or download PDF"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Your data is safe and accessible anywhere"
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {t('Choose Your Plan')}
+          <h1 className="font-display text-5xl md:text-6xl text-brand-navy mb-4">
+            Unlock Your Full Potential
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Upgrade to unlock powerful features for professional time tracking and invoicing
+          <p className="font-body text-xl text-gray-600 max-w-3xl mx-auto">
+            Transform your time tracking with professional features designed for serious contractors, employees and freelancers.
           </p>
         </div>
 
+        {/* Status Messages */}
         {message && (
-          <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md text-center">
+          <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-center">
             {message}
           </div>
         )}
 
         {isSubscribed && (
-          <div className="mb-8 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-md text-center">
+          <div className="mb-8 p-4 bg-gradient-to-r from-brand-accent/20 to-yellow-100 border border-brand-accent/50 text-brand-navy rounded-xl text-center">
             <Crown className="inline w-5 h-5 mr-2" />
-            You're currently subscribed to Clock Work Pal {currentTier === 'pro' ? 'Pro' : 'Basic'}
+            <strong>You're subscribed to Clock Work Pal Pro!</strong> Enjoy all premium features.
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Basic Plan */}
-          <Card className={`relative ${currentTier === 'basic' ? 'ring-2 ring-blue-500' : ''}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">Basic Plan</CardTitle>
-                {currentTier === 'basic' && (
-                  <Badge variant="default">Current Plan</Badge>
-                )}
-              </div>
-              <CardDescription>Perfect for individual freelancers</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold">£10</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Unlimited time tracking
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Basic invoicing
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  PDF exports
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Email support
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                variant={currentTier === 'basic' ? 'outline' : 'default'}
-                onClick={() => handleSubscribe(STRIPE_PRICES.basic)}
-                disabled={loading || currentTier === 'basic'}
-              >
-                {loading ? 'Processing...' : currentTier === 'basic' ? 'Current Plan' : 'Choose Basic'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Pro Plan */}
-          <Card className={`relative ${currentTier === 'pro' ? 'ring-2 ring-purple-500' : 'ring-2 ring-purple-200'}`}>
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-purple-500 text-white px-3 py-1">
-                <Zap className="w-4 h-4 mr-1" />
-                Most Popular
+        {/* Main Pricing Card */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <Card className="relative border-2 border-brand-accent shadow-2xl bg-white">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <Badge className="bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white px-6 py-2 text-lg font-bold">
+                7-Day Free Trial
               </Badge>
             </div>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl text-purple-600">Pro Plan</CardTitle>
-                {currentTier === 'pro' && (
-                  <Badge variant="default">Current Plan</Badge>
-                )}
-              </div>
-              <CardDescription>For growing businesses and teams</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-purple-600">£25</span>
-                <span className="text-gray-600">/month</span>
+            
+            <CardHeader className="text-center pt-8 pb-4">
+              <CardTitle className="font-display text-4xl text-brand-navy mb-2">
+                Clock Work Pal Pro
+              </CardTitle>
+              <CardDescription className="text-lg text-gray-600">
+                Everything you need for professional time tracking
+              </CardDescription>
+              
+              <div className="mt-6">
+                <div className="flex items-center justify-center">
+                  <span className="text-6xl font-bold text-brand-navy">£3.99</span>
+                  <span className="text-2xl text-gray-600 ml-2">/month</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Cancel anytime • No hidden fees</p>
               </div>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Everything in Basic
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Advanced invoice customization
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Multiple export formats
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Priority support
-                </li>
-                <li className="flex items-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  Advanced analytics
-                </li>
-              </ul>
+
+            <CardContent className="px-8 pb-8">
+              {/* Features Grid */}
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center">
+                      <feature.icon className="w-4 h-4 text-brand-navy" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-brand-navy text-sm">{feature.title}</h4>
+                      <p className="text-xs text-gray-600">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Button */}
               <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white" 
-                onClick={() => handleSubscribe(STRIPE_PRICES.pro)}
-                disabled={loading || currentTier === 'pro'}
+                onClick={handleSubscribe}
+                disabled={loading || isSubscribed}
+                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
               >
-                {loading ? 'Processing...' : currentTier === 'pro' ? 'Current Plan' : 'Choose Pro'}
+                {loading ? (
+                  'Processing...'
+                ) : isSubscribed ? (
+                  <>
+                    <Crown className="w-5 h-5 mr-2" />
+                    You're Subscribed!
+                  </>
+                ) : (
+                  'Start Your Free Trial'
+                )}
               </Button>
+
+              {!isSubscribed && (
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  No payment required for your 7-day trial. Cancel anytime.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        <div className="text-center text-gray-600">
-          <p className="mb-2">All plans include a 7-day free trial</p>
-          <p>Cancel anytime. No hidden fees.</p>
+        {/* Trust Indicators */}
+        <div className="text-center">
+          <div className="flex justify-center items-center space-x-8 text-sm text-gray-600 mb-6">
+            <div className="flex items-center">
+              <Check className="w-4 h-4 text-green-500 mr-2" />
+              7-Day Free Trial
+            </div>
+            <div className="flex items-center">
+              <Check className="w-4 h-4 text-green-500 mr-2" />
+              Cancel Anytime
+            </div>
+            <div className="flex items-center">
+              <Check className="w-4 h-4 text-green-500 mr-2" />
+              No Hidden Fees
+            </div>
+          </div>
+          
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Join thousands of contractors, employees and freelancers who trust Clock Work Pal 
+            for their professional time tracking and invoicing needs.
+          </p>
         </div>
       </div>
     </div>
