@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -50,7 +51,7 @@ const WelcomePage = () => {
   }];
   return <div className="font-body">
       {/* Hero Section */}
-      <motion.section className="min-h-screen flex flex-col items-center justify-center bg-hero-gradient text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
+      <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
         {/* Logo */}
         <motion.div className="mb-8" variants={itemVariants}>
           <img src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" alt="Clock Work Pal logo" className="w-64 h-auto mx-auto" />
@@ -142,4 +143,5 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
+
 export default WelcomePage;
