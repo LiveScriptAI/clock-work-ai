@@ -20,49 +20,61 @@ export function useAuth() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, session);
       
+      // Only update state synchronously here
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
-        navigate("/login");
-      } else if (event === 'SIGNED_IN' && session) {
-        setUser(session.user);
-        // Fetch profile data if user is authenticated
-        if (session.user?.id) {
-          fetchUserProfile(session.user.id);
-        }
       } else if (session) {
         setUser(session.user);
-        // Fetch profile data if user is authenticated
+        // Defer profile fetching to avoid render issues
         if (session.user?.id) {
-          fetchUserProfile(session.user.id);
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         }
       }
+      
+      setIsInitialized(true);
     });
     
     // THEN check for existing session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-      } else {
+      if (session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {
           fetchUserProfile(session.user.id);
         }
       }
+      setIsInitialized(true);
     };
     
     checkSession();
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
+
+  // Separate effect to handle navigation after state is initialized
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    // Only navigate to login if we're on a protected route and not authenticated
+    const currentPath = window.location.pathname;
+    const protectedRoutes = ['/dashboard', '/billing'];
+    const isProtectedRoute = protectedRoutes.includes(currentPath);
+    
+    if (!user && isProtectedRoute) {
+      navigate("/login");
+    }
+  }, [user, isInitialized, navigate]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -89,7 +101,8 @@ export function useAuth() {
       }
       
       console.log("Sign out successful");
-      // The navigation will be handled by the auth state change listener
+      // Navigate after successful sign out
+      navigate("/login");
     } catch (error) {
       console.error("Unexpected error during sign out:", error);
     }
