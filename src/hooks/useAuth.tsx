@@ -70,8 +70,11 @@ export function useAuth() {
     const currentPath = window.location.pathname;
     const protectedRoutes = ['/dashboard', '/billing'];
     const isProtectedRoute = protectedRoutes.includes(currentPath);
+    const isWelcomePage = currentPath === '/' || currentPath === '/welcome';
     
-    if (!user && isProtectedRoute) {
+    // Don't auto-navigate on welcome/landing pages
+    if (!user && isProtectedRoute && !isWelcomePage) {
+      console.log('Redirecting to login from protected route:', currentPath);
       navigate("/login");
     }
   }, [user, isInitialized, navigate]);
@@ -117,6 +120,7 @@ export function useAuth() {
     handleSignOut, 
     isSubscribed, 
     subscriptionTier,
+    isInitialized,
     refreshProfile: () => user?.id && fetchUserProfile(user.id)
   };
 }

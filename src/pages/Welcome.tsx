@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const WelcomePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
 
   const containerVariants = {
     hidden: {
@@ -35,12 +34,20 @@ const WelcomePage = () => {
   };
 
   const handleStartTrial = () => {
-    if (user) {
-      // If user is authenticated, go to billing page
-      navigate("/billing");
-    } else {
-      // If user is not authenticated, go to register
-      navigate("/register");
+    console.log('Start Trial button clicked');
+    console.log('User:', user);
+    console.log('Is Initialized:', isInitialized);
+    
+    try {
+      if (user) {
+        console.log('User is authenticated, navigating to billing');
+        navigate("/billing");
+      } else {
+        console.log('User is not authenticated, navigating to register');
+        navigate("/register");
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
     }
   };
 
