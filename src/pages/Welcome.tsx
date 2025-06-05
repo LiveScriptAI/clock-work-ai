@@ -93,7 +93,7 @@ const WelcomePage = () => {
         </motion.p>
 
         {/* Buttons */}
-        <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
+        <motion.div className="flex flex-col sm:flex-row gap-4 mb-8" variants={itemVariants}>
           <Button 
             onClick={handleStartTrial}
             className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition"
@@ -103,6 +103,31 @@ const WelcomePage = () => {
           <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
             <a href="#features">Learn More</a>
           </button>
+        </motion.div>
+
+        {/* Quick Payment Options */}
+        <motion.div className="flex flex-col sm:flex-row gap-6 items-center justify-center" variants={itemVariants}>
+          {/* QR Code */}
+          <div className="flex flex-col items-center">
+            <img 
+              src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" 
+              alt="Scan to subscribe QR code" 
+              className="w-20 h-20 mb-2 bg-white rounded-lg p-1"
+            />
+            <p className="text-sm text-white/80">Scan to subscribe</p>
+          </div>
+          
+          {/* Or text */}
+          <div className="text-white/60 text-sm">or</div>
+          
+          {/* Direct Payment Button */}
+          <Button 
+            onClick={() => window.open('https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00', '_blank')}
+            variant="outline"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-sm px-6 py-2"
+          >
+            Direct Payment Link
+          </Button>
         </motion.div>
       </motion.section>
 
@@ -138,12 +163,33 @@ const WelcomePage = () => {
           </motion.h3>
           <motion.p className="font-body text-xl md:text-2xl mb-6 max-w-3xl mx-auto opacity-90" variants={itemVariants}>Transform your clocking in and out process with live time tracking, send professional branded invoicing and premium features designed for serious contractors, employees and freelancers.</motion.p>
           <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
-            From £10/month - Cancel anytime. Start your 7-day free trial today.
+            From £3.99/month - Cancel anytime. Start your 7-day free trial today.
           </motion.p>
-          <motion.div variants={itemVariants}>
+          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6" variants={itemVariants}>
             <Button asChild size="lg" className="px-10 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg">
               <Link to="/billing">Register & Activate 7 Day Free Trial Today</Link>
             </Button>
+            
+            {/* Alternative options */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex flex-col items-center">
+                <img 
+                  src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" 
+                  alt="Scan to subscribe QR code" 
+                  className="w-16 h-16 mb-1 bg-white rounded-lg p-1"
+                />
+                <p className="text-xs text-white/80">Scan to pay</p>
+              </div>
+              
+              <Button 
+                onClick={() => window.open('https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00', '_blank')}
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              >
+                Direct Payment
+              </Button>
+            </div>
           </motion.div>
         </motion.div>
       </motion.section>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -43,8 +42,8 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      // Configure redirect URL to go to billing page with checkout parameter
-      const redirectUrl = `${window.location.origin}/billing?checkout=auto`;
+      // Configure redirect URL to go directly to Stripe payment link
+      const redirectUrl = "https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00";
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -104,7 +103,7 @@ const RegisterPage = () => {
               </p>
               
               <p className="font-body text-gray-600 text-sm">
-                Click the verification link in your email to automatically start your <strong>free 7-day trial</strong> with Stripe checkout.
+                Click the verification link in your email to automatically start your <strong>free 7-day trial</strong> with Stripe.
               </p>
               
               <p className="font-body text-gray-500 text-xs">

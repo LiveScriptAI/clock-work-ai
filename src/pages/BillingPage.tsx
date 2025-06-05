@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
+import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Update this with your actual Stripe Price ID for £3.99/month
@@ -191,6 +190,18 @@ export default function BillingPage() {
     }
   ];
 
+  // Add Stripe script to head
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 bg-[#cfeaff]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -288,25 +299,59 @@ export default function BillingPage() {
                 ))}
               </div>
 
-              {/* CTA Button */}
-              <Button 
-                onClick={handleSubscribe} 
-                disabled={loading || isSubscribed} 
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
-              >
-                {loading ? (
-                  'Processing...'
-                ) : isSubscribed ? (
-                  <>
-                    <Crown className="w-5 h-5 mr-2" />
-                    You're Subscribed!
-                  </>
-                ) : user ? (
-                  'Start Your Free Trial'
-                ) : (
-                  'Register to Start Free Trial'
-                )}
-              </Button>
+              {/* Stripe Buy Button */}
+              {!isSubscribed && (
+                <div className="space-y-4">
+                  <div 
+                    dangerouslySetInnerHTML={{
+                      __html: `
+                        <stripe-buy-button
+                          buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx"
+                          publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
+                        >
+                        </stripe-buy-button>
+                      `
+                    }}
+                  />
+                  
+                  {/* Alternative Payment Options */}
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-4">Alternative payment options:</p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                      {/* QR Code */}
+                      <div className="flex flex-col items-center">
+                        <img 
+                          src="/lovable-uploads/f202fde7-03fb-4ff7-bde7-1be50aa1607c.png" 
+                          alt="Scan to subscribe QR code" 
+                          className="w-24 h-24 mb-2"
+                        />
+                        <p className="text-xs text-gray-500">Scan to subscribe</p>
+                      </div>
+                      
+                      {/* Direct Payment Link */}
+                      <div className="flex flex-col items-center">
+                        <Button 
+                          onClick={() => window.open('https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00', '_blank')}
+                          variant="outline"
+                          className="text-sm px-4 py-2"
+                        >
+                          Direct Payment Link
+                        </Button>
+                        <p className="text-xs text-gray-500 mt-1">Opens in new tab</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Subscribed State */}
+              {isSubscribed && (
+                <div className="text-center">
+                  <Crown className="w-12 h-12 text-brand-accent mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-brand-navy mb-2">You're Subscribed!</h3>
+                  <p className="text-gray-600">Enjoy all premium features of Clock Work Pal Pro.</p>
+                </div>
+              )}
 
               {!isSubscribed && (
                 <p className="text-center text-sm text-gray-500 mt-4">
