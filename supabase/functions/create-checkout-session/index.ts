@@ -24,7 +24,10 @@ serve(async (req) => {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
     
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    if (!stripeKey) {
+      logStep("ERROR: STRIPE_SECRET_KEY is not set");
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    }
     logStep("Stripe key verified");
 
     // Initialize Supabase with service role key for writes
@@ -35,55 +38,93 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("ERROR: No authorization header provided");
+      throw new Error("No authorization header provided");
+    }
     
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      logStep("ERROR: Authentication failed", { error: userError.message });
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
     
     const user = userData.user;
-    if (!user?.id) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
+    if (!user?.id || !user?.email) {
+      logStep("ERROR: User not authenticated or missing email");
+      throw new Error("User not authenticated or email not available");
+    }
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { priceId } = await req.json();
-    if (!priceId) throw new Error("priceId is required");
+    if (!priceId) {
+      logStep("ERROR: priceId is required");
+      throw new Error("priceId is required");
+    }
     logStep("Price ID received", { priceId });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Check if user already has a Stripe customer ID
-    const { data: profile } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
       .select("stripe_customer_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (profileError) {
+      logStep("ERROR: Failed to fetch user profile", { error: profileError.message });
+      throw new Error(`Failed to fetch user profile: ${profileError.message}`);
+    }
 
     let customerId = profile?.stripe_customer_id;
 
     if (!customerId) {
       // Create new Stripe customer
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          supabaseUserId: user.id
-        }
-      });
-      customerId = customer.id;
-      logStep("Created new Stripe customer", { customerId });
+      try {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            supabaseUserId: user.id
+          }
+        });
+        customerId = customer.id;
+        logStep("Created new Stripe customer", { customerId });
 
-      // Store customer ID in profiles table
-      await supabaseClient
-        .from("profiles")
-        .update({ stripe_customer_id: customerId })
-        .eq("id", user.id);
-      logStep("Updated profile with customer ID");
+        // Store customer ID in profiles table
+        const { error: updateError } = await supabaseClient
+          .from("profiles")
+          .update({ stripe_customer_id: customerId })
+          .eq("id", user.id);
+        
+        if (updateError) {
+          logStep("WARNING: Failed to update profile with customer ID", { error: updateError.message });
+          // Continue with checkout even if profile update fails
+        } else {
+          logStep("Updated profile with customer ID");
+        }
+      } catch (error) {
+        logStep("ERROR: Failed to create Stripe customer", { error: error.message });
+        throw new Error(`Failed to create Stripe customer: ${error.message}`);
+      }
     } else {
       logStep("Using existing customer ID", { customerId });
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+    // Get price details for metadata
+    let priceAmount = 0;
+    try {
+      const price = await stripe.prices.retrieve(priceId);
+      priceAmount = price.unit_amount || 0;
+      logStep("Retrieved price details", { priceId, amount: priceAmount });
+    } catch (error) {
+      logStep("WARNING: Could not retrieve price details", { error: error.message });
+    }
+
+    // Create checkout session with enhanced configuration
+    const sessionConfig = {
+      mode: "subscription" as const,
       payment_method_types: ["card"],
       customer: customerId,
       line_items: [
@@ -92,14 +133,46 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${frontendUrl}/billing?canceled=true`,
+      allow_promotion_codes: true,
+      billing_address_collection: "required" as const,
+      customer_update: {
+        address: "auto" as const,
+      },
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          supabaseUserId: user.id,
+          userEmail: user.email
+        }
+      },
+      invoice_creation: {
+        enabled: true,
+      },
       metadata: {
-        supabaseUserId: user.id
+        supabaseUserId: user.id,
+        userEmail: user.email,
+        priceId: priceId,
+        priceAmount: priceAmount.toString()
       }
+    };
+
+    logStep("Creating checkout session with config", { 
+      customerId, 
+      priceId, 
+      trialDays: 7,
+      successUrl: sessionConfig.success_url,
+      cancelUrl: sessionConfig.cancel_url
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    logStep("Checkout session created successfully", { 
+      sessionId: session.id, 
+      url: session.url,
+      customerId: session.customer
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,8 +181,12 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout-session", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    logStep("ERROR in create-checkout-session", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      details: "Please check the function logs for more information"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
