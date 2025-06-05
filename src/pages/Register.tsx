@@ -113,10 +113,10 @@ const RegisterPage = () => {
               </p>
               
               <Button 
-                onClick={() => navigate("/login" + (returnTo ? `?return=${returnTo}` : ""))}
+                onClick={() => navigate("/billing")}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
-                Go to Login
+                Start Free Trial
               </Button>
               
               <div className="text-center">
