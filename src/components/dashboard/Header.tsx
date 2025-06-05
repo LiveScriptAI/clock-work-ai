@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -9,12 +8,10 @@ import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
-
 const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
@@ -45,8 +42,7 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
-
-  return <header className="shadow-sm border-b border-gray-200 bg-yellow-300 rounded-none">
+  return <header className="shadow-sm border-b border-gray-200 rounded-none bg-[#3053f6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Mobile menu button */}
@@ -79,11 +75,9 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Welcome text with logo (desktop only) */}
           <div className="flex items-center gap-3">
-            {logo && (
-              <div className="hidden sm:block">
+            {logo && <div className="hidden sm:block">
                 <img src={logo} alt="Company Logo" className="h-8 w-auto object-contain" />
-              </div>
-            )}
+              </div>}
             <span className="text-lg font-semibold text-gray-900 hidden sm:block">
               {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
             </span>
@@ -132,5 +126,4 @@ const Header: React.FC<HeaderProps> = ({
       </div>
     </header>;
 };
-
 export default Header;
