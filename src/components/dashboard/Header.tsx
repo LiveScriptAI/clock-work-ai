@@ -43,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({
   }, [user]);
 
   const handleViewPlansClick = () => {
+    console.log('View Plans button clicked - navigating to /billing');
     navigate('/billing');
   };
 
