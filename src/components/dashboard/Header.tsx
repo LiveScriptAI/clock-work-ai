@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -9,12 +8,10 @@ import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
-
 const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
@@ -45,9 +42,7 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
-
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+  return <header className="shadow-sm border-b border-gray-200 bg-yellow-300 rounded-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Mobile menu button */}
@@ -60,15 +55,9 @@ const Header: React.FC<HeaderProps> = ({
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px]">
               <SheetHeader>
-                {logo && (
-                  <div className="mb-4">
-                    <img 
-                      src={logo} 
-                      alt="Company Logo" 
-                      className="h-12 w-auto object-contain" 
-                    />
-                  </div>
-                )}
+                {logo && <div className="mb-4">
+                    <img src={logo} alt="Company Logo" className="h-12 w-auto object-contain" />
+                  </div>}
                 <SheetTitle className="text-left">
                   <span className="text-base font-medium text-gray-900">
                     {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
@@ -77,11 +66,7 @@ const Header: React.FC<HeaderProps> = ({
               </SheetHeader>
               
               <div className="mt-auto pt-6 border-t border-gray-200">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={handleSignOut}
-                >
+                <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                   {t('Sign Out')}
                 </Button>
               </div>
@@ -97,25 +82,16 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Right side actions */}
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSignOut} 
-              className="hidden md:flex px-4 py-2 text-sm font-medium"
-            >
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex px-4 py-2 text-sm font-medium">
               {t('Sign Out')}
             </Button>
             
             <Select value={i18n.language} onValueChange={lng => i18n.changeLanguage(lng)}>
               <SelectTrigger className="w-auto min-w-[120px] flex items-center gap-2 px-3 py-2 h-9 text-sm font-medium text-gray-700 hover:bg-gray-50 border border-gray-300">
-                <ReactCountryFlag 
-                  countryCode={i18n.language === 'es' ? 'ES' : 'GB'} 
-                  svg 
-                  style={{
-                    width: '16px',
-                    height: '16px'
-                  }} 
-                />
+                <ReactCountryFlag countryCode={i18n.language === 'es' ? 'ES' : 'GB'} svg style={{
+                width: '16px',
+                height: '16px'
+              }} />
                 <SelectValue>
                   {i18n.language === 'es' ? 'Español' : 'English'}
                 </SelectValue>
@@ -123,28 +99,20 @@ const Header: React.FC<HeaderProps> = ({
               <SelectContent>
                 <SelectItem value="en" className="flex items-center gap-2 px-3 py-2 text-sm">
                   <div className="flex items-center gap-2 flex-1">
-                    <ReactCountryFlag 
-                      countryCode="GB" 
-                      svg 
-                      style={{
-                        width: '16px',
-                        height: '16px'
-                      }} 
-                    />
+                    <ReactCountryFlag countryCode="GB" svg style={{
+                    width: '16px',
+                    height: '16px'
+                  }} />
                     English
                   </div>
                 </SelectItem>
 
                 <SelectItem value="es" className="flex items-center gap-2 px-3 py-2 text-sm">
                   <div className="flex items-center gap-2 flex-1">
-                    <ReactCountryFlag 
-                      countryCode="ES" 
-                      svg 
-                      style={{
-                        width: '16px',
-                        height: '16px'
-                      }} 
-                    />
+                    <ReactCountryFlag countryCode="ES" svg style={{
+                    width: '16px',
+                    height: '16px'
+                  }} />
                     Español
                   </div>
                 </SelectItem>
@@ -153,8 +121,6 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
