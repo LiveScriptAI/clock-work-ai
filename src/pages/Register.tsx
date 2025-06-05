@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,13 +16,16 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('return');
   
   useEffect(() => {
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        // If there's a return parameter, go there, otherwise go to dashboard
+        navigate(returnTo ? `/${returnTo}` : "/dashboard");
       }
     };
     
@@ -31,12 +34,13 @@ const RegisterPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate("/dashboard");
+        // If there's a return parameter, go there, otherwise go to dashboard
+        navigate(returnTo ? `/${returnTo}` : "/dashboard");
       }
     });
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, returnTo]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +105,7 @@ const RegisterPage = () => {
               </p>
               
               <Button 
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/login" + (returnTo ? `?return=${returnTo}` : ""))}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
                 Go to Login
@@ -136,7 +140,14 @@ const RegisterPage = () => {
 
         <Card className="w-full shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">Create Account</CardTitle>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">
+              {returnTo === 'billing' ? 'Create Account for Free Trial' : 'Create Account'}
+            </CardTitle>
+            {returnTo === 'billing' && (
+              <p className="text-center text-sm text-gray-600 font-body">
+                Start your 7-day free trial of Clock Work Pal Pro
+              </p>
+            )}
           </CardHeader>
           <CardContent className="pb-6">
             <form onSubmit={handleRegister} className="space-y-4">
@@ -192,13 +203,13 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  "Create Account"
+                  returnTo === 'billing' ? 'Create Account & Start Trial' : 'Create Account'
                 )}
               </Button>
               
               <div className="text-center mt-3">
                 <Link 
-                  to="/login" 
+                  to={"/login" + (returnTo ? `?return=${returnTo}` : "")}
                   className="text-brand-navy text-sm hover:underline font-body"
                 >
                   Already have an account? Log in

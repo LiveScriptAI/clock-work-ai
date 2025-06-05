@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('return');
 
   useEffect(() => {
     // Check if user is already logged in
@@ -23,7 +25,8 @@ const LoginPage = () => {
         data: { session }
       } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        // If there's a return parameter, go there, otherwise go to dashboard
+        navigate(returnTo ? `/${returnTo}` : "/dashboard");
       }
     };
     checkSession();
@@ -33,11 +36,12 @@ const LoginPage = () => {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate("/dashboard");
+        // If there's a return parameter, go there, otherwise go to dashboard
+        navigate(returnTo ? `/${returnTo}` : "/dashboard");
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +130,14 @@ const LoginPage = () => {
         {/* Login Form */}
         <Card className="w-full max-w-sm shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">
+              {returnTo === 'billing' ? 'Log In to Continue Trial' : 'Log In'}
+            </CardTitle>
+            {returnTo === 'billing' && (
+              <p className="text-center text-sm text-gray-600 font-body">
+                Access your free trial of Clock Work Pal Pro
+              </p>
+            )}
           </CardHeader>
           <CardContent className="pb-6">
             {retryCount >= 2 && (
@@ -181,12 +192,15 @@ const LoginPage = () => {
                 ) : retryCount >= 3 ? (
                   "Too many attempts - Please wait"
                 ) : (
-                  "Log In"
+                  returnTo === 'billing' ? 'Log In & Continue to Trial' : 'Log In'
                 )}
               </Button>
               
               <div className="text-center mt-3">
-                <Link to="/register" className="text-brand-navy text-sm hover:underline font-body">
+                <Link 
+                  to={"/register" + (returnTo ? `?return=${returnTo}` : "")}
+                  className="text-brand-navy text-sm hover:underline font-body"
+                >
                   Don't have an account? Sign up
                 </Link>
               </div>

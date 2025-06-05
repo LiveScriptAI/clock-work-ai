@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 // Update this with your actual Stripe Price ID for £3.99/month
 const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
@@ -22,6 +24,7 @@ export default function BillingPage() {
   const {
     user
   } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
@@ -91,10 +94,13 @@ export default function BillingPage() {
     }
   };
   const handleSubscribe = async () => {
+    // If user is not logged in, redirect to register page with a return parameter
     if (!user) {
-      toast.error('You must be logged in to subscribe.');
+      toast.error('Please create an account or log in to start your free trial.');
+      navigate('/register?return=billing');
       return;
     }
+    
     setLoading(true);
     try {
       const {
@@ -166,6 +172,18 @@ export default function BillingPage() {
             <strong>You're subscribed to Clock Work Pal Pro!</strong> Enjoy all premium features.
           </div>}
 
+        {/* Authentication prompt for non-logged in users */}
+        {!user && !loading && (
+          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-center">
+            <p className="mb-2">
+              <strong>Ready to start your free trial?</strong> You'll need to create an account first.
+            </p>
+            <p className="text-sm">
+              Don't worry - it only takes 30 seconds and your trial starts immediately!
+            </p>
+          </div>
+        )}
+
         {/* Main Pricing Card */}
         <div className="max-w-2xl mx-auto mb-12">
           <Card className="relative border-2 border-brand-accent shadow-2xl bg-white">
@@ -211,11 +229,11 @@ export default function BillingPage() {
                 {loading ? 'Processing...' : isSubscribed ? <>
                     <Crown className="w-5 h-5 mr-2" />
                     You're Subscribed!
-                  </> : 'Start Your Free Trial'}
+                  </> : user ? 'Start Your Free Trial' : 'Create Account & Start Free Trial'}
               </Button>
 
               {!isSubscribed && <p className="text-center text-sm text-gray-500 mt-4">
-                  No payment required for your 7-day trial. Cancel anytime.
+                  {user ? 'No payment required for your 7-day trial. Cancel anytime.' : 'Create your account and start your 7-day free trial instantly!'}
                 </p>}
             </CardContent>
           </Card>
