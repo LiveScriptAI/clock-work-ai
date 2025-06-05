@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +22,7 @@ interface SubscriptionStatus {
 
 export default function BillingPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isSubscribed, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -52,6 +53,15 @@ export default function BillingPage() {
     }
   }, [user]);
 
+  // Redirect subscribed users to dashboard
+  useEffect(() => {
+    if (isSubscribed && !loading) {
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000); // Give time to show success message
+    }
+  }, [isSubscribed, loading, navigate]);
+
   const fetchSubscriptionStatus = async () => {
     if (!user?.id) return;
     
@@ -80,8 +90,14 @@ export default function BillingPage() {
       
       if (data.success) {
         setMessage('Subscription activated successfully! Welcome to Clock Work Pal Pro.');
-        toast.success('Subscription activated!');
+        toast.success('Subscription activated! Redirecting to dashboard...');
         await fetchSubscriptionStatus();
+        await refreshProfile();
+        
+        // Redirect to dashboard after successful subscription
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
         setMessage('There was an issue verifying your subscription. Please contact support.');
         toast.error('Verification failed');
@@ -130,7 +146,7 @@ export default function BillingPage() {
     }
   };
 
-  const isSubscribed = subscriptionStatus?.subscription_status === 'active';
+  const currentIsSubscribed = subscriptionStatus?.subscription_status === 'active';
 
   const features = [
     {
@@ -185,10 +201,10 @@ export default function BillingPage() {
           </div>
         )}
 
-        {isSubscribed && (
+        {currentIsSubscribed && (
           <div className="mb-8 p-4 bg-gradient-to-r from-brand-accent/20 to-yellow-100 border border-brand-accent/50 text-brand-navy rounded-xl text-center">
             <Crown className="inline w-5 h-5 mr-2" />
-            <strong>You're subscribed to Clock Work Pal Pro!</strong> Enjoy all premium features.
+            <strong>You're subscribed to Clock Work Pal Pro!</strong> Redirecting to dashboard...
           </div>
         )}
 
@@ -249,12 +265,12 @@ export default function BillingPage() {
               {/* CTA Button */}
               <Button 
                 onClick={handleSubscribe} 
-                disabled={loading || isSubscribed}
+                disabled={loading || currentIsSubscribed}
                 className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
               >
                 {loading ? (
                   'Processing...'
-                ) : isSubscribed ? (
+                ) : currentIsSubscribed ? (
                   <>
                     <Crown className="w-5 h-5 mr-2" />
                     You're Subscribed!
@@ -266,7 +282,7 @@ export default function BillingPage() {
                 )}
               </Button>
 
-              {!isSubscribed && (
+              {!currentIsSubscribed && (
                 <p className="text-center text-sm text-gray-500 mt-4">
                   {user 
                     ? 'No payment required for your 7-day trial. Cancel anytime.'

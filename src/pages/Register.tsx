@@ -24,8 +24,8 @@ const RegisterPage = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // If there's a return parameter, go there, otherwise go to dashboard
-        navigate(returnTo ? `/${returnTo}` : "/dashboard");
+        // User is logged in, let useAuth handle the routing based on subscription status
+        navigate("/dashboard");
       }
     };
     
@@ -34,26 +34,30 @@ const RegisterPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // If there's a return parameter, go there, otherwise go to dashboard
-        navigate(returnTo ? `/${returnTo}` : "/dashboard");
+        // User just verified their email, redirect to billing to complete subscription
+        navigate('/billing');
       }
     });
     
     return () => subscription.unsubscribe();
-  }, [navigate, returnTo]);
+  }, [navigate]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      // Set redirect URL to billing page for new users who need to subscribe
+      const redirectUrl = `${window.location.origin}/billing`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName
-          }
+          },
+          emailRedirectTo: redirectUrl
         }
       });
       
@@ -104,6 +108,10 @@ const RegisterPage = () => {
                 Please check your inbox and click on the verification link to complete your registration.
               </p>
               
+              <p className="text-sm text-gray-600 font-body">
+                After verifying your email, you'll be redirected to start your free trial!
+              </p>
+              
               <Button 
                 onClick={() => navigate("/login" + (returnTo ? `?return=${returnTo}` : ""))}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
@@ -141,13 +149,11 @@ const RegisterPage = () => {
         <Card className="w-full shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="text-center text-xl font-display text-brand-navy">
-              {returnTo === 'billing' ? 'Create Account for Free Trial' : 'Create Account'}
+              Create Account for Free Trial
             </CardTitle>
-            {returnTo === 'billing' && (
-              <p className="text-center text-sm text-gray-600 font-body">
-                Start your 7-day free trial of Clock Work Pal Pro
-              </p>
-            )}
+            <p className="text-center text-sm text-gray-600 font-body">
+              Start your 7-day free trial of Clock Work Pal Pro
+            </p>
           </CardHeader>
           <CardContent className="pb-6">
             <form onSubmit={handleRegister} className="space-y-4">
@@ -203,7 +209,7 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  returnTo === 'billing' ? 'Create Account & Start Trial' : 'Create Account'
+                  'Create Account & Start Trial'
                 )}
               </Button>
               

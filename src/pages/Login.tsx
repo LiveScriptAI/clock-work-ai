@@ -25,8 +25,8 @@ const LoginPage = () => {
         data: { session }
       } = await supabase.auth.getSession();
       if (session) {
-        // If there's a return parameter, go there, otherwise go to dashboard
-        navigate(returnTo ? `/${returnTo}` : "/dashboard");
+        // User is logged in, let useAuth handle the routing based on subscription status
+        navigate("/dashboard");
       }
     };
     checkSession();
@@ -36,12 +36,12 @@ const LoginPage = () => {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // If there's a return parameter, go there, otherwise go to dashboard
-        navigate(returnTo ? `/${returnTo}` : "/dashboard");
+        // Let useAuth handle the routing based on subscription status
+        navigate("/dashboard");
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate, returnTo]);
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +192,7 @@ const LoginPage = () => {
                 ) : retryCount >= 3 ? (
                   "Too many attempts - Please wait"
                 ) : (
-                  returnTo === 'billing' ? 'Log In & Continue to Trial' : 'Log In'
+                  'Log In'
                 )}
               </Button>
               
