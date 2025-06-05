@@ -68,12 +68,13 @@ export function useAuth() {
     
     // Only navigate to login if we're on a protected route and not authenticated
     const currentPath = window.location.pathname;
-    const protectedRoutes = ['/dashboard', '/billing'];
+    const protectedRoutes = ['/dashboard'];
     const isProtectedRoute = protectedRoutes.includes(currentPath);
     const isWelcomePage = currentPath === '/' || currentPath === '/welcome';
+    const isBillingPage = currentPath === '/billing';
     
-    // Don't auto-navigate on welcome/landing pages
-    if (!user && isProtectedRoute && !isWelcomePage) {
+    // Don't auto-navigate on welcome/landing pages or billing page
+    if (!user && isProtectedRoute && !isWelcomePage && !isBillingPage) {
       console.log('Redirecting to login from protected route:', currentPath);
       navigate("/login");
     }
