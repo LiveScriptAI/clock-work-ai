@@ -13,6 +13,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,27 +44,44 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      console.log('Attempting login for:', email);
+      
+      // If we've had multiple failures, add a small delay
+      if (retryCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
-        options: {
-          captchaToken: undefined, // Let Supabase handle CAPTCHA automatically
-        }
       });
 
       if (error) {
-        // Handle specific CAPTCHA-related errors
-        if (error.message.includes('captcha') || error.message.includes('verification process failed')) {
+        console.error('Login error:', error);
+        setRetryCount(prev => prev + 1);
+        
+        // Handle specific error cases
+        if (error.message.includes('captcha') || 
+            error.message.includes('verification process failed') ||
+            error.message.includes('Security verification required')) {
           toast({
             variant: "destructive",
             title: "Security verification required",
-            description: "Please try again. If the issue persists, contact support."
+            description: retryCount < 2 
+              ? "Please wait a moment and try again." 
+              : "Multiple failed attempts detected. Please wait a few minutes before trying again, or contact support if the issue persists."
           });
         } else if (error.message.includes('Invalid login credentials')) {
           toast({
             variant: "destructive",
             title: "Login failed",
             description: "Please check your email and password and try again."
+          });
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            variant: "destructive",
+            title: "Email not confirmed",
+            description: "Please check your email and click the confirmation link before logging in."
           });
         } else {
           toast({
@@ -72,15 +90,16 @@ const LoginPage = () => {
             description: error.message
           });
         }
-      } else {
+      } else if (data.user) {
+        console.log('Login successful:', data.user.email);
+        setRetryCount(0); // Reset retry count on success
         toast({
           title: "Login successful",
-          description: "You are now logged in."
+          description: "Welcome back!"
         });
-        // The onAuthStateChange listener will handle navigation to dashboard
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Unexpected login error:', error);
       toast({
         variant: "destructive",
         title: "Login failed",
@@ -110,6 +129,14 @@ const LoginPage = () => {
             <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
           </CardHeader>
           <CardContent className="pb-6">
+            {retryCount >= 2 && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  Multiple login attempts detected. Please wait a moment before trying again.
+                </p>
+              </div>
+            )}
+            
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="font-body text-brand-navy">Email</Label>
@@ -122,6 +149,7 @@ const LoginPage = () => {
                   required 
                   className="font-body" 
                   autoComplete="email"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -136,19 +164,22 @@ const LoginPage = () => {
                   required 
                   className="font-body"
                   autoComplete="current-password"
+                  disabled={isLoading}
                 />
               </div>
               
               <Button 
                 type="submit" 
-                disabled={isLoading} 
+                disabled={isLoading || retryCount >= 3} 
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
+                    {retryCount > 0 ? 'Retrying...' : 'Logging in...'}
                   </>
+                ) : retryCount >= 3 ? (
+                  "Too many attempts - Please wait"
                 ) : (
                   "Log In"
                 )}
