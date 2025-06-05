@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -79,7 +78,7 @@ const WelcomePage = () => {
       </motion.section>
 
       {/* Features Section */}
-      <section id="features" className="bg-brand-neutralBg py-12 px-6">
+      <section id="features" className="py-12 px-6 bg-[#cfeaff]">
         <motion.div initial="hidden" whileInView="visible" viewport={{
         once: true
       }} variants={containerVariants}>
@@ -123,9 +122,9 @@ const WelcomePage = () => {
       </motion.section>
 
       {/* CTA Section */}
-      <motion.section className="bg-white py-12 px-6 text-center" initial="hidden" whileInView="visible" viewport={{
+      <motion.section initial="hidden" whileInView="visible" viewport={{
       once: true
-    }} variants={containerVariants}>
+    }} variants={containerVariants} className="py-12 px-6 text-center bg-[#d0eaff]">
         <motion.div variants={itemVariants}>
           <h3 className="font-display text-3xl text-brand-navy mb-4">
             Ready to Get Started?
