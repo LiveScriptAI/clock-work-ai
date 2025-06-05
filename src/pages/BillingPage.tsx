@@ -11,8 +11,8 @@ import { toast } from 'sonner';
 
 // Replace these with your actual Stripe Price IDs
 const STRIPE_PRICES = {
-  basic: 'price_BASIC_ID', // £10/month
-  pro: 'price_PRO_ID'      // £25/month
+  basic: 'price_1QdhlFEC1YgoxpP09PEPRRSs', // £10/month
+  pro: 'price_1QdhlFEC1YgoxpP0Ng1tO9cF'      // £25/month
 };
 
 interface SubscriptionStatus {
