@@ -299,7 +299,7 @@ export default function BillingPage() {
                 ) : user ? (
                   'Start Your Free Trial'
                 ) : (
-                  'Sign In to Start Free Trial'
+                  'Register to Start Free Trial'
                 )}
               </Button>
 
