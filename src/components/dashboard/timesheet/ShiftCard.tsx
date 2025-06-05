@@ -109,7 +109,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full border-blue-200 hover:bg-blue-50 text-[#4b93fc]">
+              <Button variant="outline" size="sm" className="w-full border-blue-200 hover:bg-blue-50 text-[#1658ff]">
                 <Plus size={14} className="mr-1" />
                 Add to Invoice
               </Button>
