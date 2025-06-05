@@ -112,9 +112,9 @@ export default function BillingPage() {
 
   const handleSubscribe = async () => {
     if (!user) {
-      toast.error('Please log in first to subscribe.');
-      // Redirect to login page
-      window.location.href = '/login';
+      toast.error('Please register first to start your free trial.');
+      // Redirect to register page instead of login
+      window.location.href = '/register';
       return;
     }
     
