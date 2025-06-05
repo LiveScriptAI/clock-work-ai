@@ -43,7 +43,7 @@ export default function BillingPage() {
     }
   }, []);
 
-  // Fetch user's subscription status
+  // Fetch user's subscription status only if user is logged in
   useEffect(() => {
     if (user?.id && isInitialized) {
       fetchSubscriptionStatus();
@@ -62,7 +62,6 @@ export default function BillingPage() {
       
       if (error) {
         console.error('Error fetching subscription status:', error);
-        // Set default values if there's an error
         setSubscriptionStatus({
           subscription_status: null,
           subscription_tier: null,
@@ -113,7 +112,9 @@ export default function BillingPage() {
 
   const handleSubscribe = async () => {
     if (!user) {
-      toast.error('You must be logged in to subscribe.');
+      toast.error('Please log in first to subscribe.');
+      // Redirect to login page
+      window.location.href = '/login';
       return;
     }
     
@@ -138,36 +139,14 @@ export default function BillingPage() {
     }
   };
 
-  // Show loading state while checking user authentication
-  if (!isInitialized) {
+  // Show loading state while checking user authentication (only if there's a user)
+  if (user && !isInitialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 bg-[#cfeaff] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-navy mx-auto mb-4"></div>
           <p className="text-brand-navy">Loading...</p>
         </div>
-      </div>
-    );
-  }
-
-  // If user is not authenticated, show message to log in first
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 bg-[#cfeaff] flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-brand-navy">Authentication Required</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="mb-4">You need to be logged in to access the billing page.</p>
-            <Button 
-              onClick={() => window.location.href = '/login'} 
-              className="bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition"
-            >
-              Go to Login
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -234,6 +213,29 @@ export default function BillingPage() {
           </div>
         )}
 
+        {/* Login prompt for non-authenticated users */}
+        {!user && (
+          <div className="mb-8 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-xl text-center">
+            <p className="mb-2">Ready to get started? Create an account or sign in to subscribe.</p>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                onClick={() => window.location.href = '/register'} 
+                variant="outline"
+                className="bg-white"
+              >
+                Create Account
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/login'} 
+                variant="outline"
+                className="bg-white"
+              >
+                Sign In
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Main Pricing Card */}
         <div className="max-w-2xl mx-auto mb-12">
           <Card className="relative border-2 border-brand-accent shadow-2xl bg-white">
@@ -289,14 +291,19 @@ export default function BillingPage() {
                     <Crown className="w-5 h-5 mr-2" />
                     You're Subscribed!
                   </>
-                ) : (
+                ) : user ? (
                   'Start Your Free Trial'
+                ) : (
+                  'Sign In to Start Free Trial'
                 )}
               </Button>
 
               {!isSubscribed && (
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  No payment required for your 7-day trial. Cancel anytime.
+                  {user ? 
+                    "No payment required for your 7-day trial. Cancel anytime." :
+                    "Create an account to start your 7-day free trial. No payment required."
+                  }
                 </p>
               )}
             </CardContent>
