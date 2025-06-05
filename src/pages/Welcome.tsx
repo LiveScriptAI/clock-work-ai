@@ -107,9 +107,7 @@ const WelcomePage = () => {
           <motion.h3 className="font-display text-4xl md:text-5xl mb-4" variants={itemVariants}>
             Unlock Your Full Potential
           </motion.h3>
-          <motion.p className="font-body text-xl md:text-2xl mb-6 max-w-3xl mx-auto opacity-90" variants={itemVariants}>
-            Transform your freelance business with professional invoicing, advanced analytics, and premium features designed for serious contractors.
-          </motion.p>
+          <motion.p className="font-body text-xl md:text-2xl mb-6 max-w-3xl mx-auto opacity-90" variants={itemVariants}>Transform your clocking in and out process with live time tracking, send professional branded invoicing and premium features designed for serious contractors, employees and freelancers.</motion.p>
           <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
             From £10/month - Cancel anytime. Start your 7-day free trial today.
           </motion.p>
