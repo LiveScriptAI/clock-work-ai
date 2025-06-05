@@ -1,9 +1,14 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 const WelcomePage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -28,6 +33,17 @@ const WelcomePage = () => {
       }
     }
   };
+
+  const handleStartTrial = () => {
+    if (user) {
+      // If user is authenticated, go to billing page
+      navigate("/billing");
+    } else {
+      // If user is not authenticated, go to register
+      navigate("/register");
+    }
+  };
+
   const features = [{
     icon: "⌚",
     title: "Live Time Tracking",
@@ -49,6 +65,7 @@ const WelcomePage = () => {
     title: "Earnings Overview",
     description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
   }];
+
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -69,8 +86,11 @@ const WelcomePage = () => {
 
         {/* Buttons */}
         <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
-          <Button asChild className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
-            <Link to="/register" className="px-[32px] py-[29px] my-0 mx-0">Get Started</Link>
+          <Button 
+            onClick={handleStartTrial}
+            className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition"
+          >
+            Start Your 7 Day Free Trial
           </Button>
           <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
             <a href="#features">Learn More</a>
