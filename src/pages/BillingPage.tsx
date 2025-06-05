@@ -213,25 +213,30 @@ export default function BillingPage() {
           </div>
         )}
 
-        {/* Login prompt for non-authenticated users */}
+        {/* Enhanced Login Section for non-authenticated users */}
         {!user && (
-          <div className="mb-8 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-xl text-center">
-            <p className="mb-2">Ready to get started? Create an account or sign in to subscribe.</p>
-            <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => window.location.href = '/register'} 
-                variant="outline"
-                className="bg-white"
-              >
-                Create Account
-              </Button>
-              <Button 
-                onClick={() => window.location.href = '/login'} 
-                variant="outline"
-                className="bg-white"
-              >
-                Sign In
-              </Button>
+          <div className="mb-8 bg-white rounded-xl shadow-lg border-2 border-brand-accent/30 p-6">
+            <div className="text-center">
+              <h3 className="font-display text-2xl text-brand-navy mb-3">Already have an account?</h3>
+              <p className="text-gray-600 mb-6">Sign in to activate your free trial or manage your subscription</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+                <Button 
+                  onClick={() => window.location.href = '/login'} 
+                  className="flex-1 bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white font-semibold py-3 rounded-full shadow-lg hover:opacity-90 transition"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/register'} 
+                  variant="outline"
+                  className="flex-1 border-2 border-brand-navy text-brand-navy font-semibold py-3 rounded-full hover:bg-brand-navy hover:text-white transition"
+                >
+                  Create Account
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 mt-4">
+                New users get a 7-day free trial • No payment required to start
+              </p>
             </div>
           </div>
         )}
