@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,7 +44,7 @@ export default function BillingPage() {
     }
   }, []);
 
-  // Fetch user's subscription status
+  // Fetch user's subscription status only if user exists
   useEffect(() => {
     if (user?.id) {
       fetchSubscriptionStatus();
@@ -72,7 +70,9 @@ export default function BillingPage() {
         .eq('id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is fine for new users
+        throw error;
+      }
       setSubscriptionStatus(data);
     } catch (error) {
       console.error('Error fetching subscription status:', error);
@@ -148,6 +148,7 @@ export default function BillingPage() {
 
   const currentIsSubscribed = subscriptionStatus?.subscription_status === 'active';
 
+  // ... keep existing code (features array definition)
   const features = [
     {
       icon: Clock,

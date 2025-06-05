@@ -43,7 +43,7 @@ export function useAuth() {
         }
       } else if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
-        // Fetch profile and check subscription
+        // Fetch profile and check subscription only after successful auth
         if (session.user?.id) {
           await fetchUserProfileAndSubscription(session.user.id);
         }
@@ -53,7 +53,7 @@ export function useAuth() {
         handlePostLoginRouting(session.user);
       } else if (session) {
         setUser(session.user);
-        // Fetch profile and check subscription
+        // Fetch profile and check subscription only if user exists
         if (session.user?.id) {
           await fetchUserProfileAndSubscription(session.user.id);
         }
@@ -72,7 +72,7 @@ export function useAuth() {
         }
       } else {
         setUser(session.user);
-        // Fetch profile and check subscription
+        // Fetch profile and check subscription only if user exists
         if (session.user?.id) {
           await fetchUserProfileAndSubscription(session.user.id);
         }
@@ -101,7 +101,7 @@ export function useAuth() {
 
   const fetchUserProfileAndSubscription = async (userId: string) => {
     try {
-      // Fetch profile data
+      // Fetch profile data first
       const { data: profileData } = await supabase
         .from("profiles")
         .select("address1, address2, city, county, postcode, country, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier")
@@ -110,8 +110,10 @@ export function useAuth() {
       
       setProfile(profileData);
 
-      // Check subscription status
-      await checkSubscriptionStatus();
+      // Only check subscription status if profile exists
+      if (profileData || user) {
+        await checkSubscriptionStatus();
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -119,6 +121,9 @@ export function useAuth() {
 
   const checkSubscriptionStatus = async () => {
     try {
+      // Only call if user is authenticated
+      if (!user) return;
+      
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
