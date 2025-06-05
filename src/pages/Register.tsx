@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,12 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
+// Update this with your actual Stripe Price ID for £3.99/month
+const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
+
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -36,6 +41,56 @@ const RegisterPage = () => {
     
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleStartFreeTrial = async () => {
+    setIsCheckoutLoading(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "Please verify your email first, then try again."
+        });
+        setIsCheckoutLoading(false);
+        return;
+      }
+
+      // Create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId: STRIPE_PRICE_ID }
+      });
+      
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        toast({
+          variant: "destructive",
+          title: "Checkout error",
+          description: "Failed to start your free trial. Please try again."
+        });
+        return;
+      }
+      
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error starting free trial:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Something went wrong. Please try again or visit the billing page."
+      });
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,10 +159,18 @@ const RegisterPage = () => {
               </p>
               
               <Button 
-                onClick={() => navigate("/billing")}
+                onClick={handleStartFreeTrial}
+                disabled={isCheckoutLoading}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
-                Start Your Free 7 Day Trial
+                {isCheckoutLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Starting your trial...
+                  </>
+                ) : (
+                  "Start Your Free 7 Day Trial"
+                )}
               </Button>
               
               <div className="text-center">
