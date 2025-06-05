@@ -10,6 +10,10 @@ export type ProfileType = {
   county?: string;
   postcode?: string;
   country?: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  subscription_status?: string;
+  subscription_tier?: string;
 };
 
 export function useAuth() {
@@ -64,7 +68,7 @@ export function useAuth() {
     try {
       const { data } = await supabase
         .from("profiles")
-        .select("address1, address2, city, county, postcode, country")
+        .select("address1, address2, city, county, postcode, country, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier")
         .eq("id", userId)
         .maybeSingle();
       
@@ -91,5 +95,15 @@ export function useAuth() {
     }
   };
 
-  return { user, profile, handleSignOut };
+  const isSubscribed = profile?.subscription_status === 'active';
+  const subscriptionTier = profile?.subscription_tier;
+
+  return { 
+    user, 
+    profile, 
+    handleSignOut, 
+    isSubscribed, 
+    subscriptionTier,
+    refreshProfile: () => user?.id && fetchUserProfile(user.id)
+  };
 }

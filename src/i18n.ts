@@ -28,7 +28,10 @@ i18n
           "remaining": "remaining",
           "Clocked out at:": "Clocked out at:",
           "Approved by:": "Approved by:",
-          "Break duration:": "Break duration:"
+          "Break duration:": "Break duration:",
+          "Choose Your Plan": "Choose Your Plan",
+          "Billing": "Billing",
+          "Upgrade to Pro": "Upgrade to Pro"
         }
       },
       es: {
@@ -49,7 +52,10 @@ i18n
           "remaining": "restante",
           "Clocked out at:": "Registrado a las:",
           "Approved by:": "Aprobado por:",
-          "Break duration:": "Duración del descanso:"
+          "Break duration:": "Duración del descanso:",
+          "Choose Your Plan": "Elige tu Plan",
+          "Billing": "Facturación",
+          "Upgrade to Pro": "Actualizar a Pro"
         }
       }
     },
