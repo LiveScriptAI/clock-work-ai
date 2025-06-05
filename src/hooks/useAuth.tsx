@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ProfileType = {
@@ -18,8 +17,12 @@ export type ProfileType = {
 
 export function useAuth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
+
+  // Routes that don't require authentication
+  const publicRoutes = ['/welcome', '/login', '/register', '/billing'];
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -29,7 +32,10 @@ export function useAuth() {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
-        navigate("/login");
+        // Only redirect to login if not on a public route
+        if (!publicRoutes.includes(location.pathname)) {
+          navigate("/login");
+        }
       } else if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
@@ -49,7 +55,10 @@ export function useAuth() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login");
+        // Only redirect to login if not on a public route
+        if (!publicRoutes.includes(location.pathname)) {
+          navigate("/login");
+        }
       } else {
         setUser(session.user);
         // Fetch profile data if user is authenticated
@@ -62,7 +71,7 @@ export function useAuth() {
     checkSession();
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
