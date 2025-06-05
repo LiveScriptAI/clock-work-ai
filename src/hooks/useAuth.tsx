@@ -29,7 +29,7 @@ export function useAuth() {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
-        navigate("/welcome");
+        navigate("/login");
       } else if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
@@ -48,7 +48,9 @@ export function useAuth() {
     // THEN check for existing session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (!session) {
+        navigate("/login");
+      } else {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {

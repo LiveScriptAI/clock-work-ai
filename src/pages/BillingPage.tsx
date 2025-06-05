@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,21 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { Link, useNavigate } from 'react-router-dom';
 
 // Update this with your actual Stripe Price ID for £3.99/month
 const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
-
 interface SubscriptionStatus {
   subscription_status: string | null;
   subscription_tier: string | null;
   stripe_customer_id: string | null;
 }
-
 export default function BillingPage() {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const {
+    t
+  } = useTranslation();
+  const {
+    user
+  } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
@@ -32,7 +31,6 @@ export default function BillingPage() {
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
     const canceled = params.get('canceled');
-    
     if (sessionId) {
       verifyCheckout(sessionId);
     } else if (canceled) {
@@ -51,38 +49,35 @@ export default function BillingPage() {
       fetchSubscriptionStatus();
     }
   }, [user]);
-
   const fetchSubscriptionStatus = async () => {
     if (!user?.id) return;
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('subscription_status, subscription_tier, stripe_customer_id')
-        .eq('id', user.id)
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('profiles').select('subscription_status, subscription_tier, stripe_customer_id').eq('id', user.id).single();
       if (error) throw error;
       setSubscriptionStatus(data);
     } catch (error) {
       console.error('Error fetching subscription status:', error);
     }
   };
-
   const verifyCheckout = async (sessionId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-checkout', {
-        body: { sessionId }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('verify-checkout', {
+        body: {
+          sessionId
+        }
       });
-      
       if (error) throw error;
-      
       if (data.success) {
         setMessage('Subscription activated successfully! Welcome to Clock Work Pal Pro.');
         toast.success('Subscription activated!');
         await fetchSubscriptionStatus();
-        // Redirect to dashboard after successful subscription
-        setTimeout(() => navigate('/dashboard'), 2000);
       } else {
         setMessage('There was an issue verifying your subscription. Please contact support.');
         toast.error('Verification failed');
@@ -95,22 +90,22 @@ export default function BillingPage() {
       setLoading(false);
     }
   };
-
   const handleSubscribe = async () => {
     if (!user) {
-      // Redirect to register if not logged in
-      navigate('/register');
+      toast.error('You must be logged in to subscribe.');
       return;
     }
-    
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId: STRIPE_PRICE_ID }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: STRIPE_PRICE_ID
+        }
       });
-      
       if (error) throw error;
-      
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -123,44 +118,33 @@ export default function BillingPage() {
       setLoading(false);
     }
   };
-
   const isSubscribed = subscriptionStatus?.subscription_status === 'active';
-
-  const features = [
-    {
-      icon: Clock,
-      title: "Live Time Tracking",
-      description: "Start and end shifts and breaks in real time"
-    },
-    {
-      icon: FileText,
-      title: "Professional Invoicing",
-      description: "Create and send custom branded invoices instantly"
-    },
-    {
-      icon: Calculator,
-      title: "Automatic Calculations",
-      description: "Earnings, hours, and break deductions calculated automatically"
-    },
-    {
-      icon: TrendingUp,
-      title: "Smart Analytics",
-      description: "Daily, weekly, and monthly work summaries"
-    },
-    {
-      icon: Share2,
-      title: "Easy Sharing",
-      description: "Send timesheets via Email, WhatsApp or download PDF"
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Your data is safe and accessible anywhere"
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 bg-[#cfeaff]">
+  const features = [{
+    icon: Clock,
+    title: "Live Time Tracking",
+    description: "Start and end shifts and breaks in real time"
+  }, {
+    icon: FileText,
+    title: "Professional Invoicing",
+    description: "Create and send custom branded invoices instantly"
+  }, {
+    icon: Calculator,
+    title: "Automatic Calculations",
+    description: "Earnings, hours, and break deductions calculated automatically"
+  }, {
+    icon: TrendingUp,
+    title: "Smart Analytics",
+    description: "Daily, weekly, and monthly work summaries"
+  }, {
+    icon: Share2,
+    title: "Easy Sharing",
+    description: "Send timesheets via Email, WhatsApp or download PDF"
+  }, {
+    icon: Shield,
+    title: "Secure & Reliable",
+    description: "Your data is safe and accessible anywhere"
+  }];
+  return <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 bg-[#cfeaff]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
@@ -173,37 +157,14 @@ export default function BillingPage() {
         </div>
 
         {/* Status Messages */}
-        {message && (
-          <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-center">
+        {message && <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-center">
             {message}
-          </div>
-        )}
+          </div>}
 
-        {isSubscribed && (
-          <div className="mb-8 p-4 bg-gradient-to-r from-brand-accent/20 to-yellow-100 border border-brand-accent/50 text-brand-navy rounded-xl text-center">
+        {isSubscribed && <div className="mb-8 p-4 bg-gradient-to-r from-brand-accent/20 to-yellow-100 border border-brand-accent/50 text-brand-navy rounded-xl text-center">
             <Crown className="inline w-5 h-5 mr-2" />
             <strong>You're subscribed to Clock Work Pal Pro!</strong> Enjoy all premium features.
-            <div className="mt-2">
-              <Link to="/dashboard">
-                <Button variant="outline" size="sm">
-                  Go to Dashboard
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Show register prompt if not logged in */}
-        {!user && (
-          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-center">
-            <p className="mb-4">Ready to start your free trial? Create your account first.</p>
-            <Link to="/register">
-              <Button className="bg-brand-accent text-brand-navy hover:opacity-90">
-                Create Account
-              </Button>
-            </Link>
-          </div>
-        )}
+          </div>}
 
         {/* Main Pricing Card */}
         <div className="max-w-2xl mx-auto mb-12">
@@ -234,8 +195,7 @@ export default function BillingPage() {
             <CardContent className="px-8 pb-8">
               {/* Features Grid */}
               <div className="grid md:grid-cols-2 gap-4 mb-8">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-3">
+                {features.map((feature, index) => <div key={index} className="flex items-start space-x-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center">
                       <feature.icon className="w-4 h-4 text-brand-navy" />
                     </div>
@@ -243,31 +203,20 @@ export default function BillingPage() {
                       <h4 className="font-semibold text-brand-navy text-sm">{feature.title}</h4>
                       <p className="text-xs text-gray-600">{feature.description}</p>
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
 
               {/* CTA Button */}
-              <Button 
-                onClick={handleSubscribe} 
-                disabled={loading || isSubscribed} 
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
-              >
-                {loading ? 'Processing...' : 
-                 isSubscribed ? (
-                   <>
-                     <Crown className="w-5 h-5 mr-2" />
-                     You're Subscribed!
-                   </>
-                 ) : user ? 'Start Your Free Trial' : 'Create Account & Start Trial'
-                }
+              <Button onClick={handleSubscribe} disabled={loading || isSubscribed} className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105">
+                {loading ? 'Processing...' : isSubscribed ? <>
+                    <Crown className="w-5 h-5 mr-2" />
+                    You're Subscribed!
+                  </> : 'Start Your Free Trial'}
               </Button>
 
-              {!isSubscribed && (
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  {user ? 'No payment required for your 7-day trial. Cancel anytime.' : 'Create an account to start your free trial'}
-                </p>
-              )}
+              {!isSubscribed && <p className="text-center text-sm text-gray-500 mt-4">
+                  No payment required for your 7-day trial. Cancel anytime.
+                </p>}
             </CardContent>
           </Card>
         </div>
@@ -295,6 +244,5 @@ export default function BillingPage() {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }

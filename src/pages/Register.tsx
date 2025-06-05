@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ const RegisterPage = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/billing");
+        navigate("/dashboard");
       }
     };
     
@@ -30,7 +31,7 @@ const RegisterPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate("/billing");
+        navigate("/dashboard");
       }
     });
     
@@ -42,16 +43,13 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      const redirectUrl = `${window.location.origin}/billing`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
       
@@ -103,10 +101,10 @@ const RegisterPage = () => {
               </p>
               
               <Button 
-                onClick={() => navigate("/billing")}
+                onClick={() => navigate("/login")}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
-                Start Free Trial
+                Go to Login
               </Button>
               
               <div className="text-center">

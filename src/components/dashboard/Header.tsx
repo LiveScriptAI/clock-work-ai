@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Crown } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -9,13 +8,10 @@ import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Link, useNavigate } from 'react-router-dom';
-
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
-
 const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
@@ -25,12 +21,9 @@ const Header: React.FC<HeaderProps> = ({
     i18n
   } = useTranslation();
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
   const {
     user,
-    handleSignOut,
-    isSubscribed,
-    subscriptionTier
+    handleSignOut
   } = useAuth();
   const [logo, setLogo] = useState<string | null>(null);
 
@@ -49,13 +42,7 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
-
-  const handleViewPlans = () => {
-    navigate('/billing');
-  };
-
-  return (
-    <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
+  return <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Mobile menu button */}
@@ -78,11 +65,7 @@ const Header: React.FC<HeaderProps> = ({
                 </SheetTitle>
               </SheetHeader>
               
-              <div className="mt-auto pt-6 border-t border-gray-200 space-y-2">
-                <Button variant="outline" className="w-full justify-start" onClick={handleViewPlans}>
-                  <Crown className="w-4 h-4 mr-2" />
-                  View Plans & Pricing
-                </Button>
+              <div className="mt-auto pt-6 border-t border-gray-200">
                 <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                   {t('Sign Out')}
                 </Button>
@@ -95,28 +78,13 @@ const Header: React.FC<HeaderProps> = ({
             {logo && <div className="hidden sm:block">
                 <img src={logo} alt="Company Logo" className="h-8 w-auto object-contain" />
               </div>}
-            <div className="hidden sm:block">
-              <span className="text-lg font-semibold text-gray-900">
-                {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
-              </span>
-              {isSubscribed && (
-                <div className="flex items-center gap-2 mt-1">
-                  <Crown className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm text-gray-600">
-                    Clock Work Pal {subscriptionTier === 'pro' ? 'Pro' : 'Basic'}
-                  </span>
-                </div>
-              )}
-            </div>
+            <span className="text-lg font-semibold text-gray-900 hidden sm:block">
+              {t('Welcome')}, {user?.user_metadata?.full_name || user?.email}
+            </span>
           </div>
           
           {/* Right side actions */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleViewPlans} className="hidden md:flex px-4 py-2 text-sm font-medium">
-              <Crown className="w-4 h-4 mr-2" />
-              View Plans & Pricing
-            </Button>
-            
             <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex px-4 py-2 text-sm font-medium">
               {t('Sign Out')}
             </Button>
@@ -156,8 +124,6 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
