@@ -1,4 +1,3 @@
-
 import React from "react";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
@@ -7,7 +6,6 @@ import BreaksSummary from "@/components/dashboard/BreaksSummary";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
 import { useBreakTime } from "@/hooks/useBreakTime";
-
 interface DashboardContentProps {
   // Shift state
   startTime: Date | null;
@@ -19,7 +17,7 @@ interface DashboardContentProps {
   employerName: string;
   rateType: string;
   payRate: number;
-  
+
   // Functions
   handleStartShift: () => void;
   handleEndShift: () => void;
@@ -28,7 +26,6 @@ interface DashboardContentProps {
   calculateTimeWorked: () => number;
   calculateEarnings: () => string;
 }
-
 const DashboardContent: React.FC<DashboardContentProps> = ({
   startTime,
   endTime,
@@ -44,43 +41,24 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   formatCountdown,
   formatDuration,
   calculateTimeWorked,
-  calculateEarnings,
+  calculateEarnings
 }) => {
-  const { breakIntervals, isBreakActive } = useBreakTime();
-
-  return (
-    <>
+  const {
+    breakIntervals,
+    isBreakActive
+  } = useBreakTime();
+  return <>
       {/* Time Tracking Component */}
-      <TimeTracking 
-        startTime={startTime}
-        endTime={endTime}
-        isShiftActive={isShiftActive}
-        isShiftComplete={isShiftComplete}
-        managerName={managerName}
-        endManagerName={endManagerName}
-        handleStartShift={handleStartShift}
-        handleEndShift={handleEndShift}
-      />
+      <TimeTracking startTime={startTime} endTime={endTime} isShiftActive={isShiftActive} isShiftComplete={isShiftComplete} managerName={managerName} endManagerName={endManagerName} handleStartShift={handleStartShift} handleEndShift={handleEndShift} />
 
-      <div className="grid grid-cols-1 mb-6">
+      <div className="grid grid-cols-1 mb-6 rounded-xl">
         {/* Daily Summary Component */}
-        <DailySummary 
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-          getBreakDuration={() => "0 min"} // No breaks for now
-          calculateEarnings={calculateEarnings}
-          isShiftActive={isShiftActive}
-          isShiftComplete={isShiftComplete}
-          isBreakActive={isBreakActive}
-          employerName={employerName}
-          rateType={rateType}
-          payRate={payRate}
-          breakIntervals={breakIntervals}
-        />
+        <DailySummary formatDuration={formatDuration} calculateTimeWorked={calculateTimeWorked} getBreakDuration={() => "0 min"} // No breaks for now
+      calculateEarnings={calculateEarnings} isShiftActive={isShiftActive} isShiftComplete={isShiftComplete} isBreakActive={isBreakActive} employerName={employerName} rateType={rateType} payRate={payRate} breakIntervals={breakIntervals} />
       </div>
       
       {/* Timesheet Log Component */}
-      <div className="mt-6">
+      <div className="mt-6 rounded-xl">
         <TimesheetLog importBreaksToExport={false} />
       </div>
 
@@ -96,8 +74,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       <div className="mt-6">
         <CustomerTabs />
       </div>
-    </>
-  );
+    </>;
 };
-
 export default DashboardContent;

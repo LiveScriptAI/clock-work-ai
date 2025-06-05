@@ -41,7 +41,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-  return <Card className="mb-6">
+  return <Card className="mb-6 bg-slate-50 rounded-xl">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">
           <Clock className="mr-2 h-5 w-5" />

@@ -135,7 +135,7 @@ const CustomerTabs = () => {
       });
     }
   };
-  return <div className="space-y-6 p-4 bg-white rounded-md shadow-sm">
+  return <div className="space-y-6 p-4 bg-white shadow-sm rounded-xl">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Customer Information</h2>
         <p className="text-sm text-muted-foreground">

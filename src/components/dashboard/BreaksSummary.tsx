@@ -109,7 +109,7 @@ const BreaksSummary: React.FC = () => {
     const bTime = b.startsWith('current_shift_') ? parseInt(b.split('_').pop() || '0') : 0;
     return bTime - aTime; // Most recent first
   });
-  return <Card>
+  return <Card className="rounded-xl">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Breaks Summary</CardTitle>
       </CardHeader>
