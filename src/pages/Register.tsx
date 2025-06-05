@@ -46,8 +46,22 @@ const RegisterPage = () => {
     setIsCheckoutLoading(true);
     
     try {
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
+      // Get fresh session data to ensure we have the latest auth state
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        toast({
+          variant: "destructive",
+          title: "Authentication error",
+          description: "There was a problem checking your authentication status."
+        });
+        setIsCheckoutLoading(false);
+        return;
+      }
+      
+      console.log('Current session:', session);
+      console.log('User email confirmed:', session?.user?.email_confirmed_at);
       
       if (!session?.user) {
         toast({
@@ -58,6 +72,19 @@ const RegisterPage = () => {
         setIsCheckoutLoading(false);
         return;
       }
+
+      // Check if email is confirmed - this is crucial for verified users
+      if (!session.user.email_confirmed_at) {
+        toast({
+          variant: "destructive",
+          title: "Email verification required",
+          description: "Please check your email and click the verification link first."
+        });
+        setIsCheckoutLoading(false);
+        return;
+      }
+
+      console.log('User is authenticated and verified, creating checkout session...');
 
       // Create Stripe checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
@@ -75,6 +102,7 @@ const RegisterPage = () => {
       }
       
       if (data.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
         // Redirect to Stripe Checkout
         window.location.href = data.url;
       } else {
