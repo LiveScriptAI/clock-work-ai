@@ -22,7 +22,7 @@ serve(async (req) => {
     logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
+    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://81a13337-06fb-4e84-98ba-2564fed9cd48.lovableproject.com";
     
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
@@ -81,7 +81,7 @@ serve(async (req) => {
       logStep("Using existing customer ID", { customerId });
     }
 
-    // Create checkout session
+    // Create checkout session with proper configuration
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -96,6 +96,18 @@ serve(async (req) => {
       cancel_url: `${frontendUrl}/billing?canceled=true`,
       metadata: {
         supabaseUserId: user.id
+      },
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          supabaseUserId: user.id
+        }
+      },
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
+      customer_update: {
+        address: "auto",
+        name: "auto"
       }
     });
 

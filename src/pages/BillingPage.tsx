@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -116,6 +117,7 @@ export default function BillingPage() {
       
       if (data.url) {
         console.log('Redirecting to checkout URL:', data.url);
+        // Use window.location.href for better compatibility
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL received');
