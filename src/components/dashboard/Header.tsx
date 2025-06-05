@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
-  return <header className="shadow-sm border-b border-gray-200 rounded-none bg-[#3053f6]">
+  return <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Mobile menu button */}
