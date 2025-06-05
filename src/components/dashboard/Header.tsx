@@ -9,7 +9,7 @@ import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
@@ -25,6 +25,7 @@ const Header: React.FC<HeaderProps> = ({
     i18n
   } = useTranslation();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const {
     user,
     handleSignOut,
@@ -48,6 +49,10 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
+
+  const handleViewPlans = () => {
+    navigate('/billing');
+  };
 
   return (
     <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
@@ -74,12 +79,10 @@ const Header: React.FC<HeaderProps> = ({
               </SheetHeader>
               
               <div className="mt-auto pt-6 border-t border-gray-200 space-y-2">
-                <Link to="/billing">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Crown className="w-4 h-4 mr-2" />
-                    View Plans & Pricing
-                  </Button>
-                </Link>
+                <Button variant="outline" className="w-full justify-start" onClick={handleViewPlans}>
+                  <Crown className="w-4 h-4 mr-2" />
+                  View Plans & Pricing
+                </Button>
                 <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                   {t('Sign Out')}
                 </Button>
@@ -109,12 +112,10 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Right side actions */}
           <div className="flex items-center gap-3">
-            <Link to="/billing">
-              <Button variant="outline" size="sm" className="hidden md:flex px-4 py-2 text-sm font-medium">
-                <Crown className="w-4 h-4 mr-2" />
-                View Plans & Pricing
-              </Button>
-            </Link>
+            <Button variant="outline" size="sm" onClick={handleViewPlans} className="hidden md:flex px-4 py-2 text-sm font-medium">
+              <Crown className="w-4 h-4 mr-2" />
+              View Plans & Pricing
+            </Button>
             
             <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex px-4 py-2 text-sm font-medium">
               {t('Sign Out')}
