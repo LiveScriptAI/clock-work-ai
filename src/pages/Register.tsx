@@ -9,16 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
-// Update this with your actual Stripe Price ID for £3.99/month
-const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
-
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -41,97 +37,23 @@ const RegisterPage = () => {
     
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleStartFreeTrial = async () => {
-    setIsCheckoutLoading(true);
-    
-    try {
-      // Get fresh session data to ensure we have the latest auth state
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        toast({
-          variant: "destructive",
-          title: "Authentication error",
-          description: "There was a problem checking your authentication status."
-        });
-        setIsCheckoutLoading(false);
-        return;
-      }
-      
-      console.log('Current session:', session);
-      console.log('User email confirmed:', session?.user?.email_confirmed_at);
-      
-      if (!session?.user) {
-        toast({
-          variant: "destructive",
-          title: "Authentication required",
-          description: "Please verify your email first, then try again."
-        });
-        setIsCheckoutLoading(false);
-        return;
-      }
-
-      // Check if email is confirmed - this is crucial for verified users
-      if (!session.user.email_confirmed_at) {
-        toast({
-          variant: "destructive",
-          title: "Email verification required",
-          description: "Please check your email and click the verification link first."
-        });
-        setIsCheckoutLoading(false);
-        return;
-      }
-
-      console.log('User is authenticated and verified, creating checkout session...');
-
-      // Create Stripe checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId: STRIPE_PRICE_ID }
-      });
-      
-      if (error) {
-        console.error('Error creating checkout session:', error);
-        toast({
-          variant: "destructive",
-          title: "Checkout error",
-          description: "Failed to start your free trial. Please try again."
-        });
-        return;
-      }
-      
-      if (data.url) {
-        console.log('Redirecting to Stripe checkout:', data.url);
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
-    } catch (error) {
-      console.error('Error starting free trial:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again or visit the billing page."
-      });
-    } finally {
-      setIsCheckoutLoading(false);
-    }
-  };
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      // Configure redirect URL to go to billing page with checkout parameter
+      const redirectUrl = `${window.location.origin}/billing?checkout=auto`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName
-          }
+          },
+          emailRedirectTo: redirectUrl
         }
       });
       
@@ -145,7 +67,7 @@ const RegisterPage = () => {
         setEmailSent(true);
         toast({
           title: "Registration successful",
-          description: "Please check your email to verify your account."
+          description: "Please check your email to verify your account and start your free trial."
         });
       }
     } catch (error) {
@@ -174,32 +96,20 @@ const RegisterPage = () => {
 
           <Card className="w-full shadow-lg">
             <CardHeader>
-              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Sent</CardTitle>
+              <CardTitle className="text-center text-2xl font-display text-brand-navy">Check Your Email</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <p className="font-body text-brand-navy">
                 We've sent a verification email to <strong>{email}</strong>.
-                Please check your inbox and click on the verification link to complete your registration.
               </p>
               
               <p className="font-body text-gray-600 text-sm">
-                After verifying your email, you can start your free 7-day trial by clicking the button below.
+                Click the verification link in your email to automatically start your <strong>free 7-day trial</strong> with Stripe checkout.
               </p>
               
-              <Button 
-                onClick={handleStartFreeTrial}
-                disabled={isCheckoutLoading}
-                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
-              >
-                {isCheckoutLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Starting your trial...
-                  </>
-                ) : (
-                  "Start Your Free 7 Day Trial"
-                )}
-              </Button>
+              <p className="font-body text-gray-500 text-xs">
+                The verification link will work on both desktop and mobile devices.
+              </p>
               
               <div className="text-center">
                 <Link 
@@ -286,7 +196,7 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  "Create Account"
+                  "Create Account & Start Free Trial"
                 )}
               </Button>
               

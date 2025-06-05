@@ -25,23 +25,28 @@ export default function BillingPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
-  // Check URL for session_id on mount
+  // Check URL for session_id on mount and handle auto-checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
     const canceled = params.get('canceled');
+    const autoCheckout = params.get('checkout');
     
     if (sessionId) {
       verifyCheckout(sessionId);
     } else if (canceled) {
       setMessage('Subscription canceled. You can try again anytime.');
+    } else if (autoCheckout === 'auto' && user) {
+      // Auto-start checkout for verified users coming from email
+      console.log('Auto-starting checkout for verified user');
+      handleSubscribe();
     }
 
     // Clean up URL
-    if (sessionId || canceled) {
+    if (sessionId || canceled || autoCheckout) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [user]); // Add user as dependency to trigger when auth state changes
 
   // Fetch user's subscription status only if user is logged in
   useEffect(() => {
