@@ -4,10 +4,6 @@ import { useShiftState } from "@/hooks/useShiftState";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Crown, Loader2 } from "lucide-react";
 
 // Import layout and content components
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
@@ -25,8 +21,7 @@ import {
 const DashboardPage = () => {
   const { t } = useTranslation();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const { user, isSubscribed, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   
   const shiftState = useShiftState();
   const {
@@ -38,47 +33,6 @@ const DashboardPage = () => {
     handleStartShift, handleEndShift, confirmShiftStart, confirmShiftEnd,
     setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
-
-  // Show loading screen while checking auth and subscription
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Subscription gate - redirect unsubscribed users to billing
-  if (!isSubscribed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <Card className="max-w-md text-center">
-          <CardHeader>
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd rounded-full flex items-center justify-center mb-4">
-              <Crown className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl text-brand-navy">
-              Subscription Required
-            </CardTitle>
-            <CardDescription className="text-lg">
-              You need an active subscription to access the dashboard and start tracking your time.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => navigate('/billing')}
-              className="w-full bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90"
-            >
-              Start Your Free Trial
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 

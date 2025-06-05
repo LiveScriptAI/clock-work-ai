@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,15 +16,12 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const returnTo = searchParams.get('return');
   
   useEffect(() => {
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // User is logged in, let useAuth handle the routing based on subscription status
         navigate("/dashboard");
       }
     };
@@ -34,8 +31,7 @@ const RegisterPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // User just verified their email, redirect to billing to complete subscription
-        navigate('/billing');
+        navigate("/dashboard");
       }
     });
     
@@ -47,17 +43,13 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      // Set redirect URL to billing page for new users who need to subscribe
-      const redirectUrl = `${window.location.origin}/billing`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
       
@@ -108,15 +100,11 @@ const RegisterPage = () => {
                 Please check your inbox and click on the verification link to complete your registration.
               </p>
               
-              <p className="text-sm text-gray-600 font-body">
-                After verifying your email, you'll be redirected to start your free trial!
-              </p>
-              
               <Button 
-                onClick={() => navigate("/billing")}
+                onClick={() => navigate("/login")}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
-                Start Free Trial
+                Go to Login
               </Button>
               
               <div className="text-center">
@@ -148,12 +136,7 @@ const RegisterPage = () => {
 
         <Card className="w-full shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">
-              Create Account for Free Trial
-            </CardTitle>
-            <p className="text-center text-sm text-gray-600 font-body">
-              Start your 7-day free trial of Clock Work Pal Pro
-            </p>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">Create Account</CardTitle>
           </CardHeader>
           <CardContent className="pb-6">
             <form onSubmit={handleRegister} className="space-y-4">
@@ -209,13 +192,13 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  'Create Account & Start Trial'
+                  "Create Account"
                 )}
               </Button>
               
               <div className="text-center mt-3">
                 <Link 
-                  to={"/login" + (returnTo ? `?return=${returnTo}` : "")}
+                  to="/login" 
                   className="text-brand-navy text-sm hover:underline font-body"
                 >
                   Already have an account? Log in
