@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -100,11 +99,15 @@ const RegisterPage = () => {
                 Please check your inbox and click on the verification link to complete your registration.
               </p>
               
+              <p className="font-body text-gray-600 text-sm">
+                After verifying your email, you can start your free 7-day trial by clicking the button below.
+              </p>
+              
               <Button 
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/billing")}
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
-                Go to Login
+                Start Your Free 7 Day Trial
               </Button>
               
               <div className="text-center">
