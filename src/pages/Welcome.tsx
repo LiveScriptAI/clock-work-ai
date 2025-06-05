@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,31 @@ const WelcomePage = () => {
           </div>
         </motion.div>
       </section>
+
+      {/* Pricing/Billing CTA Section */}
+      <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-center text-white" initial="hidden" whileInView="visible" viewport={{
+      once: true
+    }} variants={containerVariants}>
+        <motion.div variants={itemVariants}>
+          <motion.div className="mb-6" variants={itemVariants}>
+            <span className="text-5xl">💎</span>
+          </motion.div>
+          <motion.h3 className="font-display text-4xl md:text-5xl mb-4" variants={itemVariants}>
+            Unlock Your Full Potential
+          </motion.h3>
+          <motion.p className="font-body text-xl md:text-2xl mb-6 max-w-3xl mx-auto opacity-90" variants={itemVariants}>
+            Transform your freelance business with professional invoicing, advanced analytics, and premium features designed for serious contractors.
+          </motion.p>
+          <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
+            From £10/month - Cancel anytime. Start your 7-day free trial today.
+          </motion.p>
+          <motion.div variants={itemVariants}>
+            <Button asChild size="lg" className="px-10 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg">
+              <Link to="/billing">View Plans & Pricing</Link>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </motion.section>
 
       {/* CTA Section */}
       <motion.section className="bg-white py-12 px-6 text-center" initial="hidden" whileInView="visible" viewport={{
