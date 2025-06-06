@@ -1,8 +1,8 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { PreviewTimeTracking } from "@/components/preview/PreviewTimeTracking";
 
 const WelcomePage = () => {
   const containerVariants = {
@@ -111,6 +111,37 @@ const WelcomePage = () => {
           </div>
         </motion.div>
       </section>
+
+      {/* Interactive Preview Section */}
+      <motion.section 
+        className="py-16 px-6 bg-gradient-to-b from-gray-50 to-white" 
+        initial="hidden" 
+        whileInView="visible" 
+        viewport={{ once: true }} 
+        variants={containerVariants}
+      >
+        <motion.div className="max-w-6xl mx-auto" variants={itemVariants}>
+          <motion.div className="text-center mb-12" variants={itemVariants}>
+            <h2 className="font-display text-4xl md:text-5xl text-brand-navy mb-4">
+              Try Time Tracking Now
+            </h2>
+            <p className="font-body text-xl text-gray-600 max-w-3xl mx-auto">
+              Experience our intuitive time tracking interface. Start a shift, take breaks, and see how easy it is to manage your work hours.
+            </p>
+          </motion.div>
+          
+          <motion.div variants={itemVariants}>
+            <PreviewTimeTracking />
+          </motion.div>
+          
+          <motion.div className="text-center mt-8" variants={itemVariants}>
+            <p className="text-gray-600 mb-4">Ready to save your time tracking data and unlock all features?</p>
+            <Button asChild size="lg" className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-full shadow-xl">
+              <Link to="/register">Start Your 7-Day Free Trial</Link>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </motion.section>
 
       {/* Pricing/Billing CTA Section */}
       <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-center text-white" initial="hidden" whileInView="visible" viewport={{
