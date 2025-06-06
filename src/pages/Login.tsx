@@ -14,52 +14,33 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    let mounted = true;
-
     // Check if user is already logged in
     const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted && session) {
-          navigate("/dashboard");
-          return;
-        }
-        if (mounted) {
-          setIsInitialized(true);
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-        if (mounted) {
-          setIsInitialized(true);
-        }
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
       }
     };
+    checkSession();
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
-      
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate("/dashboard");
       }
     });
-
-    checkSession();
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) return;
-    
     setIsLoading(true);
     
     try {
@@ -116,7 +97,6 @@ const LoginPage = () => {
           title: "Login successful",
           description: "Welcome back!"
         });
-        // Navigation will be handled by the auth state change listener
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
@@ -130,21 +110,17 @@ const LoginPage = () => {
     }
   };
 
-  // Don't render the form until we've checked the session to prevent flickering
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-hero-gradient">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
       <div className="flex flex-col items-center max-w-md w-full">
         {/* Logo */}
         <div className="mb-8 mt-8">
           <img src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" alt="Clock Work Pal logo" className="w-56 h-auto mx-auto" />
+        </div>
+
+        {/* Clock Character */}
+        <div className="mb-8">
+          
         </div>
         
         {/* Login Form */}
@@ -194,7 +170,7 @@ const LoginPage = () => {
               
               <Button 
                 type="submit" 
-                disabled={isLoading || retryCount >= 3 || !email.trim() || !password} 
+                disabled={isLoading || retryCount >= 3} 
                 className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
               >
                 {isLoading ? (

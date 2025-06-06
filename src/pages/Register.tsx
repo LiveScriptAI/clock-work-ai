@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,17 +43,13 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      // Configure redirect URL to go directly to Stripe payment link
-      const redirectUrl = "https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00";
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
       
@@ -66,7 +63,7 @@ const RegisterPage = () => {
         setEmailSent(true);
         toast({
           title: "Registration successful",
-          description: "Please check your email to verify your account and start your free trial."
+          description: "Please check your email to verify your account."
         });
       }
     } catch (error) {
@@ -95,20 +92,20 @@ const RegisterPage = () => {
 
           <Card className="w-full shadow-lg">
             <CardHeader>
-              <CardTitle className="text-center text-2xl font-display text-brand-navy">Check Your Email</CardTitle>
+              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Sent</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <p className="font-body text-brand-navy">
                 We've sent a verification email to <strong>{email}</strong>.
+                Please check your inbox and click on the verification link to complete your registration.
               </p>
               
-              <p className="font-body text-gray-600 text-sm">
-                Click the verification link in your email to automatically start your <strong>free 7-day trial</strong> with Stripe.
-              </p>
-              
-              <p className="font-body text-gray-500 text-xs">
-                The verification link will work on both desktop and mobile devices.
-              </p>
+              <Button 
+                onClick={() => navigate("/login")}
+                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
+              >
+                Go to Login
+              </Button>
               
               <div className="text-center">
                 <Link 
@@ -195,7 +192,7 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  "Create Account & Start Free Trial"
+                  "Create Account"
                 )}
               </Button>
               

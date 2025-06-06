@@ -4,7 +4,6 @@ import { useShiftState } from "@/hooks/useShiftState";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import { SubscriptionGate } from "@/components/SubscriptionGate";
 
 // Import layout and content components
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
@@ -61,65 +60,59 @@ const DashboardPage = () => {
   };
 
   return (
-    <SubscriptionGate 
-      requiredTier="basic" 
-      feature="the professional dashboard"
-      redirectTo="/billing"
+    <DashboardLayout
+      sheetOpen={sheetOpen}
+      setSheetOpen={setSheetOpen}
     >
-      <DashboardLayout
-        sheetOpen={sheetOpen}
-        setSheetOpen={setSheetOpen}
-      >
-        <DashboardContent
-          startTime={startTime}
-          endTime={endTime}
-          isShiftActive={isShiftActive}
-          isShiftComplete={isShiftComplete}
-          managerName={managerName}
-          endManagerName={endManagerName}
-          employerName={employerName}
-          rateType={rateType}
-          payRate={payRate}
-          handleStartShift={handleStartShift}
-          handleEndShift={handleEndShift}
-          formatCountdown={formatCountdown}
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-          calculateEarnings={calculateEarnings}
-        />
-        
-        <DashboardDialogs
-          isStartSignatureOpen={isStartSignatureOpen}
-          isEndSignatureOpen={isEndSignatureOpen}
-          managerName={managerName}
-          endManagerName={endManagerName}
-          employerName={employerName}
-          payRate={payRate}
-          rateType={rateType}
-          startTime={startTime}
-          isStartSignatureEmpty={shiftState.isStartSignatureEmpty}
-          isEndSignatureEmpty={shiftState.isEndSignatureEmpty}
-          showValidationAlert={showValidationAlert}
-          validationType={validationType}
-          setIsStartSignatureOpen={setIsStartSignatureOpen}
-          setIsEndSignatureOpen={setIsEndSignatureOpen}
-          setManagerName={setManagerName}
-          setEndManagerName={setEndManagerName}
-          setIsStartSignatureEmpty={setIsStartSignatureEmpty}
-          setIsEndSignatureEmpty={setIsEndSignatureEmpty}
-          setShowValidationAlert={setShowValidationAlert}
-          confirmShiftStart={confirmShiftStart}
-          handleConfirmShiftEnd={handleConfirmShiftEnd}
-          setEmployerName={setEmployerName}
-          setPayRate={setPayRate}
-          setRateType={handleRateTypeChange}
-          setStartSignatureData={setStartSignatureData}
-          setEndSignatureData={setEndSignatureData}
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-        />
-      </DashboardLayout>
-    </SubscriptionGate>
+      <DashboardContent
+        startTime={startTime}
+        endTime={endTime}
+        isShiftActive={isShiftActive}
+        isShiftComplete={isShiftComplete}
+        managerName={managerName}
+        endManagerName={endManagerName}
+        employerName={employerName}
+        rateType={rateType}
+        payRate={payRate}
+        handleStartShift={handleStartShift}
+        handleEndShift={handleEndShift}
+        formatCountdown={formatCountdown}
+        formatDuration={formatDuration}
+        calculateTimeWorked={calculateTimeWorked}
+        calculateEarnings={calculateEarnings}
+      />
+      
+      <DashboardDialogs
+        isStartSignatureOpen={isStartSignatureOpen}
+        isEndSignatureOpen={isEndSignatureOpen}
+        managerName={managerName}
+        endManagerName={endManagerName}
+        employerName={employerName}
+        payRate={payRate}
+        rateType={rateType}
+        startTime={startTime}
+        isStartSignatureEmpty={shiftState.isStartSignatureEmpty}
+        isEndSignatureEmpty={shiftState.isEndSignatureEmpty}
+        showValidationAlert={showValidationAlert}
+        validationType={validationType}
+        setIsStartSignatureOpen={setIsStartSignatureOpen}
+        setIsEndSignatureOpen={setIsEndSignatureOpen}
+        setManagerName={setManagerName}
+        setEndManagerName={setEndManagerName}
+        setIsStartSignatureEmpty={setIsStartSignatureEmpty}
+        setIsEndSignatureEmpty={setIsEndSignatureEmpty}
+        setShowValidationAlert={setShowValidationAlert}
+        confirmShiftStart={confirmShiftStart}
+        handleConfirmShiftEnd={handleConfirmShiftEnd}
+        setEmployerName={setEmployerName}
+        setPayRate={setPayRate}
+        setRateType={handleRateTypeChange}
+        setStartSignatureData={setStartSignatureData}
+        setEndSignatureData={setEndSignatureData}
+        formatDuration={formatDuration}
+        calculateTimeWorked={calculateTimeWorked}
+      />
+    </DashboardLayout>
   );
 };
 
