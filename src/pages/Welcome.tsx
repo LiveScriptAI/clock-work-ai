@@ -1,8 +1,9 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -203,6 +204,9 @@ const WelcomePage = () => {
           </motion.div>
         </div>
       </motion.section>
+
+      {/* Testimonials Section */}
+      <TestimonialsCarousel />
 
       {/* CTA Section */}
       <motion.section initial="hidden" whileInView="visible" viewport={{
