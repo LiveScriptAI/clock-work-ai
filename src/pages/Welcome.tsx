@@ -194,7 +194,7 @@ const WelcomePage = () => {
             
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
               <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-                <Link to="/billing">Start 7-Day Free Trial</Link>
+                
               </Button>
               
               <div className="flex items-center gap-2 opacity-70">
