@@ -36,8 +36,6 @@ const EmailVerificationPage = () => {
           // No session, check if there's a pending email
           const storedEmail = localStorage.getItem('pendingVerificationEmail');
           if (storedEmail) {
-            // Verify the stored email is still valid by checking if user exists
-            // If user was deleted, this stored email is invalid
             setUserEmail(storedEmail);
             setIsVerified(false);
           } else {
@@ -48,8 +46,6 @@ const EmailVerificationPage = () => {
         }
       } catch (error) {
         console.error("Error checking verification status:", error);
-        // Clear invalid stored email on error
-        localStorage.removeItem('pendingVerificationEmail');
         setIsVerified(false);
       } finally {
         setIsLoading(false);
@@ -67,11 +63,6 @@ const EmailVerificationPage = () => {
           title: "Email verified successfully!",
           description: "You can now start your free trial."
         });
-      } else if (event === 'SIGNED_OUT') {
-        // Clear stored email when user signs out or session is invalid
-        localStorage.removeItem('pendingVerificationEmail');
-        setUserEmail("");
-        setIsVerified(false);
       }
     });
     
@@ -118,12 +109,6 @@ const EmailVerificationPage = () => {
     } finally {
       setStartingTrial(false);
     }
-  };
-
-  const handleClearAndRestart = () => {
-    // Clear any stored email and redirect to register
-    localStorage.removeItem('pendingVerificationEmail');
-    navigate("/register");
   };
 
   if (isLoading) {
@@ -217,22 +202,6 @@ const EmailVerificationPage = () => {
                 >
                   Verify Email First
                 </Button>
-
-                {userEmail && (
-                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <p className="text-sm text-orange-700 mb-2">
-                      Wrong email address or having issues?
-                    </p>
-                    <Button 
-                      onClick={handleClearAndRestart}
-                      variant="outline"
-                      size="sm"
-                      className="text-orange-700 border-orange-300 hover:bg-orange-100"
-                    >
-                      Start Over with New Email
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
             
