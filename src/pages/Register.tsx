@@ -15,6 +15,7 @@ const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [startingTrial, setStartingTrial] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -76,6 +77,46 @@ const RegisterPage = () => {
       setIsLoading(false);
     }
   };
+
+  const handleStartFreeTrial = async () => {
+    setStartingTrial(true);
+    try {
+      // Check if user is verified by getting the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Email not verified yet",
+          description: "Please verify your email first by clicking the link in your inbox, then return here to start your free trial."
+        });
+        setStartingTrial(false);
+        return;
+      }
+
+      // Create Stripe checkout session for the free trial
+      const { data, error } = await supabase.functions.invoke('create-checkout-session');
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error starting trial",
+          description: "Unable to start your free trial. Please try again."
+        });
+      } else if (data?.url) {
+        // Redirect to Stripe checkout
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error starting trial",
+        description: "An unexpected error occurred. Please try again."
+      });
+    } finally {
+      setStartingTrial(false);
+    }
+  };
   
   if (emailSent) {
     return (
@@ -92,25 +133,64 @@ const RegisterPage = () => {
 
           <Card className="w-full shadow-lg">
             <CardHeader>
-              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Sent</CardTitle>
+              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Required</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-6">
-              <p className="font-body text-brand-navy">
-                We've sent a verification email to <strong>{email}</strong>.
-                Please check your inbox and click on the verification link to complete your registration.
-              </p>
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold text-brand-navy mb-2">Follow these 3 simple steps:</h3>
+                  <ol className="text-left space-y-2 text-sm text-brand-navy">
+                    <li className="flex items-start">
+                      <span className="bg-brand-accent text-brand-navy rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</span>
+                      <span>Check your email inbox at <strong>{email}</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-brand-accent text-brand-navy rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</span>
+                      <span>Click the verification link in the email</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-brand-accent text-brand-navy rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</span>
+                      <span>Return here and click the button below to start your free trial</span>
+                    </li>
+                  </ol>
+                </div>
+                
+                <p className="text-sm text-gray-600 font-body">
+                  After verifying your email, you'll be able to start your 7-day free trial with full access to all Clock Work Pal features.
+                </p>
+              </div>
               
               <Button 
-                onClick={() => navigate("/login")}
-                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
+                onClick={handleStartFreeTrial}
+                disabled={startingTrial}
+                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body text-lg py-6"
               >
-                Go to Login
+                {startingTrial ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Starting your free trial...
+                  </>
+                ) : (
+                  "Start Your 7-Day Free Trial"
+                )}
               </Button>
               
-              <div className="text-center">
+              <div className="text-center text-xs text-gray-500 space-y-1">
+                <p>✓ No credit card required</p>
+                <p>✓ Cancel anytime</p>
+                <p>✓ Full access to all features</p>
+              </div>
+              
+              <div className="text-center space-y-2">
+                <Link 
+                  to="/login" 
+                  className="text-brand-navy text-sm hover:underline font-body block"
+                >
+                  Already verified? Sign in here
+                </Link>
                 <Link 
                   to="/welcome" 
-                  className="text-gray-500 text-sm hover:underline font-body"
+                  className="text-gray-500 text-sm hover:underline font-body block"
                 >
                   Back to Welcome
                 </Link>
