@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ProfileType = {
@@ -18,6 +18,7 @@ export type ProfileType = {
 
 export function useAuth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
 
@@ -29,18 +30,27 @@ export function useAuth() {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
-        navigate("/login");
+        // Only redirect to login if not on public pages
+        if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
+          navigate("/login");
+        }
       } else if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
-        // Fetch profile data if user is authenticated
-        if (session.user?.id) {
-          fetchUserProfile(session.user.id);
+        // Don't auto-redirect to dashboard if on email verification page
+        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
+          // Fetch profile data if user is authenticated
+          if (session.user?.id) {
+            fetchUserProfile(session.user.id);
+          }
         }
       } else if (session) {
         setUser(session.user);
-        // Fetch profile data if user is authenticated
-        if (session.user?.id) {
-          fetchUserProfile(session.user.id);
+        // Don't auto-redirect to dashboard if on email verification page
+        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
+          // Fetch profile data if user is authenticated
+          if (session.user?.id) {
+            fetchUserProfile(session.user.id);
+          }
         }
       }
     });
@@ -49,12 +59,18 @@ export function useAuth() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login");
+        // Only redirect to login if not on public pages
+        if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
+          navigate("/login");
+        }
       } else {
         setUser(session.user);
-        // Fetch profile data if user is authenticated
-        if (session.user?.id) {
-          fetchUserProfile(session.user.id);
+        // Don't auto-redirect to dashboard if on email verification page
+        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
+          // Fetch profile data if user is authenticated
+          if (session.user?.id) {
+            fetchUserProfile(session.user.id);
+          }
         }
       }
     };
@@ -62,7 +78,7 @@ export function useAuth() {
     checkSession();
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const fetchUserProfile = async (userId: string) => {
     try {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ const RegisterPage = () => {
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && window.location.pathname !== '/email-verification') {
         navigate("/dashboard");
       }
     };
@@ -29,7 +28,7 @@ const RegisterPage = () => {
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'SIGNED_IN' && session && window.location.pathname !== '/email-verification') {
         navigate("/dashboard");
       }
     });
