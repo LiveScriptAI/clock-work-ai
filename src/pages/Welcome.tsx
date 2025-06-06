@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -94,18 +93,16 @@ const WelcomePage = () => {
         </motion.div>
 
         {/* Headline */}
-        <motion.h1 className="font-display text-5xl md:text-6xl text-white mb-4 text-center" variants={itemVariants}>
+        <motion.h1 variants={itemVariants} className="font-display md:text-6xl text-white mb-4 text-center text-5xl">
           Smarter Time Tracking
         </motion.h1>
 
         {/* Subtext */}
-        <motion.p className="font-body text-lg md:text-xl max-w-2xl text-white/90 text-center mb-8" variants={itemVariants}>
-          Workers, freelancers & contractors: track shifts on the go, clock in/out in seconds, view earnings and send invoices anywhere.
-        </motion.p>
+        <motion.p variants={itemVariants} className="font-body max-w-2xl text-white/90 text-center mb-8 text-lg md:text-lg">Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.</motion.p>
 
         {/* Get Started Instructions */}
         <motion.div className="text-center mb-8" variants={itemVariants}>
-          <h3 className="font-display text-2xl text-white mb-4">Get started in 2 simple steps:</h3>
+          <h3 className="font-display text-white mb-4 text-3xl">Get started in 2 simple steps:</h3>
         </motion.div>
 
         {/* Step 1: Create Account */}
@@ -251,5 +248,4 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
-
 export default WelcomePage;
