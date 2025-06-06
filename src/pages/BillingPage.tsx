@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+
 interface SubscriptionStatus {
   subscription_status: string | null;
   subscription_tier: string | null;
@@ -191,11 +192,16 @@ export default function BillingPage() {
               </div>
 
               {/* Stripe Buy Button */}
-              <div className="text-center">
+              <div className="flex justify-center items-center w-full">
                 {isSubscribed ? <Button disabled className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white shadow-lg">
                     <Crown className="w-5 h-5 mr-2" />
                     You're Subscribed!
-                  </Button> : <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />}
+                  </Button> : <div className="flex justify-center w-full">
+                    <stripe-buy-button 
+                      buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" 
+                      publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" 
+                    />
+                  </div>}
               </div>
 
               {!isSubscribed && <p className="text-center text-sm text-gray-500 mt-4">
