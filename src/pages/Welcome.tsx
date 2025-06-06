@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,22 @@ const WelcomePage = () => {
     title: "Earnings Overview",
     description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
   }];
+
+  React.useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+    };
+  }, []);
+
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -67,14 +84,12 @@ const WelcomePage = () => {
           Workers, freelancers & contractors: track shifts on the go, clock in/out in seconds, view earnings and send invoices anywhere.
         </motion.p>
 
-        {/* Buttons */}
-        <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
-          <Button asChild className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
-            <Link to="/register" className="px-[32px] py-[29px] my-0 mx-0">Get Started</Link>
-          </Button>
-          <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
-            <a href="#features">Learn More</a>
-          </button>
+        {/* Stripe Buy Button */}
+        <motion.div className="flex justify-center" variants={itemVariants}>
+          <stripe-buy-button
+            buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx"
+            publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
+          />
         </motion.div>
       </motion.section>
 
