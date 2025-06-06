@@ -183,9 +183,7 @@ const WelcomePage = () => {
               <img src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" alt="Scan to subscribe QR Code" className="w-24 h-24 rounded-lg shadow-lg" />
             </motion.div>
             
-            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
-              Start your 7-day free trial today and experience the difference.
-            </motion.p>
+            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>Scan the QR code to start your 7-day free trial and take control of recorded hours so your boss can pay you correctly! </motion.p>
             
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
               <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
