@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -103,7 +104,10 @@ const WelcomePage = () => {
 
         {/* Stripe Buy Button */}
         <motion.div className="flex justify-center" variants={itemVariants}>
-          <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
+          <stripe-buy-button 
+            buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" 
+            publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
+          />
         </motion.div>
       </motion.section>
 
