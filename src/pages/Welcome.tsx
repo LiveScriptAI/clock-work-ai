@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -102,10 +103,37 @@ const WelcomePage = () => {
           Workers, freelancers & contractors: track shifts on the go, clock in/out in seconds, view earnings and send invoices anywhere.
         </motion.p>
 
-        {/* Stripe Buy Button */}
-        <motion.div variants={itemVariants} className="flex justify-center px-0 mx-0 my-[20px] py-0">
-          <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
+        {/* Get Started Instructions */}
+        <motion.div className="text-center mb-8" variants={itemVariants}>
+          <h3 className="font-display text-2xl text-white mb-4">Get started in 2 simple steps:</h3>
         </motion.div>
+
+        {/* Step 1: Create Account */}
+        <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
+          <div className="flex items-center mb-3">
+            <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">1</span>
+            <span className="font-body text-lg text-white">Create your account</span>
+          </div>
+          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+            <Link to="/register">Create Account</Link>
+          </Button>
+        </motion.div>
+
+        {/* Step 2: Start Trial */}
+        <motion.div className="flex flex-col items-center" variants={itemVariants}>
+          <div className="flex items-center mb-3">
+            <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
+            <span className="font-body text-lg text-white">Start your 7-day free trial</span>
+          </div>
+          <div className="flex justify-center px-0 mx-0 my-[20px] py-0">
+            <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
+          </div>
+        </motion.div>
+
+        {/* Important Note */}
+        <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
+          ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
+        </motion.p>
       </motion.section>
 
       {/* Features Section */}
@@ -187,10 +215,6 @@ const WelcomePage = () => {
             <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>Scan the QR code to start your 7-day free trial and take control of recorded hours so your boss can pay you correctly! </motion.p>
             
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
-              <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-                
-              </Button>
-              
               <div className="flex items-center gap-2 opacity-70">
                 <span className="text-sm">No credit card required</span>
                 <span className="text-xs">•</span>
@@ -227,4 +251,5 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
+
 export default WelcomePage;
