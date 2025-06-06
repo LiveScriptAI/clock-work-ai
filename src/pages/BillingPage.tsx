@@ -8,9 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Update this with your actual Stripe checkout URL
-const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00';
-
 interface SubscriptionStatus {
   subscription_status: string | null;
   subscription_tier: string | null;
@@ -23,6 +20,22 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+
+  // Add Stripe script on component mount
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Clean up script on unmount
+      const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+    };
+  }, []);
 
   // Check URL for session_id on mount
   useEffect(() => {
@@ -87,24 +100,6 @@ export default function BillingPage() {
       console.error('Error verifying checkout:', error);
       setMessage('Error verifying subscription. Please contact support.');
       toast.error('Verification error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    if (!user) {
-      toast.error('You must be logged in to subscribe.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Redirect directly to Stripe checkout
-      window.location.href = STRIPE_CHECKOUT_URL;
-    } catch (error) {
-      console.error('Error redirecting to checkout:', error);
-      toast.error('Error redirecting to checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -214,23 +209,23 @@ export default function BillingPage() {
                 ))}
               </div>
 
-              {/* CTA Button */}
-              <Button 
-                onClick={handleSubscribe}
-                disabled={loading || isSubscribed}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
-              >
-                {loading ? (
-                  'Redirecting...'
-                ) : isSubscribed ? (
-                  <>
+              {/* Stripe Buy Button */}
+              <div className="text-center">
+                {isSubscribed ? (
+                  <Button 
+                    disabled
+                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white shadow-lg"
+                  >
                     <Crown className="w-5 h-5 mr-2" />
                     You're Subscribed!
-                  </>
+                  </Button>
                 ) : (
-                  'Start Your Free Trial'
+                  <stripe-buy-button
+                    buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx"
+                    publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
+                  />
                 )}
-              </Button>
+              </div>
 
               {!isSubscribed && (
                 <p className="text-center text-sm text-gray-500 mt-4">
