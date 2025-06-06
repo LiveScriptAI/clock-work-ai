@@ -29,6 +29,31 @@ const WelcomePage = () => {
       }
     }
   };
+
+  const imageVariants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.8
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const floatAnimation = {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  };
+
   const features = [{
     icon: "⌚",
     title: "Live Time Tracking",
@@ -112,27 +137,101 @@ const WelcomePage = () => {
         </motion.div>
       </section>
 
-      {/* Pricing/Billing CTA Section */}
-      <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-center text-white" initial="hidden" whileInView="visible" viewport={{
+      {/* Redesigned Unlock Your Full Potential Section */}
+      <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-white overflow-hidden" initial="hidden" whileInView="visible" viewport={{
       once: true
     }} variants={containerVariants}>
-        <motion.div variants={itemVariants}>
-          <motion.div className="mb-6" variants={itemVariants}>
-            <span className="text-5xl">💎</span>
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-12" variants={itemVariants}>
+            <motion.div className="mb-6" variants={itemVariants}>
+              <span className="text-5xl">💎</span>
+            </motion.div>
+            <motion.h3 className="font-display text-4xl md:text-5xl mb-4" variants={itemVariants}>
+              Experience Professional Time Tracking
+            </motion.h3>
+            <motion.p className="font-body text-xl md:text-2xl mb-2 max-w-4xl mx-auto opacity-90" variants={itemVariants}>
+              See how Clock Work Pal transforms your workflow with intuitive time tracking, comprehensive reporting, and seamless invoicing.
+            </motion.p>
+            <motion.p className="font-body text-lg mb-8 max-w-3xl mx-auto opacity-80" variants={itemVariants}>
+              Join thousands of professionals who trust our platform for accurate time management and effortless billing.
+            </motion.p>
           </motion.div>
-          <motion.h3 className="font-display text-4xl md:text-5xl mb-4" variants={itemVariants}>
-            Unlock Your Full Potential
-          </motion.h3>
-          <motion.p className="font-body text-xl md:text-2xl mb-6 max-w-3xl mx-auto opacity-90" variants={itemVariants}>Transform your clocking in and out process with live time tracking, send professional branded invoicing and premium features designed for serious contractors, employees and freelancers.</motion.p>
-          <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
-            From £10/month - Cancel anytime. Start your 7-day free trial today.
-          </motion.p>
-          <motion.div variants={itemVariants}>
-            <Button asChild size="lg" className="px-10 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg">
-              <Link to="/billing">View Plans & Pricing</Link>
-            </Button>
+
+          {/* App Screenshots Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Manager Approval Dialog */}
+            <motion.div 
+              className="flex justify-center"
+              variants={imageVariants}
+              animate={floatAnimation}
+            >
+              <img 
+                src="/lovable-uploads/be6a480e-c261-40ac-9ace-e638a2edc3e2.png" 
+                alt="Manager Approval Interface" 
+                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
+              />
+            </motion.div>
+
+            {/* Time Tracking Interface */}
+            <motion.div 
+              className="flex justify-center"
+              variants={imageVariants}
+              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 0.5}}}
+            >
+              <img 
+                src="/lovable-uploads/9a4bacff-ec7d-458d-bb51-176f8a992a22.png" 
+                alt="Time Tracking Dashboard" 
+                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
+              />
+            </motion.div>
+
+            {/* Timesheet Log */}
+            <motion.div 
+              className="flex justify-center"
+              variants={imageVariants}
+              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 1}}}
+            >
+              <img 
+                src="/lovable-uploads/706a04d3-6a1e-4abd-afe8-d61ad2d8f20c.png" 
+                alt="Timesheet Log and Reports" 
+                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
+              />
+            </motion.div>
+
+            {/* QR Code for Mobile */}
+            <motion.div 
+              className="flex flex-col items-center justify-center"
+              variants={imageVariants}
+              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 1.5}}}
+            >
+              <img 
+                src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" 
+                alt="Scan to subscribe QR Code" 
+                className="w-full max-w-[250px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
+              />
+              <p className="text-sm opacity-80 mt-2 text-center">Scan with your phone to get started instantly</p>
+            </motion.div>
+          </div>
+
+          {/* CTA Section */}
+          <motion.div className="text-center" variants={itemVariants}>
+            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
+              From £10/month - Cancel anytime. Start your 7-day free trial today and experience the difference.
+            </motion.p>
+            
+            <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
+              <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+                <Link to="/billing">Start 7-Day Free Trial</Link>
+              </Button>
+              
+              <div className="flex items-center gap-2 opacity-70">
+                <span className="text-sm">No credit card required</span>
+                <span className="text-xs">•</span>
+                <span className="text-sm">Cancel anytime</span>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </motion.section>
 
       {/* CTA Section */}
