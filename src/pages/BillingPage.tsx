@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Update this with your actual Stripe Price ID for £3.99/month
-const STRIPE_PRICE_ID = 'price_1QdhlFEC1YgoxpP09PEPRRSs';
+// Update this with your actual Stripe checkout URL
+const STRIPE_CHECKOUT_URL = 'https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00';
 
 interface SubscriptionStatus {
   subscription_status: string | null;
@@ -101,20 +100,11 @@ export default function BillingPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId: STRIPE_PRICE_ID }
-      });
-
-      if (error) throw error;
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      // Redirect directly to Stripe checkout
+      window.location.href = STRIPE_CHECKOUT_URL;
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Error creating checkout session. Please try again.');
+      console.error('Error redirecting to checkout:', error);
+      toast.error('Error redirecting to checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -231,7 +221,7 @@ export default function BillingPage() {
                 className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd hover:from-brand-primaryStart/90 hover:to-brand-primaryEnd/90 text-white shadow-lg transform transition hover:scale-105"
               >
                 {loading ? (
-                  'Processing...'
+                  'Redirecting...'
                 ) : isSubscribed ? (
                   <>
                     <Crown className="w-5 h-5 mr-2" />
