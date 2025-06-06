@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -105,10 +104,7 @@ const WelcomePage = () => {
 
         {/* Stripe Buy Button */}
         <motion.div className="flex justify-center" variants={itemVariants}>
-          <stripe-buy-button 
-            buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" 
-            publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
-          />
+          <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
         </motion.div>
       </motion.section>
 
@@ -211,7 +207,7 @@ const WelcomePage = () => {
       {/* CTA Section */}
       <motion.section initial="hidden" whileInView="visible" viewport={{
       once: true
-    }} variants={containerVariants} className="py-12 px-6 text-center bg-[#d0eaff]">
+    }} variants={containerVariants} className="py-12 px-6 text-center bg-[#cfeaff]">
         <motion.div variants={itemVariants}>
           <h3 className="font-display text-3xl text-brand-navy mb-4">
             Ready to Get Started?
