@@ -103,7 +103,7 @@ const WelcomePage = () => {
         </motion.p>
 
         {/* Stripe Buy Button */}
-        <motion.div className="flex justify-center" variants={itemVariants}>
+        <motion.div variants={itemVariants} className="flex justify-center px-0 mx-0 my-[20px] py-0">
           <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
         </motion.div>
       </motion.section>
