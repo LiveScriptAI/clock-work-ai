@@ -14,6 +14,9 @@ interface SubscriptionGateProps {
   redirectTo?: string;
 }
 
+// Developer emails that should have full access
+const DEVELOPER_EMAILS = ['dytransport20@gmail.com'];
+
 export function SubscriptionGate({ 
   children, 
   requiredTier = 'basic',
@@ -31,6 +34,18 @@ export function SubscriptionGate({
 
   useEffect(() => {
     if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if user is a developer
+    if (DEVELOPER_EMAILS.includes(user.email || '')) {
+      console.log('Developer access granted for:', user.email);
+      setSubscriptionData({
+        subscribed: true,
+        subscription_tier: 'pro',
+        subscription_status: 'active'
+      });
       setIsLoading(false);
       return;
     }
@@ -92,17 +107,18 @@ export function SubscriptionGate({
     return null;
   }
 
-  // Check if user has required access
-  const hasAccess = subscriptionData.subscribed && (
+  // Check if user has required access (including developer access)
+  const isDeveloper = DEVELOPER_EMAILS.includes(user.email || '');
+  const hasAccess = isDeveloper || (subscriptionData.subscribed && (
     requiredTier === 'basic' || 
     (requiredTier === 'pro' && subscriptionData.subscription_tier === 'pro')
-  );
+  ));
 
   if (hasAccess) {
     return <>{children}</>;
   }
 
-  // Show subscription gate
+  // Show subscription gate for non-developers without subscription
   const handleUpgradeClick = () => {
     navigate(redirectTo);
   };

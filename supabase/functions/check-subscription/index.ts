@@ -8,6 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Developer emails that should have full access
+const DEVELOPER_EMAILS = ['dytransport20@gmail.com'];
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -54,6 +57,29 @@ serve(async (req) => {
       throw new Error("User not authenticated or email not available");
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Check if user is a developer
+    if (DEVELOPER_EMAILS.includes(user.email)) {
+      logStep("Developer access granted", { email: user.email });
+      
+      // Update profile with developer access
+      await supabaseClient
+        .from("profiles")
+        .update({ 
+          subscription_status: 'active',
+          subscription_tier: 'pro'
+        })
+        .eq("id", user.id);
+
+      return new Response(JSON.stringify({
+        subscribed: true,
+        subscription_tier: 'pro',
+        subscription_status: 'active'
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 

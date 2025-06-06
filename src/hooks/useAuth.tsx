@@ -16,6 +16,9 @@ export type ProfileType = {
   subscription_tier?: string;
 };
 
+// Developer emails that should have full access
+const DEVELOPER_EMAILS = ['dytransport20@gmail.com'];
+
 export function useAuth() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -112,8 +115,10 @@ export function useAuth() {
     }
   };
 
-  const isSubscribed = profile?.subscription_status === 'active';
-  const subscriptionTier = profile?.subscription_tier;
+  // Check if user is a developer or has active subscription
+  const isDeveloper = user?.email && DEVELOPER_EMAILS.includes(user.email);
+  const isSubscribed = isDeveloper || profile?.subscription_status === 'active';
+  const subscriptionTier = isDeveloper ? 'pro' : profile?.subscription_tier;
 
   return { 
     user, 
@@ -122,6 +127,7 @@ export function useAuth() {
     isSubscribed, 
     subscriptionTier,
     isInitialized,
+    isDeveloper,
     refreshProfile: () => user?.id && fetchUserProfile(user.id)
   };
 }
