@@ -1,9 +1,7 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -29,7 +27,6 @@ const WelcomePage = () => {
       }
     }
   };
-
   const imageVariants = {
     hidden: {
       opacity: 0,
@@ -44,7 +41,6 @@ const WelcomePage = () => {
       }
     }
   };
-
   const floatAnimation = {
     y: [-10, 10, -10],
     transition: {
@@ -53,7 +49,6 @@ const WelcomePage = () => {
       ease: "easeInOut"
     }
   };
-
   const features = [{
     icon: "⌚",
     title: "Live Time Tracking",
@@ -75,13 +70,11 @@ const WelcomePage = () => {
     title: "Earnings Overview",
     description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
   }];
-
   React.useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/buy-button.js';
     script.async = true;
     document.head.appendChild(script);
-
     return () => {
       // Cleanup script on unmount
       const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
@@ -90,7 +83,6 @@ const WelcomePage = () => {
       }
     };
   }, []);
-
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -111,10 +103,7 @@ const WelcomePage = () => {
 
         {/* Stripe Buy Button */}
         <motion.div className="flex justify-center" variants={itemVariants}>
-          <stripe-buy-button
-            buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx"
-            publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE"
-          />
+          <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
         </motion.div>
       </motion.section>
 
@@ -160,64 +149,48 @@ const WelcomePage = () => {
           {/* App Screenshots Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {/* Manager Approval Dialog */}
-            <motion.div 
-              className="flex justify-center"
-              variants={imageVariants}
-              animate={floatAnimation}
-            >
-              <img 
-                src="/lovable-uploads/be6a480e-c261-40ac-9ace-e638a2edc3e2.png" 
-                alt="Manager Approval Interface" 
-                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
-              />
+            <motion.div className="flex justify-center" variants={imageVariants} animate={floatAnimation}>
+              <img src="/lovable-uploads/be6a480e-c261-40ac-9ace-e638a2edc3e2.png" alt="Manager Approval Interface" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
 
             {/* Time Tracking Interface */}
-            <motion.div 
-              className="flex justify-center"
-              variants={imageVariants}
-              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 0.5}}}
-            >
-              <img 
-                src="/lovable-uploads/9a4bacff-ec7d-458d-bb51-176f8a992a22.png" 
-                alt="Time Tracking Dashboard" 
-                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
-              />
+            <motion.div className="flex justify-center" variants={imageVariants} animate={{
+            ...floatAnimation,
+            transition: {
+              ...floatAnimation.transition,
+              delay: 0.5
+            }
+          }}>
+              <img src="/lovable-uploads/9a4bacff-ec7d-458d-bb51-176f8a992a22.png" alt="Time Tracking Dashboard" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
 
             {/* Timesheet Log */}
-            <motion.div 
-              className="flex justify-center"
-              variants={imageVariants}
-              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 1}}}
-            >
-              <img 
-                src="/lovable-uploads/706a04d3-6a1e-4abd-afe8-d61ad2d8f20c.png" 
-                alt="Timesheet Log and Reports" 
-                className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
-              />
+            <motion.div className="flex justify-center" variants={imageVariants} animate={{
+            ...floatAnimation,
+            transition: {
+              ...floatAnimation.transition,
+              delay: 1
+            }
+          }}>
+              <img src="/lovable-uploads/706a04d3-6a1e-4abd-afe8-d61ad2d8f20c.png" alt="Timesheet Log and Reports" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
 
             {/* QR Code for Mobile */}
-            <motion.div 
-              className="flex flex-col items-center justify-center"
-              variants={imageVariants}
-              animate={{...floatAnimation, transition: {...floatAnimation.transition, delay: 1.5}}}
-            >
-              <img 
-                src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" 
-                alt="Scan to subscribe QR Code" 
-                className="w-full max-w-[250px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300"
-              />
+            <motion.div className="flex flex-col items-center justify-center" variants={imageVariants} animate={{
+            ...floatAnimation,
+            transition: {
+              ...floatAnimation.transition,
+              delay: 1.5
+            }
+          }}>
+              <img src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" alt="Scan to subscribe QR Code" className="w-full max-w-[250px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
               <p className="text-sm opacity-80 mt-2 text-center">Scan with your phone to get started instantly</p>
             </motion.div>
           </div>
 
           {/* CTA Section */}
           <motion.div className="text-center" variants={itemVariants}>
-            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>
-              From £10/month - Cancel anytime. Start your 7-day free trial today and experience the difference.
-            </motion.p>
+            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>Start your 7-day free trial today and experience the difference.</motion.p>
             
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
               <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
@@ -257,5 +230,4 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
-
 export default WelcomePage;
