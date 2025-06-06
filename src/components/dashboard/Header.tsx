@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
@@ -8,10 +9,14 @@ import ReactCountryFlag from "react-country-flag";
 import { useAuth } from '@/hooks/useAuth';
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
   sheetOpen: boolean;
 };
+
 const Header: React.FC<HeaderProps> = ({
   setSheetOpen,
   sheetOpen
@@ -23,9 +28,11 @@ const Header: React.FC<HeaderProps> = ({
   const isMobile = useIsMobile();
   const {
     user,
-    handleSignOut
+    handleSignOut,
+    isSubscribed
   } = useAuth();
   const [logo, setLogo] = useState<string | null>(null);
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   // Fetch logo when component mounts if user is logged in
   useEffect(() => {
@@ -42,6 +49,32 @@ const Header: React.FC<HeaderProps> = ({
     };
     fetchLogo();
   }, [user]);
+
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast.error('You must be logged in to manage your subscription.');
+      return;
+    }
+
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No portal URL received');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast.error('Error opening subscription management. Please try again.');
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
+
   return <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -65,6 +98,21 @@ const Header: React.FC<HeaderProps> = ({
                 </SheetTitle>
               </SheetHeader>
               
+              {/* Mobile menu items */}
+              <div className="mt-6 space-y-3">
+                {isSubscribed && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    onClick={handleManageSubscription}
+                    disabled={loadingPortal}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    {loadingPortal ? 'Loading...' : 'Manage Subscription'}
+                  </Button>
+                )}
+              </div>
+              
               <div className="mt-auto pt-6 border-t border-gray-200">
                 <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                   {t('Sign Out')}
@@ -85,6 +133,20 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Right side actions */}
           <div className="flex items-center gap-3">
+            {/* Desktop subscription management */}
+            {isSubscribed && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleManageSubscription}
+                disabled={loadingPortal}
+                className="hidden md:flex px-4 py-2 text-sm font-medium"
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                {loadingPortal ? 'Loading...' : 'Manage Subscription'}
+              </Button>
+            )}
+            
             <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex px-4 py-2 text-sm font-medium">
               {t('Sign Out')}
             </Button>
@@ -126,4 +188,5 @@ const Header: React.FC<HeaderProps> = ({
       </div>
     </header>;
 };
+
 export default Header;
