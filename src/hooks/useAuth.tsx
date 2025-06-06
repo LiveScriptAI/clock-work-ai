@@ -21,37 +21,34 @@ export function useAuth() {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session);
       
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
+        setIsLoading(false);
         // Only redirect to login if not on public pages
         if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
           navigate("/login");
         }
-      } else if (event === 'SIGNED_IN' && session) {
-        setUser(session.user);
-        // Don't auto-redirect to dashboard if on email verification page
-        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
-          // Fetch profile data if user is authenticated
-          if (session.user?.id) {
-            fetchUserProfile(session.user.id);
-          }
-        }
       } else if (session) {
         setUser(session.user);
-        // Don't auto-redirect to dashboard if on email verification page
-        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
-          // Fetch profile data if user is authenticated
-          if (session.user?.id) {
-            fetchUserProfile(session.user.id);
-          }
+        
+        // Fetch profile data and check subscription status
+        if (session.user?.id) {
+          await fetchUserProfile(session.user.id);
+          
+          // After fetching profile, check if we need to redirect based on subscription
+          setTimeout(() => {
+            checkSubscriptionAndRedirect();
+          }, 100);
         }
+        setIsLoading(false);
       }
     });
     
@@ -59,19 +56,19 @@ export function useAuth() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        setIsLoading(false);
         // Only redirect to login if not on public pages
         if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
           navigate("/login");
         }
       } else {
         setUser(session.user);
-        // Don't auto-redirect to dashboard if on email verification page
-        if (location.pathname !== '/email-verification' && location.pathname !== '/register') {
-          // Fetch profile data if user is authenticated
-          if (session.user?.id) {
-            fetchUserProfile(session.user.id);
-          }
+        // Fetch profile data and check subscription
+        if (session.user?.id) {
+          await fetchUserProfile(session.user.id);
+          checkSubscriptionAndRedirect();
         }
+        setIsLoading(false);
       }
     };
     
@@ -91,6 +88,22 @@ export function useAuth() {
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
+    }
+  };
+
+  const checkSubscriptionAndRedirect = () => {
+    // Don't redirect if on public pages or subscription-related pages
+    const publicPages = ['/welcome', '/register', '/login', '/email-verification', '/subscription-required', '/billing'];
+    if (publicPages.includes(location.pathname)) {
+      return;
+    }
+
+    // If user is authenticated but doesn't have active subscription, redirect to subscription required
+    if (user && profile?.subscription_status !== 'active') {
+      navigate('/subscription-required');
+    } else if (user && profile?.subscription_status === 'active' && location.pathname === '/subscription-required') {
+      // If user has subscription but is on subscription required page, redirect to dashboard
+      navigate('/dashboard');
     }
   };
 
@@ -120,6 +133,7 @@ export function useAuth() {
     handleSignOut, 
     isSubscribed, 
     subscriptionTier,
+    isLoading,
     refreshProfile: () => user?.id && fetchUserProfile(user.id)
   };
 }

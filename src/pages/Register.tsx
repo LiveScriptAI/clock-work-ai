@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const RegisterPage = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && window.location.pathname !== '/email-verification') {
+        // Let the useAuth hook handle the subscription check and redirect
         navigate("/dashboard");
       }
     };
@@ -29,6 +31,7 @@ const RegisterPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session && window.location.pathname !== '/email-verification') {
+        // Let the useAuth hook handle the subscription check and redirect
         navigate("/dashboard");
       }
     });

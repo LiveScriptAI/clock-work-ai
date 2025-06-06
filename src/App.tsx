@@ -4,11 +4,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import WelcomePage from "./pages/Welcome";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import EmailVerificationPage from "./pages/EmailVerification";
+import SubscriptionRequiredPage from "./pages/SubscriptionRequired";
 import DashboardPage from "./pages/Dashboard";
 import BillingPage from "./pages/BillingPage";
 
@@ -25,8 +27,16 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/email-verification" element={<EmailVerificationPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/subscription-required" element={<SubscriptionRequiredPage />} />
           <Route path="/billing" element={<BillingPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute requireSubscription={true}>
+                <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/" element={<Navigate to="/welcome" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -23,6 +23,7 @@ const LoginPage = () => {
         data: { session }
       } = await supabase.auth.getSession();
       if (session) {
+        // Let the useAuth hook handle the subscription check and redirect
         navigate("/dashboard");
       }
     };
@@ -33,6 +34,7 @@ const LoginPage = () => {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        // Let the useAuth hook handle the subscription check and redirect
         navigate("/dashboard");
       }
     });
@@ -95,7 +97,7 @@ const LoginPage = () => {
         setRetryCount(0); // Reset retry count on success
         toast({
           title: "Login successful",
-          description: "Welcome back!"
+          description: "Checking your subscription status..."
         });
       }
     } catch (error) {
