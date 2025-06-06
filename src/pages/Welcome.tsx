@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -131,7 +130,7 @@ const WelcomePage = () => {
         </motion.div>
 
         {/* Important Note */}
-        <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
+        <motion.p variants={itemVariants} className="font-body text-center max-w-md mt-4 my-[18px] text-lg font-normal text-slate-50">
           ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
         </motion.p>
       </motion.section>
@@ -251,5 +250,4 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
-
 export default WelcomePage;
