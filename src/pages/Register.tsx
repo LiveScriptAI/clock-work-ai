@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,25 +18,35 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is already logged in
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', session);
+      
+      // If user just signed in and we're showing the email verification screen, keep them here
+      if (event === 'SIGNED_IN' && session && emailSent) {
+        // User has verified their email, they can now start the trial
+        console.log('User verified email and signed in');
+        return;
+      }
+      
+      // Only redirect to dashboard if user is signed in AND not in email verification flow
+      if (event === 'SIGNED_IN' && session && !emailSent) {
+        navigate("/dashboard");
+      }
+    });
+    
+    // Check if user is already logged in (but not in verification flow)
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && !emailSent) {
         navigate("/dashboard");
       }
     };
     
     checkSession();
     
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        navigate("/dashboard");
-      }
-    });
-    
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, emailSent]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +59,8 @@ const RegisterPage = () => {
         options: {
           data: {
             full_name: fullName
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/register`
         }
       });
       
