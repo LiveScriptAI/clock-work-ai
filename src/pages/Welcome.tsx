@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import FeaturesGrid from "@/components/FeaturesGrid";
+
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -50,27 +52,6 @@ const WelcomePage = () => {
       ease: "easeInOut"
     }
   };
-  const features = [{
-    icon: "⌚",
-    title: "Live Time Tracking",
-    description: "Start and end shifts and breaks in real time. Your time keeps counting even if you reload the app."
-  }, {
-    icon: "📊",
-    title: "Smart Work Summaries",
-    description: "Instant daily, weekly and monthly dashboards that show total hours, breaks and earnings all at a glance."
-  }, {
-    icon: "📝",
-    title: "Easy Invoicing and PDF Export",
-    description: "Convert shifts into invoices. Customise your company and client details, then download or email a PDF in seconds."
-  }, {
-    icon: "📤",
-    title: "Instant Sharing",
-    description: "Send timesheets, summaries or invoices via Email, WhatsApp or download. No extra apps needed."
-  }, {
-    icon: "💰",
-    title: "Earnings Overview",
-    description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
-  }];
   React.useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/buy-button.js';
@@ -134,23 +115,7 @@ const WelcomePage = () => {
       </motion.section>
 
       {/* Features Section */}
-      <section id="features" className="py-12 px-6 bg-[#cfeaff]">
-        <motion.div initial="hidden" whileInView="visible" viewport={{
-        once: true
-      }} variants={containerVariants}>
-          <motion.h2 className="font-display text-3xl md:text-4xl text-brand-navy text-center mb-8" variants={itemVariants}>
-            Key Features
-          </motion.h2>
-          
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {features.map((feature, index) => <motion.div key={index} className="bg-white rounded-xl shadow-md p-5 flex flex-col items-start hover:shadow-lg transition-shadow" variants={itemVariants}>
-                <span className="text-4xl mb-3">{feature.icon}</span>
-                <h3 className="font-display text-2xl text-brand-navy mb-2">{feature.title}</h3>
-                <p className="font-body text-neutral-700 leading-snug">{feature.description}</p>
-              </motion.div>)}
-          </div>
-        </motion.div>
-      </section>
+      <FeaturesGrid />
 
       {/* Redesigned Unlock Your Full Potential Section */}
       <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-white overflow-hidden" initial="hidden" whileInView="visible" viewport={{
