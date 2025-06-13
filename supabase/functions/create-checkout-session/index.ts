@@ -22,10 +22,19 @@ serve(async (req) => {
     logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
+    
+    // Get frontend URL with fallback logic
+    let frontendUrl = Deno.env.get("FRONTEND_URL");
+    if (!frontendUrl) {
+      // Fallback to request origin
+      frontendUrl = req.headers.get("origin") || "https://preview--clock-work-ai.lovable.app";
+    }
+    
+    // Ensure no trailing slash
+    frontendUrl = frontendUrl.replace(/\/$/, '');
     
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    logStep("Stripe key verified", { frontendUrl });
 
     // Initialize Supabase with service role key for writes
     const supabaseClient = createClient(
@@ -81,6 +90,12 @@ serve(async (req) => {
       logStep("Using existing customer ID", { customerId });
     }
 
+    // Create success and cancel URLs with explicit parameters
+    const successUrl = `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}&payment_status=success`;
+    const cancelUrl = `${frontendUrl}/billing?canceled=true&payment_status=canceled`;
+    
+    logStep("URLs configured", { successUrl, cancelUrl });
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -92,11 +107,15 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontendUrl}/billing?canceled=true`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         supabaseUserId: user.id
-      }
+      },
+      // Add billing address collection for better completion tracking
+      billing_address_collection: "auto",
+      // Allow promotion codes
+      allow_promotion_codes: true,
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });

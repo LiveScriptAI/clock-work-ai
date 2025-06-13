@@ -24,16 +24,20 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session);
+      if (!mounted) return;
+      
+      console.log('Auth state change:', event, session?.user?.email);
       
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
         setIsLoading(false);
         // Only redirect to login if not on public pages
-        if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
+        if (!['/welcome', '/register', '/login', '/email-verification', '/billing'].includes(location.pathname)) {
           navigate("/login");
         }
       } else if (session) {
@@ -43,9 +47,11 @@ export function useAuth() {
         if (session.user?.id) {
           await fetchUserProfile(session.user.id);
           
-          // After fetching profile, check if we need to redirect based on subscription
+          // Small delay to ensure profile is updated before redirect check
           setTimeout(() => {
-            checkSubscriptionAndRedirect();
+            if (mounted) {
+              checkSubscriptionAndRedirect();
+            }
           }, 100);
         }
         setIsLoading(false);
@@ -54,27 +60,39 @@ export function useAuth() {
     
     // THEN check for existing session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setIsLoading(false);
-        // Only redirect to login if not on public pages
-        if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
-          navigate("/login");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (!session) {
+          setIsLoading(false);
+          // Only redirect to login if not on public pages
+          if (!['/welcome', '/register', '/login', '/email-verification', '/billing'].includes(location.pathname)) {
+            navigate("/login");
+          }
+        } else {
+          setUser(session.user);
+          // Fetch profile data and check subscription
+          if (session.user?.id) {
+            await fetchUserProfile(session.user.id);
+            checkSubscriptionAndRedirect();
+          }
+          setIsLoading(false);
         }
-      } else {
-        setUser(session.user);
-        // Fetch profile data and check subscription
-        if (session.user?.id) {
-          await fetchUserProfile(session.user.id);
-          checkSubscriptionAndRedirect();
+      } catch (error) {
+        console.error('Error checking session:', error);
+        if (mounted) {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
     
     checkSession();
     
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate, location.pathname]);
 
   const fetchUserProfile = async (userId: string) => {
@@ -85,6 +103,7 @@ export function useAuth() {
         .eq("id", userId)
         .maybeSingle();
       
+      console.log('Profile fetched:', data);
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -94,15 +113,25 @@ export function useAuth() {
   const checkSubscriptionAndRedirect = () => {
     // Don't redirect if on public pages or subscription-related pages
     const publicPages = ['/welcome', '/register', '/login', '/email-verification', '/subscription-required', '/billing'];
-    if (publicPages.includes(location.pathname)) {
+    const currentPath = location.pathname;
+    
+    console.log('Checking subscription redirect:', { 
+      currentPath, 
+      isPublicPage: publicPages.includes(currentPath),
+      subscriptionStatus: profile?.subscription_status 
+    });
+    
+    if (publicPages.includes(currentPath)) {
       return;
     }
 
     // If user is authenticated but doesn't have active subscription, redirect to subscription required
     if (user && profile?.subscription_status !== 'active') {
+      console.log('Redirecting to subscription required');
       navigate('/subscription-required');
-    } else if (user && profile?.subscription_status === 'active' && location.pathname === '/subscription-required') {
+    } else if (user && profile?.subscription_status === 'active' && currentPath === '/subscription-required') {
       // If user has subscription but is on subscription required page, redirect to dashboard
+      console.log('User has active subscription, redirecting to dashboard');
       navigate('/dashboard');
     }
   };

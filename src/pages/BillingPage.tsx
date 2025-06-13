@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
+import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SubscriptionStatus {
@@ -17,25 +18,34 @@ interface SubscriptionStatus {
 
 export default function BillingPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
-  // Check URL for session_id on mount
+  // Check URL for session_id or payment status on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
     const canceled = params.get('canceled');
-    if (sessionId) {
+    const paymentStatus = params.get('payment_status');
+    
+    console.log('URL params detected:', { sessionId, canceled, paymentStatus });
+
+    if (sessionId && paymentStatus === 'success') {
+      console.log('Payment success detected, verifying checkout...');
       verifyCheckout(sessionId);
-    } else if (canceled) {
+    } else if (canceled === 'true' || paymentStatus === 'canceled') {
       setMessage('Subscription canceled. You can try again anytime.');
+      toast.error('Payment was canceled');
     }
 
-    // Clean up URL
-    if (sessionId || canceled) {
-      window.history.replaceState({}, document.title, window.location.pathname);
+    // Clean up URL parameters after processing
+    if (sessionId || canceled || paymentStatus) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
     }
   }, []);
 
@@ -56,22 +66,53 @@ export default function BillingPage() {
         .single();
       if (error) throw error;
       setSubscriptionStatus(data);
+      console.log('Subscription status fetched:', data);
     } catch (error) {
       console.error('Error fetching subscription status:', error);
     }
   };
 
   const verifyCheckout = async (sessionId: string) => {
+    setVerifying(true);
     setLoading(true);
+    
     try {
+      console.log('Verifying checkout with session ID:', sessionId);
+      
       const { data, error } = await supabase.functions.invoke('verify-checkout', {
         body: { sessionId }
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Verify checkout error:', error);
+        throw error;
+      }
+      
+      console.log('Verify checkout response:', data);
+      
       if (data.success) {
         setMessage('Subscription activated successfully! Welcome to Clock Work Pal Pro.');
-        toast.success('Subscription activated!');
+        toast.success('Subscription activated! Redirecting to dashboard...');
+        
+        // Refresh the auth session to get updated user data
+        console.log('Refreshing auth session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Session refresh error:', sessionError);
+        } else {
+          console.log('Session refreshed successfully');
+        }
+        
+        // Refresh profile data
+        await refreshProfile();
         await fetchSubscriptionStatus();
+        
+        // Navigate to dashboard after a short delay
+        setTimeout(() => {
+          console.log('Navigating to dashboard...');
+          navigate('/dashboard');
+        }, 2000);
+        
       } else {
         setMessage('There was an issue verifying your subscription. Please contact support.');
         toast.error('Verification failed');
@@ -81,15 +122,32 @@ export default function BillingPage() {
       setMessage('Error verifying subscription. Please contact support.');
       toast.error('Verification error');
     } finally {
+      setVerifying(false);
       setLoading(false);
     }
   };
 
   const handleStartTrial = () => {
-    window.open('https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00', '_blank');
+    // Open in the same window instead of new tab
+    window.location.href = 'https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00';
   };
 
   const isSubscribed = subscriptionStatus?.subscription_status === 'active';
+
+  // Show verification loading state
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-brand-neutralBg via-white to-blue-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto text-center p-8">
+          <CardContent>
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-brand-navy" />
+            <h2 className="text-xl font-semibold text-brand-navy mb-2">Verifying Your Subscription</h2>
+            <p className="text-gray-600">Please wait while we confirm your payment...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const features = [
     {
@@ -139,7 +197,13 @@ export default function BillingPage() {
 
         {/* Status Messages */}
         {message && (
-          <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl text-center">
+          <div className={`mb-8 p-4 rounded-xl text-center ${
+            message.includes('successfully') 
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : message.includes('canceled')
+              ? 'bg-yellow-100 border border-yellow-400 text-yellow-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
             {message}
           </div>
         )}
@@ -203,9 +267,17 @@ export default function BillingPage() {
                 ) : (
                   <Button 
                     onClick={handleStartTrial}
+                    disabled={loading}
                     className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white shadow-lg hover:opacity-90 transition"
                   >
-                    Start Your Free Trial
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Start Your Free Trial'
+                    )}
                   </Button>
                 )}
               </div>
