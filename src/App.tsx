@@ -10,7 +10,6 @@ import NotFound from "./pages/NotFound";
 import WelcomePage from "./pages/Welcome";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
-import EmailVerificationPage from "./pages/EmailVerification";
 import DashboardPage from "./pages/Dashboard";
 import ThankYou from "./pages/ThankYou";
 
@@ -27,12 +26,11 @@ const App = () => (
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/email-verification" element={<EmailVerificationPage />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route 
               path="/dashboard" 
               element={
-                <ProtectedRoute requireSubscription={false}>
+                <ProtectedRoute requireSubscription={true}>
                   <DashboardPage />
                 </ProtectedRoute>
               } 

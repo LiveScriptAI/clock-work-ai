@@ -20,8 +20,7 @@ const RegisterPage = () => {
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && window.location.pathname !== '/email-verification') {
-        // Let the useAuth hook handle the subscription check and redirect
+      if (session) {
         navigate("/dashboard");
       }
     };
@@ -30,8 +29,7 @@ const RegisterPage = () => {
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && window.location.pathname !== '/email-verification') {
-        // Let the useAuth hook handle the subscription check and redirect
+      if (event === 'SIGNED_IN' && session) {
         navigate("/dashboard");
       }
     });
@@ -51,7 +49,7 @@ const RegisterPage = () => {
           data: {
             full_name: fullName
           },
-          emailRedirectTo: `${window.location.origin}/email-verification`
+          emailRedirectTo: `${window.location.origin}/welcome`
         }
       });
       
@@ -62,16 +60,13 @@ const RegisterPage = () => {
           description: error.message
         });
       } else if (data.user) {
-        // Store email for the verification page
-        localStorage.setItem('pendingVerificationEmail', email);
-        
         toast({
           title: "Registration successful",
-          description: "Please check your email to verify your account."
+          description: "Please check your email to verify your account, then return to start your trial."
         });
         
-        // Redirect to email verification page
-        navigate("/email-verification");
+        // Redirect to welcome page
+        navigate("/welcome");
       }
     } catch (error) {
       toast({

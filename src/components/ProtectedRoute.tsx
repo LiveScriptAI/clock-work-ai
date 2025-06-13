@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireSubscription = false }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, subscriptionStatus } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,7 +23,10 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // For now, we're not enforcing subscription requirements
-  // This will be re-implemented in future phases
+  // If subscription is required, check if user has active subscription
+  if (requireSubscription && subscriptionStatus !== 'active') {
+    return <Navigate to="/welcome" replace />;
+  }
+
   return <>{children}</>;
 }
