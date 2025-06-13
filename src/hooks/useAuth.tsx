@@ -11,6 +11,8 @@ interface AuthContextType {
   loading: boolean;
   handleSignOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  subscriptionStatus: string | null;
+  isSubscribed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,12 +21,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const isSubscribed = subscriptionStatus === 'active';
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('subscription_status')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        setSubscriptionStatus(data.subscription_status);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user?.id) {
+      await fetchUserProfile(user.id);
+    }
+  };
 
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setSubscriptionStatus(null);
       navigate('/welcome');
       toast.success('Signed out successfully');
     } catch (error) {
@@ -33,16 +66,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const refreshProfile = async () => {
-    // Placeholder for future profile refresh logic
-    console.log('Profile refresh requested');
-  };
-
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user?.id) {
+        fetchUserProfile(session.user.id);
+      }
       setLoading(false);
     });
 
@@ -55,10 +86,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      if (event === 'SIGNED_IN') {
-        console.log('User signed in:', session?.user?.email);
+      if (event === 'SIGNED_IN' && session?.user?.id) {
+        console.log('User signed in:', session.user.email);
+        await fetchUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
+        setSubscriptionStatus(null);
       }
     });
 
@@ -71,6 +104,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     handleSignOut,
     refreshProfile,
+    subscriptionStatus,
+    isSubscribed,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
+import StripeCheckoutButton from "@/components/StripeCheckoutButton";
+import { useAuth } from "@/hooks/useAuth";
 
 const WelcomePage = () => {
+  const { user } = useAuth();
+  
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -73,38 +77,46 @@ const WelcomePage = () => {
         {/* Subtext */}
         <motion.p variants={itemVariants} className="font-body max-w-2xl text-white/90 text-center mb-8 text-lg md:text-lg">Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.</motion.p>
 
-        {/* Get Started Instructions */}
+        {/* Pricing highlight */}
         <motion.div className="text-center mb-8" variants={itemVariants}>
-          <h3 className="font-display text-white mb-4 text-3xl">Get started in 2 simple steps:</h3>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md mx-auto">
+            <h3 className="font-display text-white mb-2 text-2xl">7-Day Free Trial</h3>
+            <p className="text-white/90 text-lg mb-4">Then just £3.99/month</p>
+            <div className="text-sm text-white/80">
+              <p>✓ Unlimited time tracking</p>
+              <p>✓ Professional invoicing</p>
+              <p>✓ Export timesheets</p>
+              <p>✓ Cancel anytime</p>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Step 1: Create Account */}
-        <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
-          <div className="flex items-center mb-3">
-            <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">1</span>
-            <span className="font-body text-lg text-white">Create your account</span>
-          </div>
-          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-            <Link to="/register">Create Account</Link>
-          </Button>
-        </motion.div>
-
-        {/* Step 2: Sign In */}
-        <motion.div className="flex flex-col items-center" variants={itemVariants}>
-          <div className="flex items-center mb-3">
-            <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
-            <span className="font-body text-lg text-white">Sign in to start tracking</span>
-          </div>
-          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-            <Link to="/login">Sign In</Link>
-          </Button>
+        {/* CTA Buttons */}
+        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center" variants={itemVariants}>
+          {user ? (
+            <>
+              <StripeCheckoutButton className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200" />
+              <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
+                <Link to="/dashboard">Go to Dashboard</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+                <Link to="/register">Start Free Trial</Link>
+              </Button>
+              <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
+                <Link to="/login">Sign In</Link>
+              </Button>
+            </>
+          )}
         </motion.div>
       </motion.section>
 
       {/* Features Section */}
       <FeaturesGrid />
 
-      {/* Redesigned App Preview Section */}
+      {/* App Preview Section */}
       <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-white overflow-hidden" initial="hidden" whileInView="visible" viewport={{
       once: true
     }} variants={containerVariants}>
@@ -124,14 +136,12 @@ const WelcomePage = () => {
             </motion.p>
           </motion.div>
 
-          {/* App Screenshots Grid - 3 images evenly spaced */}
+          {/* App Screenshots Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-5xl mx-auto">
-            {/* Manager Approval Dialog */}
             <motion.div className="flex justify-center" variants={imageVariants} animate={floatAnimation}>
               <img src="/lovable-uploads/be6a480e-c261-40ac-9ace-e638a2edc3e2.png" alt="Manager Approval Interface" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
 
-            {/* Time Tracking Interface */}
             <motion.div className="flex justify-center" variants={imageVariants} animate={{
             ...floatAnimation,
             transition: {
@@ -142,7 +152,6 @@ const WelcomePage = () => {
               <img src="/lovable-uploads/9a4bacff-ec7d-458d-bb51-176f8a992a22.png" alt="Time Tracking Dashboard" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
 
-            {/* Timesheet Log */}
             <motion.div className="flex justify-center" variants={imageVariants} animate={{
             ...floatAnimation,
             transition: {
@@ -159,7 +168,7 @@ const WelcomePage = () => {
       {/* Testimonials Section */}
       <TestimonialsCarousel />
 
-      {/* CTA Section */}
+      {/* Final CTA Section */}
       <motion.section initial="hidden" whileInView="visible" viewport={{
       once: true
     }} variants={containerVariants} className="py-12 px-6 text-center bg-[#cfeaff]">
@@ -171,12 +180,18 @@ const WelcomePage = () => {
             Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
-              <Link to="/register">Create Account</Link>
-            </Button>
-            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
-              <Link to="/login">Sign In</Link>
-            </Button>
+            {user ? (
+              <StripeCheckoutButton className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg" />
+            ) : (
+              <>
+                <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+                  <Link to="/register">Start Free Trial</Link>
+                </Button>
+                <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              </>
+            )}
           </div>
         </motion.div>
       </motion.section>
