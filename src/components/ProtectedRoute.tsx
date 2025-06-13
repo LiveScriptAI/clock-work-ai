@@ -1,35 +1,29 @@
 
-import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireSubscription?: boolean;
 }
 
-export function ProtectedRoute({ children, requireSubscription = true }: ProtectedRouteProps) {
-  const { user, isSubscribed, isLoading } = useAuth();
+export function ProtectedRoute({ children, requireSubscription = false }: ProtectedRouteProps) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  // Show loading while checking auth state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-navy"></div>
       </div>
     );
   }
 
-  // If not authenticated, redirect to login
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authentication is required but no subscription, redirect to subscription required
-  if (requireSubscription && !isSubscribed) {
-    return <Navigate to="/subscription-required" replace />;
-  }
-
+  // For now, we're not enforcing subscription requirements
+  // This will be re-implemented in future phases
   return <>{children}</>;
 }

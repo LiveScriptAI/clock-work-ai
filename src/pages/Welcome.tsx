@@ -1,16 +1,12 @@
 
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const WelcomePage = () => {
-  const navigate = useNavigate();
-  
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -61,41 +57,6 @@ const WelcomePage = () => {
     }
   };
 
-  const handleStartTrial = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error('Please create an account first to start your trial');
-        navigate('/register');
-        return;
-      }
-
-      console.log('Creating checkout session...');
-      
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { 
-          priceId: 'price_1RWcohEC1YgoxpP0yAhZYBVA' // Your Stripe price ID
-        }
-      });
-      
-      if (error) {
-        console.error('Create checkout error:', error);
-        throw error;
-      }
-      
-      if (data.url) {
-        console.log('Redirecting to Stripe checkout:', data.url);
-        window.location.href = data.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start checkout. Please try again.');
-    }
-  };
-
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -128,31 +89,22 @@ const WelcomePage = () => {
           </Button>
         </motion.div>
 
-        {/* Step 2: Start Trial */}
+        {/* Step 2: Sign In */}
         <motion.div className="flex flex-col items-center" variants={itemVariants}>
           <div className="flex items-center mb-3">
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
-            <span className="font-body text-lg text-white">Start your 7-day free trial</span>
+            <span className="font-body text-lg text-white">Sign in to start tracking</span>
           </div>
-          <Button 
-            onClick={handleStartTrial}
-            size="lg" 
-            className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
-          >
-            Start Free Trial
+          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+            <Link to="/login">Sign In</Link>
           </Button>
         </motion.div>
-
-        {/* Important Note */}
-        <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
-          ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
-        </motion.p>
       </motion.section>
 
       {/* Features Section */}
       <FeaturesGrid />
 
-      {/* Redesigned Unlock Your Full Potential Section */}
+      {/* Redesigned App Preview Section */}
       <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-white overflow-hidden" initial="hidden" whileInView="visible" viewport={{
       once: true
     }} variants={containerVariants}>
@@ -201,24 +153,6 @@ const WelcomePage = () => {
               <img src="/lovable-uploads/706a04d3-6a1e-4abd-afe8-d61ad2d8f20c.png" alt="Timesheet Log and Reports" className="w-full max-w-[280px] h-auto rounded-lg shadow-2xl hover:shadow-3xl transition-shadow duration-300" />
             </motion.div>
           </div>
-
-          {/* CTA Section */}
-          <motion.div className="text-center" variants={itemVariants}>
-            {/* QR Code - smaller and static */}
-            <motion.div className="flex justify-center mb-6" variants={itemVariants}>
-              <img src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" alt="Scan to subscribe QR Code" className="w-24 h-24 rounded-lg shadow-lg" />
-            </motion.div>
-            
-            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>Scan the QR code to start your 7-day free trial and take control of recorded hours so your boss can pay you correctly! </motion.p>
-            
-            <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
-              <div className="flex items-center gap-2 opacity-70">
-                <span className="text-sm">No credit card required</span>
-                <span className="text-xs">•</span>
-                <span className="text-sm">Cancel anytime</span>
-              </div>
-            </motion.div>
-          </motion.div>
         </div>
       </motion.section>
 

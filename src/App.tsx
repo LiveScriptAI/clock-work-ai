@@ -10,9 +10,7 @@ import WelcomePage from "./pages/Welcome";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import EmailVerificationPage from "./pages/EmailVerification";
-import SubscriptionRequiredPage from "./pages/SubscriptionRequired";
 import DashboardPage from "./pages/Dashboard";
-import BillingPage from "./pages/BillingPage";
 
 const queryClient = new QueryClient();
 
@@ -27,12 +25,10 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/email-verification" element={<EmailVerificationPage />} />
-          <Route path="/subscription-required" element={<SubscriptionRequiredPage />} />
-          <Route path="/billing" element={<BillingPage />} />
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute requireSubscription={true}>
+              <ProtectedRoute requireSubscription={false}>
                 <DashboardPage />
               </ProtectedRoute>
             } 
