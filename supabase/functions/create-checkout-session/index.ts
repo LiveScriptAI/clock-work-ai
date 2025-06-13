@@ -52,7 +52,7 @@ serve(async (req) => {
     
     const user = userData.user;
     if (!user?.id) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { priceId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
@@ -90,7 +90,7 @@ serve(async (req) => {
       logStep("Using existing customer ID", { customerId });
     }
 
-    // Create success and cancel URLs that redirect to the billing page with parameters
+    // Create success and cancel URLs
     const successUrl = `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}&payment_status=success`;
     const cancelUrl = `${frontendUrl}/billing?canceled=true&payment_status=canceled`;
     
@@ -99,7 +99,7 @@ serve(async (req) => {
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "apple_pay", "google_pay"],
       customer: customerId,
       line_items: [
         {
@@ -107,6 +107,11 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
+      subscription_data: {
+        metadata: {
+          supabaseUserId: user.id
+        }
+      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -123,7 +128,7 @@ serve(async (req) => {
       },
       // Configure automatic tax
       automatic_tax: {
-        enabled: false,
+        enabled: true,
       },
     });
 

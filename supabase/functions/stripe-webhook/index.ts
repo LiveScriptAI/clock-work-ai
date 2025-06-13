@@ -40,6 +40,41 @@ serve(async (req) => {
     logStep("Webhook verified", { type: event.type });
 
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const customerId = session.customer as string;
+        const userId = session.metadata?.supabaseUserId;
+        
+        logStep("Processing checkout completed", { customerId, userId, sessionId: session.id });
+        
+        if (userId && session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          
+          // Determine subscription tier based on price
+          let subscriptionTier = "basic";
+          if (subscription.items.data.length > 0) {
+            const price = subscription.items.data[0].price;
+            const amount = price.unit_amount || 0;
+            if (amount >= 2500) { // £25 or more
+              subscriptionTier = "pro";
+            }
+          }
+          
+          await supabaseClient
+            .from("profiles")
+            .update({ 
+              subscription_status: "active",
+              stripe_subscription_id: subscription.id,
+              subscription_tier: subscriptionTier
+            })
+            .eq("id", userId);
+          
+          logStep("Updated profile for checkout completion", { userId, subscriptionTier });
+        }
+        
+        break;
+      }
+
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;

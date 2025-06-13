@@ -1,11 +1,16 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const WelcomePage = () => {
+  const navigate = useNavigate();
+  
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -17,6 +22,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const itemVariants = {
     hidden: {
       opacity: 0,
@@ -30,6 +36,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const imageVariants = {
     hidden: {
       opacity: 0,
@@ -44,6 +51,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const floatAnimation = {
     y: [-10, 10, -10],
     transition: {
@@ -52,19 +60,42 @@ const WelcomePage = () => {
       ease: "easeInOut"
     }
   };
-  React.useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/buy-button.js';
-    script.async = true;
-    document.head.appendChild(script);
-    return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
-      if (existingScript) {
-        document.head.removeChild(existingScript);
+
+  const handleStartTrial = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('Please create an account first to start your trial');
+        navigate('/register');
+        return;
       }
-    };
-  }, []);
+
+      console.log('Creating checkout session...');
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { 
+          priceId: 'price_1RWcohEC1YgoxpP0yAhZYBVA' // Your Stripe price ID
+        }
+      });
+      
+      if (error) {
+        console.error('Create checkout error:', error);
+        throw error;
+      }
+      
+      if (data.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout. Please try again.');
+    }
+  };
+
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -103,9 +134,13 @@ const WelcomePage = () => {
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
             <span className="font-body text-lg text-white">Start your 7-day free trial</span>
           </div>
-          <div className="flex justify-center px-0 mx-0 my-[20px] py-0">
-            <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
-          </div>
+          <Button 
+            onClick={handleStartTrial}
+            size="lg" 
+            className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
+          >
+            Start Free Trial
+          </Button>
         </motion.div>
 
         {/* Important Note */}
@@ -213,4 +248,5 @@ const WelcomePage = () => {
       </motion.section>
     </div>;
 };
+
 export default WelcomePage;

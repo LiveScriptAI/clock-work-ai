@@ -139,7 +139,6 @@ export default function BillingPage() {
     try {
       console.log('Creating checkout session...');
       
-      // Use our custom checkout function instead of direct Stripe link
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { 
           priceId: 'price_1RWcohEC1YgoxpP0yAhZYBVA' // Your Stripe price ID
