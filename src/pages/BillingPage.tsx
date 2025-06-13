@@ -127,9 +127,42 @@ export default function BillingPage() {
     }
   };
 
-  const handleStartTrial = () => {
-    // Open in the same window instead of new tab
-    window.location.href = 'https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00';
+  const handleStartTrial = async () => {
+    if (!user) {
+      toast.error('Please log in first to start your subscription');
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log('Creating checkout session...');
+      
+      // Use our custom checkout function instead of direct Stripe link
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { 
+          priceId: 'price_1RWcohEC1YgoxpP0yAhZYBVA' // Your Stripe price ID
+        }
+      });
+      
+      if (error) {
+        console.error('Create checkout error:', error);
+        throw error;
+      }
+      
+      if (data.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
+        // Redirect to Stripe checkout in the same window
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout. Please try again.');
+      setLoading(false);
+    }
   };
 
   const isSubscribed = subscriptionStatus?.subscription_status === 'active';

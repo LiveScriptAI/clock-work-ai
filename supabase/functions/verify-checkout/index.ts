@@ -37,9 +37,9 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Retrieve the checkout session with expanded subscription
+    // Retrieve the checkout session with expanded subscription and customer
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['subscription']
+      expand: ['subscription', 'customer']
     });
 
     if (!session.subscription) {
@@ -47,6 +47,7 @@ serve(async (req) => {
     }
 
     const subscription = session.subscription as Stripe.Subscription;
+    const customer = session.customer as Stripe.Customer;
     const userId = session.metadata?.supabaseUserId;
 
     if (!userId) {
@@ -56,7 +57,8 @@ serve(async (req) => {
     logStep("Session retrieved", { 
       subscriptionId: subscription.id, 
       userId, 
-      status: subscription.status 
+      status: subscription.status,
+      customerEmail: customer.email 
     });
 
     // Determine subscription tier based on price
@@ -69,10 +71,11 @@ serve(async (req) => {
       }
     }
 
-    // Update user's subscription status
+    // Update user's subscription status in profiles table
     const { error: updateError } = await supabaseClient
       .from("profiles")
       .update({
+        stripe_customer_id: customer.id,
         stripe_subscription_id: subscription.id,
         subscription_status: subscription.status,
         subscription_tier: subscriptionTier
@@ -88,6 +91,28 @@ serve(async (req) => {
       status: subscription.status,
       tier: subscriptionTier
     });
+
+    // Also update or create entry in subscribers table for additional tracking
+    const { error: subscriberError } = await supabaseClient
+      .from("subscribers")
+      .upsert({
+        user_id: userId,
+        email: customer.email || '',
+        stripe_customer_id: customer.id,
+        subscribed: subscription.status === 'active',
+        subscription_tier: subscriptionTier,
+        subscription_end: subscription.current_period_end ? 
+          new Date(subscription.current_period_end * 1000).toISOString() : null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (subscriberError) {
+      logStep("Warning: Failed to update subscribers table", { error: subscriberError.message });
+    } else {
+      logStep("Subscribers table updated successfully");
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

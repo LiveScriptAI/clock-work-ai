@@ -90,7 +90,7 @@ serve(async (req) => {
       logStep("Using existing customer ID", { customerId });
     }
 
-    // Create success and cancel URLs with explicit parameters
+    // Create success and cancel URLs that redirect to the billing page with parameters
     const successUrl = `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}&payment_status=success`;
     const cancelUrl = `${frontendUrl}/billing?canceled=true&payment_status=canceled`;
     
@@ -116,6 +116,15 @@ serve(async (req) => {
       billing_address_collection: "auto",
       // Allow promotion codes
       allow_promotion_codes: true,
+      // Collect customer information
+      customer_update: {
+        address: "auto",
+        name: "auto"
+      },
+      // Configure automatic tax
+      automatic_tax: {
+        enabled: false,
+      },
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
