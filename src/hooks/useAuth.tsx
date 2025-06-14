@@ -35,6 +35,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       setSubscriptionStatus(null);
       setProfileError(false);
+      setUser(null);
+      setSession(null);
       // Clear any pending session IDs
       localStorage.removeItem('pending_session_id');
       navigate('/welcome');
@@ -57,12 +59,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error('Error fetching profile:', error);
         
-        // If user doesn't exist in profiles table, this is a critical issue
+        // If user doesn't exist in profiles table, this means they were deleted
         if (error.code === 'PGRST116') {
-          console.log('Profile not found for authenticated user - setting profile error');
-          setProfileError(true);
-          setSubscriptionStatus(null);
-          toast.error('Account setup incomplete. Please log out and create a new account.');
+          console.log('Profile not found - user was likely deleted. Signing out...');
+          await handleSignOut();
+          toast.error('Your account was removed. Please create a new account.');
           return;
         }
         
@@ -75,14 +76,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSubscriptionStatus(data.subscription_status);
         setProfileError(false);
       } else {
-        console.log('No profile data returned');
-        setProfileError(true);
-        setSubscriptionStatus(null);
+        console.log('No profile data returned - signing out');
+        await handleSignOut();
+        toast.error('Account not found. Please create a new account.');
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      setProfileError(true);
-      setSubscriptionStatus(null);
+      // If there's a network error or other issues, sign out to be safe
+      await handleSignOut();
+      toast.error('Unable to verify account. Please log in again.');
     }
   };
 
@@ -163,7 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfileError(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user?.id) {
         console.log('Token refreshed for user:', session.user.email);
-        // Optionally refresh profile on token refresh
+        // Verify the user still exists when token is refreshed
         await fetchUserProfile(session.user.id);
       }
     });
