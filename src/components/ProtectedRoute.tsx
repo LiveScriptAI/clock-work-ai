@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireSubscription = false }: ProtectedRouteProps) {
-  const { user, loading, subscriptionStatus } = useAuth();
+  const { user, loading, subscriptionStatus, profileError } = useAuth();
   const location = useLocation();
 
   console.log('ProtectedRoute check:', { 
@@ -16,6 +16,7 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
     loading, 
     subscriptionStatus, 
     requireSubscription,
+    profileError,
     currentPath: location.pathname 
   });
 
@@ -30,6 +31,12 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
   if (!user) {
     console.log('No user found, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If user has profile error, redirect to welcome for cleanup
+  if (profileError) {
+    console.log('Profile error detected, redirecting to welcome for cleanup');
+    return <Navigate to="/welcome" replace />;
   }
 
   // If subscription is required, check if user has active subscription
