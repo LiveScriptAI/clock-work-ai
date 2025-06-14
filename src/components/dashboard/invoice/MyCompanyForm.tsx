@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast as useToastFn } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   InvoiceSettingsType, 
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 
 const MyCompanyForm = () => {
-  const { toast } = useToastFn();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);

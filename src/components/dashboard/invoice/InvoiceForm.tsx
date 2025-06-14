@@ -11,7 +11,7 @@ import { sendInvoice, generateInvoicePDF } from "./invoice-utils";
 import { convertInvoiceToShift } from "./invoice-conversion-utils";
 import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
-import { toast as useToastFn } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import CompanySelector from "./CompanySelector";
 import MyCompanyForm from "./MyCompanyForm";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -24,7 +24,7 @@ declare global {
   }
 }
 const InvoiceForm = () => {
-  const { toast } = useToastFn();
+  const { toast } = useToast();
   const today = new Date();
   const [customer, setCustomer] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
