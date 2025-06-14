@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -65,9 +66,9 @@ const WelcomePage = () => {
     if (user && profileError) {
       return (
         <div className="text-center">
-          <div className="bg-red-100 backdrop-blur-sm border border-red-200 rounded-xl p-6 max-w-md mx-auto mb-6">
-            <h3 className="font-display text-red-800 mb-2 text-xl">Account Setup Issue</h3>
-            <p className="text-red-700 text-base mb-4">There was an issue with your account setup. Please log out and create a new account to continue.</p>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md mx-auto mb-6">
+            <h3 className="font-display text-white mb-2 text-xl">Account Setup Issue</h3>
+            <p className="text-white/90 text-base mb-4">There was an issue with your account setup. Please log out and create a new account to continue.</p>
             <Button onClick={handleSignOut} variant="outline" className="w-full border-red-500 text-red-700 hover:bg-red-50">
               Log Out & Start Fresh
             </Button>
@@ -116,7 +117,7 @@ const WelcomePage = () => {
             <Link to="/register">Start Free Trial</Link>
           </Button>
           <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
-            <Link to="/login">Sign In</Link>
+            <Link to="/login">Login</Link>
           </Button>
         </div>
       );
@@ -185,7 +186,7 @@ const WelcomePage = () => {
               <Link to="/register">Start Free Trial</Link>
             </Button>
             <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
-              <Link to="/login">Sign In</Link>
+              <Link to="/login">Login</Link>
             </Button>
           </div>
         </div>
