@@ -43,7 +43,9 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
   if (requireSubscription) {
     console.log('Subscription required - checking status:', subscriptionStatus);
     if (subscriptionStatus !== 'active') {
-      console.log('User does not have active subscription, redirecting to welcome');
+      console.log('User does not have active subscription, redirecting to welcome with message');
+      // Store the current path so user can be redirected back after payment
+      localStorage.setItem('redirect_after_payment', location.pathname);
       return <Navigate to="/welcome" replace />;
     }
   }

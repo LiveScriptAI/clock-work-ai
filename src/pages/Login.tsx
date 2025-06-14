@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -15,31 +16,25 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const { user, isSubscribed, loading } = useAuth();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      if (session) {
-        // Let the useAuth hook handle the subscription check and redirect
+    // If user is already logged in, check their subscription status
+    if (!loading && user) {
+      console.log('User logged in, checking subscription:', { user: user.email, isSubscribed });
+      if (isSubscribed) {
         navigate("/dashboard");
+      } else {
+        // User is authenticated but doesn't have subscription - redirect to welcome
+        console.log('User authenticated but no subscription - redirecting to welcome');
+        navigate("/welcome");
+        toast({
+          title: "Complete your subscription",
+          description: "Please complete your payment to access the dashboard."
+        });
       }
-    };
-    checkSession();
-
-    // Set up auth state listener
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Let the useAuth hook handle the subscription check and redirect
-        navigate("/dashboard");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    }
+  }, [user, isSubscribed, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +94,7 @@ const LoginPage = () => {
           title: "Login successful",
           description: "Checking your subscription status..."
         });
+        // Note: useEffect will handle the redirect based on subscription status
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
@@ -111,6 +107,15 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading if auth state is still being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-hero-gradient">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-navy"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
