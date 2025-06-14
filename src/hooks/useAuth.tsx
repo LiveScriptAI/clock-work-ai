@@ -29,21 +29,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isSubscribed = subscriptionStatus === 'active';
 
+  const clearAllCachedData = () => {
+    // Clear all localStorage data
+    localStorage.clear();
+    
+    // Clear sessionStorage data
+    sessionStorage.clear();
+    
+    // Clear any IndexedDB supabase data
+    if (window.indexedDB) {
+      const deleteReq = indexedDB.deleteDatabase('supabase-js-auth');
+      deleteReq.onsuccess = () => console.log('Cleared Supabase auth database');
+    }
+    
+    console.log('All cached authentication data cleared');
+  };
+
   const handleSignOut = async () => {
     try {
+      console.log('Signing out user...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear all state
       setSubscriptionStatus(null);
       setProfileError(false);
       setUser(null);
       setSession(null);
-      // Clear any pending session IDs
-      localStorage.removeItem('pending_session_id');
+      
+      // Clear all cached data
+      clearAllCachedData();
+      
       navigate('/welcome');
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);
-      toast.error('Error signing out');
+      // Even if sign out fails, clear everything locally
+      clearAllCachedData();
+      setUser(null);
+      setSession(null);
+      setSubscriptionStatus(null);
+      setProfileError(false);
+      navigate('/welcome');
+      toast.error('Signed out locally');
     }
   };
 
@@ -61,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // If user doesn't exist in profiles table, this means they were deleted
         if (error.code === 'PGRST116') {
-          console.log('Profile not found - user was likely deleted. Signing out...');
+          console.log('Profile not found - user was likely deleted. Clearing session...');
           await handleSignOut();
           toast.error('Your account was removed. Please create a new account.');
           return;
@@ -76,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSubscriptionStatus(data.subscription_status);
         setProfileError(false);
       } else {
-        console.log('No profile data returned - signing out');
+        console.log('No profile data returned - clearing session');
         await handleSignOut();
         toast.error('Account not found. Please create a new account.');
       }
@@ -101,11 +129,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session with better error handling
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth state...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
           if (mounted) {
+            clearAllCachedData();
             setLoading(false);
           }
           return;
@@ -114,12 +144,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Initial session check:', session?.user?.email || 'No session');
         
         if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
           if (session?.user?.id) {
-            await fetchUserProfile(session.user.id);
+            // Validate that the user still exists by checking their profile
+            try {
+              const { data, error: profileError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (profileError || !data) {
+                console.log('User session exists but profile missing - clearing invalid session');
+                await supabase.auth.signOut();
+                clearAllCachedData();
+                setSession(null);
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+              
+              // User is valid, proceed with normal auth
+              setSession(session);
+              setUser(session.user);
+              await fetchUserProfile(session.user.id);
+            } catch (validationError) {
+              console.error('Error validating user:', validationError);
+              await supabase.auth.signOut();
+              clearAllCachedData();
+              setSession(null);
+              setUser(null);
+            }
           } else {
+            setSession(null);
+            setUser(null);
             setProfileError(false);
             setSubscriptionStatus(null);
           }
@@ -129,6 +186,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error('Error in initializeAuth:', error);
         if (mounted) {
+          clearAllCachedData();
           setLoading(false);
         }
       }
@@ -145,29 +203,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (!mounted) return;
 
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (event === 'SIGNED_OUT' || !session) {
+        console.log('User signed out or session ended');
+        setSession(null);
+        setUser(null);
+        setSubscriptionStatus(null);
+        setProfileError(false);
+        setLoading(false);
+        return;
+      }
 
       if (event === 'SIGNED_IN' && session?.user?.id) {
         console.log('User signed in:', session.user.email);
-        await fetchUserProfile(session.user.id);
         
-        // CRITICAL FIX: Check for pending session verification after login
-        const pendingSessionId = localStorage.getItem('pending_session_id');
-        if (pendingSessionId && location.pathname !== '/thank-you') {
-          console.log('Found pending session after login, redirecting to thank-you page');
-          navigate(`/thank-you?session_id=${pendingSessionId}`);
+        // Validate the user exists before setting session
+        try {
+          const { data, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError || !data) {
+            console.log('Signed in user has no profile - invalid session');
+            await supabase.auth.signOut();
+            clearAllCachedData();
+            toast.error('Account not found. Please create a new account.');
+            return;
+          }
+          
+          setSession(session);
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
+          
+          // Check for pending session verification after login
+          const pendingSessionId = localStorage.getItem('pending_session_id');
+          if (pendingSessionId && location.pathname !== '/thank-you') {
+            console.log('Found pending session after login, redirecting to thank-you page');
+            navigate(`/thank-you?session_id=${pendingSessionId}`);
+          }
+        } catch (validationError) {
+          console.error('Error validating signed in user:', validationError);
+          await supabase.auth.signOut();
+          clearAllCachedData();
+          toast.error('Unable to verify account. Please try again.');
         }
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-        setSubscriptionStatus(null);
-        setProfileError(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user?.id) {
         console.log('Token refreshed for user:', session.user.email);
         // Verify the user still exists when token is refreshed
         await fetchUserProfile(session.user.id);
       }
+      
+      setLoading(false);
     });
 
     return () => {
