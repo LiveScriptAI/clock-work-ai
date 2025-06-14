@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_status')
+        .select('subscription_status, full_name')
         .eq('id', userId)
         .single();
 
@@ -59,10 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('Profile not found for authenticated user - clearing session');
           setProfileError(true);
           setSubscriptionStatus(null);
-          // Auto sign out user if their profile is missing
-          setTimeout(() => {
-            handleSignOut();
-          }, 1000);
+          toast.error('Account setup incomplete. Please log out and try again.');
           return;
         }
         
@@ -71,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (data) {
-        console.log('Profile found with subscription status:', data.subscription_status);
+        console.log('Profile found:', data);
         setSubscriptionStatus(data.subscription_status);
         setProfileError(false);
       } else {
@@ -87,30 +84,62 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const refreshProfile = async () => {
+    console.log('Refreshing profile...');
     if (user?.id) {
       await fetchUserProfile(user.id);
     }
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user?.id) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setProfileError(false);
+    let mounted = true;
+
+    // Get initial session with better error handling
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('Initial session check:', session?.user?.email || 'No session');
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user?.id) {
+            await fetchUserProfile(session.user.id);
+          } else {
+            setProfileError(false);
+            setSubscriptionStatus(null);
+          }
+          
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error in initializeAuth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
+    };
+
+    // Initialize auth state
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event, session?.user?.email || 'No session');
+      
+      if (!mounted) return;
+
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -122,10 +151,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('User signed out');
         setSubscriptionStatus(null);
         setProfileError(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user?.id) {
+        console.log('Token refreshed for user:', session.user.email);
+        // Optionally refresh profile on token refresh
+        await fetchUserProfile(session.user.id);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {

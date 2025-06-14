@@ -46,7 +46,9 @@ serve(async (req) => {
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Retrieve checkout session
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['customer', 'subscription']
+    });
     logStep("Retrieved checkout session", { 
       sessionId: session.id, 
       paymentStatus: session.payment_status,
@@ -59,8 +61,19 @@ serve(async (req) => {
       throw new Error("Payment not completed");
     }
 
-    // Get customer and subscription details
+    // Get customer details
     const customerId = session.customer as string;
+    const customer = await stripe.customers.retrieve(customerId);
+    const customerEmail = (customer as any).email;
+
+    if (!customerEmail) {
+      logStep("ERROR: Customer email not found");
+      throw new Error("Customer email not found");
+    }
+
+    logStep("Customer details verified", { email: customerEmail, customerId });
+
+    // Get subscription details
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
@@ -81,22 +94,20 @@ serve(async (req) => {
       currentPeriodEnd: subscriptionEnd
     });
 
-    // Get customer details
-    const customer = await stripe.customers.retrieve(customerId);
-    const customerEmail = (customer as any).email;
-    const userId = session.metadata?.user_id;
-
-    if (!customerEmail) {
-      logStep("ERROR: Customer email not found");
-      throw new Error("Customer email not found");
+    // Find user by email first
+    const { data: authUsers, error: authError } = await supabaseClient.auth.admin.listUsers();
+    if (authError) {
+      logStep("ERROR: Failed to list users", { error: authError });
+      throw new Error(`Failed to list users: ${authError.message}`);
     }
 
-    if (!userId) {
-      logStep("ERROR: User ID not found in session metadata");
-      throw new Error("User ID not found in session metadata");
+    const user = authUsers.users.find(u => u.email === customerEmail);
+    if (!user) {
+      logStep("ERROR: User not found", { email: customerEmail });
+      throw new Error(`User not found for email: ${customerEmail}`);
     }
 
-    logStep("Customer details verified", { email: customerEmail, userId });
+    logStep("Found user", { userId: user.id, email: user.email });
 
     // Update user profile in Supabase
     const { error: updateError } = await supabaseClient
@@ -108,19 +119,20 @@ serve(async (req) => {
         subscription_tier: "premium",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", userId);
+      .eq("id", user.id);
 
     if (updateError) {
       logStep("ERROR: Failed to update profile", { error: updateError });
       throw new Error(`Failed to update user profile: ${updateError.message}`);
     }
 
-    logStep("Successfully updated user profile", { userId, email: customerEmail });
+    logStep("Successfully updated user profile", { userId: user.id, email: customerEmail });
 
     return new Response(JSON.stringify({ 
       success: true, 
       subscription_status: "active",
-      subscription_id: subscription.id 
+      subscription_id: subscription.id,
+      user_id: user.id
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

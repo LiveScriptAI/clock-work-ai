@@ -66,8 +66,8 @@ const WelcomePage = () => {
       return (
         <div className="text-center">
           <div className="bg-red-100 backdrop-blur-sm border border-red-200 rounded-xl p-6 max-w-md mx-auto mb-6">
-            <h3 className="font-display text-red-800 mb-2 text-xl">Account Issue Detected</h3>
-            <p className="text-red-700 text-base mb-4">There was an issue with your account setup. Please log out and try again.</p>
+            <h3 className="font-display text-red-800 mb-2 text-xl">Account Setup Issue</h3>
+            <p className="text-red-700 text-base mb-4">There was an issue with your account setup. Please log out and create a new account to continue.</p>
             <Button onClick={handleSignOut} variant="outline" className="w-full border-red-500 text-red-700 hover:bg-red-50">
               Log Out & Start Fresh
             </Button>
@@ -80,19 +80,27 @@ const WelcomePage = () => {
       if (isSubscribed) {
         // User is logged in and subscribed
         return (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-              <Link to="/dashboard">Go to Dashboard</Link>
-            </Button>
+          <div className="text-center">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md mx-auto mb-6">
+              <h3 className="font-display text-white mb-2 text-xl">Welcome back! 👋</h3>
+              <p className="text-white/90 text-base mb-4">You have an active subscription. Ready to track some time?</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+                <Link to="/dashboard">Go to Dashboard</Link>
+              </Button>
+            </div>
           </div>
         );
       } else {
         // User is logged in but not subscribed (and no profile error)
+        const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
+        
         return (
           <div className="text-center">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md mx-auto mb-6">
-              <h3 className="font-display text-white mb-2 text-xl">Welcome back!</h3>
-              <p className="text-white/90 text-base mb-4">You're logged in, but you haven't started your trial yet. Click below to subscribe and unlock full access.</p>
+              <h3 className="font-display text-white mb-2 text-xl">Welcome back, {firstName}! 👋</h3>
+              <p className="text-white/90 text-base mb-4">You're logged in, but you haven't started your trial yet. Click below to unlock full access to Clock Work Pal.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <StripeCheckoutButton className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200" />
@@ -134,10 +142,12 @@ const WelcomePage = () => {
     }
 
     if (user && !isSubscribed) {
+      const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
+      
       return (
         <div className="text-center">
           <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Ready to Start Your Trial?
+            Ready to Start Your Trial, {firstName}?
           </h3>
           <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
             You're logged in! Start your 7-day free trial to unlock all features and join thousands of professionals who trust Clock Work Pal.
@@ -146,10 +156,12 @@ const WelcomePage = () => {
         </div>
       );
     } else if (user && isSubscribed) {
+      const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
+      
       return (
         <div className="text-center">
           <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Welcome Back!
+            Welcome Back, {firstName}!
           </h3>
           <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
             You're all set with an active subscription. Access your dashboard to start tracking time.
