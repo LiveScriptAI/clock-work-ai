@@ -132,6 +132,13 @@ export function useAuth() {
     }
   };
 
+  // New method to refresh subscription status (useful after portal management)
+  const refreshSubscriptionStatus = async () => {
+    if (user?.id) {
+      await fetchUserProfile(user.id);
+    }
+  };
+
   const isSubscribed = profile?.subscription_status === 'active';
   const subscriptionTier = profile?.subscription_tier;
   const hasIncompletePayment = profile?.stripe_customer_id && !isSubscribed;
@@ -144,6 +151,7 @@ export function useAuth() {
     subscriptionTier,
     hasIncompletePayment,
     isLoading,
-    refreshProfile: () => user?.id && fetchUserProfile(user.id)
+    refreshProfile: () => user?.id && fetchUserProfile(user.id),
+    refreshSubscriptionStatus
   };
 }
