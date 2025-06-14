@@ -17,11 +17,11 @@ const LoginPage = () => {
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isSubscribed, loading } = useAuth();
+  const { user, isSubscribed, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, handle routing
-    if (!loading && user) {
+    // Only redirect if auth is not loading and user exists
+    if (!authLoading && user) {
       console.log('User logged in, checking subscription:', { user: user.email, isSubscribed });
       
       // Check if there's a pending session ID (user came from payment flow)
@@ -52,7 +52,7 @@ const LoginPage = () => {
         });
       }
     }
-  }, [user, isSubscribed, loading, navigate]);
+  }, [user, isSubscribed, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,11 +136,14 @@ const LoginPage = () => {
     }
   };
 
-  // Show loading if auth state is still being determined
-  if (loading) {
+  // Show loading only briefly during auth initialization
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-hero-gradient">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-navy"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -150,16 +153,11 @@ const LoginPage = () => {
   const isPaymentFlow = pendingSessionId || location.state?.fromPayment;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 px-6 font-body">
       <div className="flex flex-col items-center max-w-md w-full">
         {/* Logo */}
         <div className="mb-8 mt-8">
           <img src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" alt="Clock Work Pal logo" className="w-56 h-auto mx-auto" />
-        </div>
-
-        {/* Clock Character */}
-        <div className="mb-8">
-          
         </div>
         
         {/* Login Form */}
