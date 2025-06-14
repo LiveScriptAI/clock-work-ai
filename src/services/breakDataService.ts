@@ -1,6 +1,4 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 export interface BreakInterval {
   start: string;

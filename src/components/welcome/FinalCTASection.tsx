@@ -1,13 +1,12 @@
-
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; // Keep Link for potential future use
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
-import { useAuth } from "@/hooks/useAuth";
+// Removed useAuth import
 
 const FinalCTASection = () => {
-  const { user, isSubscribed, profileError, handleSignOut } = useAuth();
+  // Removed user, isSubscribed, profileError, handleSignOut from useAuth()
 
   const containerVariants = {
     hidden: {
@@ -35,74 +34,30 @@ const FinalCTASection = () => {
     }
   };
 
+  // Defaulting to "user not logged in" state as auth is removed.
+  // Links to /register and /login are removed or replaced.
   const renderFinalCTA = () => {
-    // Handle profile error case
-    if (user && profileError) {
-      return (
-        <div className="text-center">
-          <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Account Setup Issue
-          </h3>
-          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-            We detected an issue with your account. Please log out and create a new account to continue.
-          </p>
-          <Button onClick={handleSignOut} variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
-            Log Out & Start Fresh
-          </Button>
-        </div>
-      );
-    }
-
-    if (user && !isSubscribed) {
-      const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
-      
-      return (
-        <div className="text-center">
-          <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Ready to Start Your Trial, {firstName}?
-          </h3>
-          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-            You're logged in! Start your 7-day free trial to unlock all features and join thousands of professionals who trust Clock Work Pal.
-          </p>
+    return (
+      <div className="text-center">
+        <h3 className="font-display text-3xl text-brand-navy mb-4">
+          Ready to Get Started?
+        </h3>
+        <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+          Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Using StripeCheckoutButton directly for "Start Free Trial" */}
           <StripeCheckoutButton className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg" />
+          
+          {/* Removed "Login" button as /login page is gone */}
+          {/* 
+          <Button asChild className="px-8 py-4 bg-white text-brand-navy font-medium rounded-full hover:bg-white/90 transition text-lg shadow-lg border-2 border-brand-navy">
+            <Link to="/welcome">Placeholder Link</Link> // Changed from /login
+          </Button> 
+          */}
         </div>
-      );
-    } else if (user && isSubscribed) {
-      const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there';
-      
-      return (
-        <div className="text-center">
-          <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Welcome Back, {firstName}!
-          </h3>
-          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-            You're all set with an active subscription. Access your dashboard to start tracking time.
-          </p>
-          <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
-            <Link to="/dashboard">Go to Dashboard</Link>
-          </Button>
-        </div>
-      );
-    } else {
-      return (
-        <div className="text-center">
-          <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Ready to Get Started?
-          </h3>
-          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
-              <Link to="/register">Start Free Trial</Link>
-            </Button>
-            <Button asChild className="px-8 py-4 bg-white text-brand-navy font-medium rounded-full hover:bg-white/90 transition text-lg shadow-lg border-2 border-brand-navy">
-              <Link to="/login">Login</Link>
-            </Button>
-          </div>
-        </div>
-      );
-    }
+      </div>
+    );
   };
 
   return (

@@ -2,8 +2,6 @@ import React from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +38,6 @@ const CustomerTabs = () => {
   const {
     toast
   } = useToast();
-  const {
-    user
-  } = useAuth();
 
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
@@ -69,18 +64,9 @@ const CustomerTabs = () => {
 
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save customer data",
-        variant: "destructive"
-      });
-      return;
-    }
     try {
       // Map form data to database fields - removed payment details
       const payload = {
-        user_id: user.id,
         company_name: data.businessName,
         contact_name: data.contactName,
         email: data.email,

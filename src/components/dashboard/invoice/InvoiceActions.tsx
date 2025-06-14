@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, AlertCircle } from "lucide-react";
@@ -6,14 +5,12 @@ import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { generateInvoicePDF } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
-import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
 
 interface InvoiceActionsProps {
   shift: ShiftEntry;
   clientEmail?: string;
-  // Add address field props
   customer: string;
   invoiceDate: Date;
   reference: string;
@@ -51,7 +48,6 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   country
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { user } = useAuth();
 
   const handleEmailInvoice = async () => {
     if (!clientEmail) {
@@ -59,59 +55,9 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       return;
     }
 
-    if (!user) {
-      toast.error("Please log in to send invoices");
-      return;
-    }
-
     setIsGenerating(true);
     try {
-      const senderInfo = await fetchInvoiceSettings(user.id);
-      if (!senderInfo) {
-        toast.error("Please set up your company information in Invoice Settings first");
-        return;
-      }
-
-      // Create invoice data with all the address fields (same as Download PDF logic)
-      const invoiceData = {
-        customer,
-        customerEmail: clientEmail,
-        invoiceDate,
-        reference,
-        lineItems,
-        notes,
-        terms,
-        subtotal,
-        vat,
-        total,
-        address1,
-        address2,
-        city,
-        county,
-        postcode,
-        country
-      };
-      
-      const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
-      
-      // Download the PDF
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice-${reference || shift.id}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      // Open email client with pre-filled content using the actual client email
-      const subject = encodeURIComponent(`Invoice #${reference || shift.id}`);
-      const body = encodeURIComponent(
-        `Hi,\n\nPlease find attached Invoice #${reference || shift.id} for work performed on ${invoiceDate.toLocaleDateString()}.\n\nTotal amount: £${total}\n\nPlease attach the downloaded PDF file to this email before sending.\n\nThanks!`
-      );
-      
-      // Use the actual client email in the mailto link
-      window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
-      
-      toast.success("Invoice downloaded and email client opened. Please attach the PDF to your email.");
+      toast.error("Invoice settings functionality is currently unavailable. Please set up your company information.");
       
     } catch (error) {
       console.error("Error processing invoice:", error);

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+// Removed useAuth import
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -16,17 +16,18 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   children = "Start 7-Day Trial - £3.99/month" 
 }) => {
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  // Removed user from useAuth()
 
   const handleCheckout = async () => {
-    if (!user) {
-      toast.error("Please sign in to start your trial");
-      return;
-    }
+    // Removed user check
+    // if (!user) {
+    //   toast.error("Please sign in to start your trial");
+    //   return;
+    // }
 
     setLoading(true);
     try {
-      console.log('Starting checkout for user:', user.email);
+      console.log('Starting checkout'); // Removed user.email logging
       
       const { data, error } = await supabase.functions.invoke('create-checkout-session');
 
@@ -37,7 +38,6 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
 
       if (data?.url) {
         console.log('Checkout session created, redirecting to:', data.url);
-        // CRITICAL FIX: Open in same tab to preserve auth context
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL received from server');
@@ -45,7 +45,6 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
     } catch (error) {
       console.error('Checkout error:', error);
       
-      // Provide more specific error messages
       let errorMessage = 'Error starting checkout. Please try again.';
       
       if (error instanceof Error) {
@@ -53,9 +52,8 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
           errorMessage = 'Stripe configuration error. Please contact support.';
         } else if (error.message.includes('STRIPE_PRICE_ID')) {
           errorMessage = 'Pricing configuration error. Please contact support.';
-        } else if (error.message.includes('Authentication')) {
-          errorMessage = 'Please sign in again and try again.';
         }
+        // Removed Authentication error message as user context is gone
       }
       
       toast.error(errorMessage);
