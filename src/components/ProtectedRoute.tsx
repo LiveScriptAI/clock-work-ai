@@ -11,6 +11,14 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
   const { user, loading, subscriptionStatus } = useAuth();
   const location = useLocation();
 
+  console.log('ProtectedRoute check:', { 
+    user: user?.email, 
+    loading, 
+    subscriptionStatus, 
+    requireSubscription,
+    currentPath: location.pathname 
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -20,17 +28,19 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
   }
 
   if (!user) {
+    console.log('No user found, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // If subscription is required, check if user has active subscription
   if (requireSubscription) {
-    console.log('Checking subscription status:', subscriptionStatus);
+    console.log('Subscription required - checking status:', subscriptionStatus);
     if (subscriptionStatus !== 'active') {
       console.log('User does not have active subscription, redirecting to welcome');
       return <Navigate to="/welcome" replace />;
     }
   }
 
+  console.log('Access granted to protected route');
   return <>{children}</>;
 }

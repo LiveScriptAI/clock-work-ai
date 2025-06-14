@@ -22,10 +22,16 @@ serve(async (req) => {
     logStep("Function started");
 
     const { session_id } = await req.json();
-    if (!session_id) throw new Error("No session_id provided");
+    if (!session_id) {
+      logStep("ERROR: No session_id provided");
+      throw new Error("No session_id provided");
+    }
 
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    if (!stripeSecretKey) {
+      logStep("ERROR: STRIPE_SECRET_KEY is not set");
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    }
 
     logStep("Session ID received", { session_id });
 
@@ -44,10 +50,12 @@ serve(async (req) => {
     logStep("Retrieved checkout session", { 
       sessionId: session.id, 
       paymentStatus: session.payment_status,
-      customerId: session.customer 
+      customerId: session.customer,
+      metadata: session.metadata
     });
 
     if (session.payment_status !== "paid") {
+      logStep("ERROR: Payment not completed", { paymentStatus: session.payment_status });
       throw new Error("Payment not completed");
     }
 
@@ -60,6 +68,7 @@ serve(async (req) => {
     });
 
     if (subscriptions.data.length === 0) {
+      logStep("ERROR: No active subscription found");
       throw new Error("No active subscription found");
     }
 
@@ -72,13 +81,22 @@ serve(async (req) => {
       currentPeriodEnd: subscriptionEnd
     });
 
-    // Get customer email
+    // Get customer details
     const customer = await stripe.customers.retrieve(customerId);
     const customerEmail = (customer as any).email;
+    const userId = session.metadata?.user_id;
 
     if (!customerEmail) {
+      logStep("ERROR: Customer email not found");
       throw new Error("Customer email not found");
     }
+
+    if (!userId) {
+      logStep("ERROR: User ID not found in session metadata");
+      throw new Error("User ID not found in session metadata");
+    }
+
+    logStep("Customer details verified", { email: customerEmail, userId });
 
     // Update user profile in Supabase
     const { error: updateError } = await supabaseClient
@@ -90,14 +108,14 @@ serve(async (req) => {
         subscription_tier: "premium",
         updated_at: new Date().toISOString(),
       })
-      .eq("email", customerEmail);
+      .eq("id", userId);
 
     if (updateError) {
-      logStep("Error updating profile", { error: updateError });
+      logStep("ERROR: Failed to update profile", { error: updateError });
       throw new Error(`Failed to update user profile: ${updateError.message}`);
     }
 
-    logStep("Successfully updated user profile", { email: customerEmail });
+    logStep("Successfully updated user profile", { userId, email: customerEmail });
 
     return new Response(JSON.stringify({ 
       success: true, 

@@ -18,20 +18,31 @@ const ThankYou = () => {
     const verifyCheckout = async () => {
       const sessionId = searchParams.get('session_id');
       
+      console.log('Thank You page - Session ID from URL:', sessionId);
+      
       if (!sessionId) {
+        console.error('No session ID found in URL');
         setStatus('error');
-        setMessage('No session ID found. Please try again.');
+        setMessage('No session ID found. Please try your payment again.');
         return;
       }
 
       try {
+        console.log('Calling verify-checkout-session with session ID:', sessionId);
+        
         const { data, error } = await supabase.functions.invoke('verify-checkout-session', {
           body: { session_id: sessionId }
         });
 
-        if (error) throw error;
+        console.log('Verification response:', { data, error });
 
-        if (data.success) {
+        if (error) {
+          console.error('Verification error:', error);
+          throw error;
+        }
+
+        if (data?.success) {
+          console.log('Payment verification successful');
           setStatus('success');
           setMessage('Your subscription has been activated successfully!');
           
@@ -45,18 +56,36 @@ const ThankYou = () => {
             navigate('/dashboard');
           }, 3000);
         } else {
-          throw new Error(data.error || 'Verification failed');
+          console.error('Verification failed:', data);
+          throw new Error(data?.error || 'Verification failed');
         }
       } catch (error) {
-        console.error('Verification error:', error);
+        console.error('Payment verification error:', error);
         setStatus('error');
-        setMessage('There was an issue verifying your payment. Please contact support.');
+        
+        let errorMessage = 'There was an issue verifying your payment.';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('session_id')) {
+            errorMessage = 'Invalid session. Please retry your payment.';
+          } else if (error.message.includes('Payment not completed')) {
+            errorMessage = 'Payment was not completed. Please try again.';
+          } else if (error.message.includes('No active subscription')) {
+            errorMessage = 'No active subscription found. Please contact support.';
+          }
+        }
+        
+        setMessage(errorMessage);
         toast.error('Payment verification failed');
       }
     };
 
     verifyCheckout();
   }, [searchParams, navigate, refreshProfile]);
+
+  const handleRetry = () => {
+    navigate('/welcome');
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 px-6">
@@ -98,8 +127,8 @@ const ThankYou = () => {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Issue</h1>
             <p className="text-gray-600 mb-6">{message}</p>
             <div className="space-y-3">
-              <Button onClick={() => navigate('/welcome')} className="w-full">
-                Try Again
+              <Button onClick={handleRetry} className="w-full">
+                Try Payment Again
               </Button>
               <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full">
                 Go to Dashboard

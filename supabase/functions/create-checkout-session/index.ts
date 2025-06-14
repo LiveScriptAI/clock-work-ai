@@ -23,15 +23,11 @@ serve(async (req) => {
 
     // Get environment variables
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const stripePriceId = Deno.env.get("STRIPE_PRICE_ID");
+    const stripePriceId = "price_1RWdO5EC1YgoxpP0DJ5KJkUI"; // Fixed price ID
     
     if (!stripeSecretKey) {
       logStep("ERROR: STRIPE_SECRET_KEY is not set");
       throw new Error("STRIPE_SECRET_KEY is not configured");
-    }
-    if (!stripePriceId) {
-      logStep("ERROR: STRIPE_PRICE_ID is not set");
-      throw new Error("STRIPE_PRICE_ID is not configured");
     }
     
     logStep("Environment variables verified", { priceId: stripePriceId });
