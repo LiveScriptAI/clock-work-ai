@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
+import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutButton";
+import { useAuth } from "@/hooks/useAuth";
+
 const WelcomePage = () => {
+  const { user, isSubscribed } = useAuth();
+  
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -16,6 +21,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const itemVariants = {
     hidden: {
       opacity: 0,
@@ -29,6 +35,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const imageVariants = {
     hidden: {
       opacity: 0,
@@ -43,6 +50,7 @@ const WelcomePage = () => {
       }
     }
   };
+  
   const floatAnimation = {
     y: [-10, 10, -10],
     transition: {
@@ -51,6 +59,33 @@ const WelcomePage = () => {
       ease: "easeInOut"
     }
   };
+
+  // Dynamic content based on user state
+  const getStepTwoContent = () => {
+    if (!user) {
+      return {
+        text: "Start your 7-day free trial",
+        component: <AuthenticatedCheckoutButton className="px-12 py-4 text-lg" />
+      };
+    } else if (isSubscribed) {
+      return {
+        text: "Access your dashboard",
+        component: (
+          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+            <Link to="/dashboard">Go to Dashboard</Link>
+          </Button>
+        )
+      };
+    } else {
+      return {
+        text: "Start your 7-day free trial",
+        component: <AuthenticatedCheckoutButton className="px-12 py-4 text-lg" />
+      };
+    }
+  };
+
+  const stepTwoContent = getStepTwoContent();
+
   React.useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/buy-button.js';
@@ -64,6 +99,7 @@ const WelcomePage = () => {
       }
     };
   }, []);
+  
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -89,28 +125,34 @@ const WelcomePage = () => {
         <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
           <div className="flex items-center mb-3">
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">1</span>
-            <span className="font-body text-lg text-white">Create your account</span>
+            <span className="font-body text-lg text-white">
+              {user ? "Account created ✓" : "Create your account"}
+            </span>
           </div>
-          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-            <Link to="/register">Create Account</Link>
-          </Button>
+          {!user && (
+            <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+              <Link to="/register">Create Account</Link>
+            </Button>
+          )}
         </motion.div>
 
         {/* Step 2: Start Trial */}
         <motion.div className="flex flex-col items-center" variants={itemVariants}>
           <div className="flex items-center mb-3">
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
-            <span className="font-body text-lg text-white">Start your 7-day free trial</span>
+            <span className="font-body text-lg text-white">{stepTwoContent.text}</span>
           </div>
           <div className="flex justify-center px-0 mx-0 my-[20px] py-0">
-            <stripe-buy-button buy-button-id="buy_btn_1RWktGEC1YgoxpP0dQg2k7tx" publishable-key="pk_live_51RWcohEC1YgoxpP0YefSBYbfwCeflbZQbqlgnu1qqGANaPVd5V3sCdXp2ZuqJd06UK5Gnzrrccypy7FBB5gf7eEP00W6kU7kDE" />
+            {stepTwoContent.component}
           </div>
         </motion.div>
 
         {/* Important Note */}
-        <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
-          ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
-        </motion.p>
+        {!user && (
+          <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
+            ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
+          </motion.p>
+        )}
       </motion.section>
 
       {/* Features Section */}
@@ -201,15 +243,22 @@ const WelcomePage = () => {
             Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
-              <Link to="/register">Create Account</Link>
-            </Button>
-            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
-              <Link to="/login">Sign In</Link>
-            </Button>
+            {!user ? (
+              <>
+                <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+                  <Link to="/register">Create Account</Link>
+                </Button>
+                <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              </>
+            ) : (
+              <AuthenticatedCheckoutButton className="px-8 py-4 text-lg" />
+            )}
           </div>
         </motion.div>
       </motion.section>
     </div>;
 };
+
 export default WelcomePage;

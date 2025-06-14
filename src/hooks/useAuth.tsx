@@ -57,7 +57,7 @@ export function useAuth() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setIsLoading(false);
-        // Only redirect to login if not on public pages
+        // Only redirect to login if not on public pages and not on welcome page
         if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
           navigate("/login");
         }
@@ -98,8 +98,15 @@ export function useAuth() {
       return;
     }
 
-    // If user is authenticated but doesn't have active subscription, redirect to subscription required
-    if (user && profile?.subscription_status !== 'active') {
+    // Check for users with incomplete payments - they have a stripe_customer_id but no active subscription
+    const hasIncompletePayment = profile?.stripe_customer_id && profile?.subscription_status !== 'active';
+    
+    if (user && hasIncompletePayment) {
+      // User started checkout but didn't complete - send to billing page to continue
+      console.log("User has incomplete payment, redirecting to billing");
+      navigate('/billing');
+    } else if (user && !profile?.subscription_status) {
+      // User is authenticated but has no subscription attempt yet - redirect to subscription required
       navigate('/subscription-required');
     } else if (user && profile?.subscription_status === 'active' && location.pathname === '/subscription-required') {
       // If user has subscription but is on subscription required page, redirect to dashboard
@@ -118,7 +125,8 @@ export function useAuth() {
       }
       
       console.log("Sign out successful");
-      // The navigation will be handled by the auth state change listener
+      // Navigate to welcome page after sign out
+      navigate('/welcome');
     } catch (error) {
       console.error("Unexpected error during sign out:", error);
     }
@@ -126,6 +134,7 @@ export function useAuth() {
 
   const isSubscribed = profile?.subscription_status === 'active';
   const subscriptionTier = profile?.subscription_tier;
+  const hasIncompletePayment = profile?.stripe_customer_id && !isSubscribed;
 
   return { 
     user, 
@@ -133,6 +142,7 @@ export function useAuth() {
     handleSignOut, 
     isSubscribed, 
     subscriptionTier,
+    hasIncompletePayment,
     isLoading,
     refreshProfile: () => user?.id && fetchUserProfile(user.id)
   };

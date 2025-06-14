@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireSubscription = true }: ProtectedRouteProps) {
-  const { user, isSubscribed, isLoading } = useAuth();
+  const { user, isSubscribed, hasIncompletePayment, isLoading } = useAuth();
 
   // Show loading while checking auth state
   if (isLoading) {
@@ -26,8 +26,13 @@ export function ProtectedRoute({ children, requireSubscription = true }: Protect
     return <Navigate to="/login" replace />;
   }
 
-  // If authentication is required but no subscription, redirect to subscription required
-  if (requireSubscription && !isSubscribed) {
+  // If subscription is required but user has incomplete payment, redirect to billing
+  if (requireSubscription && hasIncompletePayment) {
+    return <Navigate to="/billing" replace />;
+  }
+
+  // If subscription is required but no subscription, redirect to subscription required
+  if (requireSubscription && !isSubscribed && !hasIncompletePayment) {
     return <Navigate to="/subscription-required" replace />;
   }
 
