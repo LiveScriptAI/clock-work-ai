@@ -24,8 +24,12 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
   }
 
   // If subscription is required, check if user has active subscription
-  if (requireSubscription && subscriptionStatus !== 'active') {
-    return <Navigate to="/welcome" replace />;
+  if (requireSubscription) {
+    console.log('Checking subscription status:', subscriptionStatus);
+    if (subscriptionStatus !== 'active') {
+      console.log('User does not have active subscription, redirecting to welcome');
+      return <Navigate to="/welcome" replace />;
+    }
   }
 
   return <>{children}</>;

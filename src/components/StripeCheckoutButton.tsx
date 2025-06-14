@@ -26,19 +26,39 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
 
     setLoading(true);
     try {
+      console.log('Starting checkout for user:', user.email);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout-session');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Checkout error:', error);
+        throw error;
+      }
 
-      if (data.url) {
+      if (data?.url) {
+        console.log('Checkout session created, redirecting to:', data.url);
         // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
       } else {
-        throw new Error('No checkout URL received');
+        throw new Error('No checkout URL received from server');
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Error starting checkout. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Error starting checkout. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('STRIPE_SECRET_KEY')) {
+          errorMessage = 'Stripe configuration error. Please contact support.';
+        } else if (error.message.includes('STRIPE_PRICE_ID')) {
+          errorMessage = 'Pricing configuration error. Please contact support.';
+        } else if (error.message.includes('Authentication')) {
+          errorMessage = 'Please sign in again and try again.';
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

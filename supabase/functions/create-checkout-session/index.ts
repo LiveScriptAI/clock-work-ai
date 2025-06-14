@@ -25,10 +25,16 @@ serve(async (req) => {
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     const stripePriceId = Deno.env.get("STRIPE_PRICE_ID");
     
-    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    if (!stripePriceId) throw new Error("STRIPE_PRICE_ID is not set");
+    if (!stripeSecretKey) {
+      logStep("ERROR: STRIPE_SECRET_KEY is not set");
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+    if (!stripePriceId) {
+      logStep("ERROR: STRIPE_PRICE_ID is not set");
+      throw new Error("STRIPE_PRICE_ID is not configured");
+    }
     
-    logStep("Environment variables verified");
+    logStep("Environment variables verified", { priceId: stripePriceId });
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -38,19 +44,37 @@ serve(async (req) => {
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("ERROR: No authorization header provided");
+      throw new Error("No authorization header provided");
+    }
     
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      logStep("ERROR: Authentication failed", { error: userError.message });
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
     
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      logStep("ERROR: User not authenticated or email not available");
+      throw new Error("User not authenticated or email not available");
+    }
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+
+    // Test Stripe connection by retrieving the price
+    try {
+      const price = await stripe.prices.retrieve(stripePriceId);
+      logStep("Stripe price verified", { priceId: stripePriceId, amount: price.unit_amount });
+    } catch (stripeError) {
+      logStep("ERROR: Invalid Stripe Price ID", { priceId: stripePriceId, error: stripeError.message });
+      throw new Error(`Invalid Stripe Price ID: ${stripePriceId}`);
+    }
 
     // Check if customer already exists
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -90,7 +114,7 @@ serve(async (req) => {
       },
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

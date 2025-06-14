@@ -9,7 +9,7 @@ import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useAuth } from "@/hooks/useAuth";
 
 const WelcomePage = () => {
-  const { user } = useAuth();
+  const { user, subscriptionStatus, isSubscribed } = useAuth();
   
   const containerVariants = {
     hidden: {
@@ -61,6 +61,95 @@ const WelcomePage = () => {
     }
   };
 
+  const renderCTAButtons = () => {
+    if (user) {
+      if (isSubscribed) {
+        // User is logged in and subscribed
+        return (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+              <Link to="/dashboard">Go to Dashboard</Link>
+            </Button>
+          </div>
+        );
+      } else {
+        // User is logged in but not subscribed
+        return (
+          <div className="text-center">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md mx-auto mb-6">
+              <h3 className="font-display text-white mb-2 text-xl">Welcome back!</h3>
+              <p className="text-white/90 text-base mb-4">You're logged in, but you haven't started your trial yet. Click below to subscribe and unlock full access.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <StripeCheckoutButton className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200" />
+            </div>
+          </div>
+        );
+      }
+    } else {
+      // User is not logged in
+      return (
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+            <Link to="/register">Start Free Trial</Link>
+          </Button>
+          <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
+            <Link to="/login">Sign In</Link>
+          </Button>
+        </div>
+      );
+    }
+  };
+
+  const renderFinalCTA = () => {
+    if (user && !isSubscribed) {
+      return (
+        <div className="text-center">
+          <h3 className="font-display text-3xl text-brand-navy mb-4">
+            Ready to Start Your Trial?
+          </h3>
+          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            You're logged in! Start your 7-day free trial to unlock all features and join thousands of professionals who trust Clock Work Pal.
+          </p>
+          <StripeCheckoutButton className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg" />
+        </div>
+      );
+    } else if (user && isSubscribed) {
+      return (
+        <div className="text-center">
+          <h3 className="font-display text-3xl text-brand-navy mb-4">
+            Welcome Back!
+          </h3>
+          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            You're all set with an active subscription. Access your dashboard to start tracking time.
+          </p>
+          <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+            <Link to="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-center">
+          <h3 className="font-display text-3xl text-brand-navy mb-4">
+            Ready to Get Started?
+          </h3>
+          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+              <Link to="/register">Start Free Trial</Link>
+            </Button>
+            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+              <Link to="/login">Sign In</Link>
+            </Button>
+          </div>
+        </div>
+      );
+    }
+  };
+
   return <div className="font-body">
       {/* Hero Section */}
       <motion.section className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
@@ -92,24 +181,8 @@ const WelcomePage = () => {
         </motion.div>
 
         {/* CTA Buttons */}
-        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center" variants={itemVariants}>
-          {user ? (
-            <>
-              <StripeCheckoutButton className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200" />
-              <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
-                <Link to="/dashboard">Go to Dashboard</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-                <Link to="/register">Start Free Trial</Link>
-              </Button>
-              <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
-                <Link to="/login">Sign In</Link>
-              </Button>
-            </>
-          )}
+        <motion.div variants={itemVariants}>
+          {renderCTAButtons()}
         </motion.div>
       </motion.section>
 
@@ -173,26 +246,7 @@ const WelcomePage = () => {
       once: true
     }} variants={containerVariants} className="py-12 px-6 text-center bg-[#cfeaff]">
         <motion.div variants={itemVariants}>
-          <h3 className="font-display text-3xl text-brand-navy mb-4">
-            Ready to Get Started?
-          </h3>
-          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {user ? (
-              <StripeCheckoutButton className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg" />
-            ) : (
-              <>
-                <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
-                  <Link to="/register">Start Free Trial</Link>
-                </Button>
-                <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
-                  <Link to="/login">Sign In</Link>
-                </Button>
-              </>
-            )}
-          </div>
+          {renderFinalCTA()}
         </motion.div>
       </motion.section>
     </div>;
