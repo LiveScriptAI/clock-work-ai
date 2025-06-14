@@ -1,6 +1,8 @@
+
 import React, { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "react-hook-form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   InvoiceSettingsType, 
@@ -20,9 +22,10 @@ import {
   FormControl,
   FormMessage
 } from "@/components/ui/form";
+import { Image } from "lucide-react";
 
 const MyCompanyForm = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -40,11 +43,32 @@ const MyCompanyForm = () => {
     }
   });
   
+  // Fetch existing settings on component mount
   useEffect(() => {
     const loadSettings = async () => {
+      if (!user?.id) return;
+      
       setIsLoading(true);
       try {
-        console.warn("MyCompanyForm: Skipping loadSettings due to auth removal. Settings will not be loaded.");
+        const data = await fetchInvoiceSettings(user.id);
+        if (data) {
+          // Reset form with fetched data
+          form.reset({
+            business_name: data.business_name,
+            address1: data.address1,
+            address2: data.address2 || "",
+            city: data.city,
+            county: data.county || "",
+            postcode: data.postcode,
+            country: data.country,
+            logo_url: data.logo_url || ""
+          });
+          
+          // Set preview URL if logo exists
+          if (data.logo_url) {
+            setPreviewUrl(data.logo_url);
+          }
+        }
       } catch (error) {
         console.error("Failed to load company settings:", error);
       } finally {
@@ -53,12 +77,13 @@ const MyCompanyForm = () => {
     };
     
     loadSettings();
-  }, [form]);
+  }, [user, form]);
   
   const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user?.id) return;
     
+    // Validate file type
     if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(file.type)) {
       toast({
         title: "Invalid file type",
@@ -68,6 +93,7 @@ const MyCompanyForm = () => {
       return;
     }
     
+    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -80,10 +106,12 @@ const MyCompanyForm = () => {
     setIsUploading(true);
     
     try {
+      // Create a filename with timestamp to avoid conflicts
       const timestamp = new Date().getTime();
       const fileExt = file.name.split('.').pop();
-      const filePath = `public_logos/${timestamp}.${fileExt}`;
+      const filePath = `${user.id}/${timestamp}.${fileExt}`;
       
+      // Upload the file to Supabase storage
       const { data, error } = await supabase
         .storage
         .from('logos')
@@ -91,12 +119,14 @@ const MyCompanyForm = () => {
         
       if (error) throw error;
       
+      // Get the public URL for the uploaded file
       const publicUrl = supabase
         .storage
         .from('logos')
         .getPublicUrl(filePath)
         .data.publicUrl;
       
+      // Update the form value and preview
       form.setValue('logo_url', publicUrl);
       setPreviewUrl(publicUrl);
       
@@ -118,13 +148,23 @@ const MyCompanyForm = () => {
   };
   
   const onSubmit = async (data: InvoiceSettingsType) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to save company settings",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      console.warn("MyCompanyForm: Skipping onSubmit due to auth removal. Settings will not be saved user-specifically.");
+      const { error } = await upsertInvoiceSettings(user.id, data);
+      if (error) throw error;
+      
       toast({
-        title: "Info",
-        description: "Saving company settings is currently affected by auth removal.",
-        variant: "default"
+        title: "Success",
+        description: "My Company information saved",
       });
     } catch (error) {
       console.error("Error saving company settings:", error);

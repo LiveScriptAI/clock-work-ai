@@ -21,98 +21,87 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Get environment variables
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const stripePriceId = "price_1RWdO5EC1YgoxpP0DJ5KJkUI"; // Fixed price ID
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
     
-    if (!stripeSecretKey) {
-      logStep("ERROR: STRIPE_SECRET_KEY is not set");
-      throw new Error("STRIPE_SECRET_KEY is not configured");
-    }
-    
-    logStep("Environment variables verified", { priceId: stripePriceId });
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key verified");
 
-    // Create Supabase client
+    // Initialize Supabase with service role key for writes
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header provided");
-      throw new Error("No authorization header provided");
-    }
+    if (!authHeader) throw new Error("No authorization header provided");
     
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) {
-      logStep("ERROR: Authentication failed", { error: userError.message });
-      throw new Error(`Authentication error: ${userError.message}`);
-    }
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
-    if (!user?.email) {
-      logStep("ERROR: User not authenticated or email not available");
-      throw new Error("User not authenticated or email not available");
-    }
-    
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    if (!user?.id) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id });
 
-    // Initialize Stripe
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+    const { priceId } = await req.json();
+    if (!priceId) throw new Error("priceId is required");
+    logStep("Price ID received", { priceId });
 
-    // Test Stripe connection by retrieving the price
-    try {
-      const price = await stripe.prices.retrieve(stripePriceId);
-      logStep("Stripe price verified", { priceId: stripePriceId, amount: price.unit_amount });
-    } catch (stripeError) {
-      logStep("ERROR: Invalid Stripe Price ID", { priceId: stripePriceId, error: stripeError.message });
-      throw new Error(`Invalid Stripe Price ID: ${stripePriceId}`);
-    }
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Check if customer already exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
-    } else {
+    // Check if user already has a Stripe customer ID
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", user.id)
+      .single();
+
+    let customerId = profile?.stripe_customer_id;
+
+    if (!customerId) {
+      // Create new Stripe customer
       const customer = await stripe.customers.create({
         email: user.email,
         metadata: {
-          user_id: user.id,
+          supabaseUserId: user.id
         }
       });
       customerId = customer.id;
-      logStep("Created new customer", { customerId });
-    }
+      logStep("Created new Stripe customer", { customerId });
 
-    // Get the origin for success/cancel URLs
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+      // Store customer ID in profiles table
+      await supabaseClient
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", user.id);
+      logStep("Updated profile with customer ID");
+    } else {
+      logStep("Using existing customer ID", { customerId });
+    }
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
       customer: customerId,
       line_items: [
         {
-          price: stripePriceId,
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: "subscription",
-      success_url: `${origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/welcome`,
+      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/billing?canceled=true`,
       metadata: {
-        user_id: user.id,
-      },
+        supabaseUserId: user.id
+      }
     });
 
-    logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
-    return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
+    return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
@@ -120,7 +109,6 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in create-checkout-session", { message: errorMessage });
-    
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

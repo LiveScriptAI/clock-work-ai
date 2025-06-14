@@ -11,9 +11,10 @@ import { sendInvoice, generateInvoicePDF } from "./invoice-utils";
 import { convertInvoiceToShift } from "./invoice-conversion-utils";
 import { LineItem } from "./invoice-types";
 import { ShiftEntry } from "../timesheet/types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import CompanySelector from "./CompanySelector";
 import MyCompanyForm from "./MyCompanyForm";
+import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InvoiceSettingsType, fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 
@@ -24,7 +25,9 @@ declare global {
   }
 }
 const InvoiceForm = () => {
-  const { toast } = useToast();
+  const {
+    user
+  } = useAuth();
   const today = new Date();
   const [customer, setCustomer] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
@@ -34,7 +37,7 @@ const InvoiceForm = () => {
   const [terms, setTerms] = useState<string>("Payment due within 30 days. Late payments are subject to a 2% monthly fee.");
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Add state for address fields
   const [address1, setAddress1] = useState<string>("");
@@ -54,8 +57,24 @@ const InvoiceForm = () => {
 
   // Fetch sender information when component mounts
   useEffect(() => {
-    setIsLoading(false);
-  }, []);
+    const loadSenderInfo = async () => {
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const data = await fetchInvoiceSettings(user.id);
+        if (data) {
+          setSender(data);
+        }
+      } catch (error) {
+        console.error("Failed to load company settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSenderInfo();
+  }, [user]);
 
   // Handle company selection
   const handleCompanySelect = (companyData: any) => {
@@ -135,7 +154,7 @@ const InvoiceForm = () => {
       // Cleanup
       delete window._pendingAutofill;
     };
-  }, [lineItems, toast]);
+  }, [lineItems]);
   const addLineItem = () => {
     setLineItems([...lineItems, {
       id: `item-${Date.now()}`,
@@ -211,7 +230,7 @@ const InvoiceForm = () => {
     if (!sender) {
       toast({
         title: "Missing company information",
-        description: "Please set up your company information first. Sender info might be unavailable due to auth removal.",
+        description: "Please set up your company information first",
         variant: "destructive"
       });
       return;

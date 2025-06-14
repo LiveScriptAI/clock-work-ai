@@ -4,14 +4,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// Removed AuthProvider import
-// Removed ProtectedRoute import
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import WelcomePage from "./pages/Welcome";
-// Removed LoginPage import
-// Removed RegisterPage import
-// Removed DashboardPage import
-// Removed ThankYou import
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
+import EmailVerificationPage from "./pages/EmailVerification";
+import SubscriptionRequiredPage from "./pages/SubscriptionRequired";
+import DashboardPage from "./pages/Dashboard";
+import BillingPage from "./pages/BillingPage";
 
 const queryClient = new QueryClient();
 
@@ -21,13 +22,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        {/* Removed AuthProvider wrapper */}
         <Routes>
           <Route path="/welcome" element={<WelcomePage />} />
-          {/* Removed /login route */}
-          {/* Removed /register route */}
-          {/* Removed /thank-you route */}
-          {/* Removed /dashboard route */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/email-verification" element={<EmailVerificationPage />} />
+          <Route path="/subscription-required" element={<SubscriptionRequiredPage />} />
+          <Route path="/billing" element={<BillingPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute requireSubscription={true}>
+                <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/" element={<Navigate to="/welcome" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

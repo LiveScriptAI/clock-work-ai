@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useShiftState } from "@/hooks/useShiftState";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
-// Removed useAuth import
+import { useAuth } from "@/hooks/useAuth";
 
 // Import layout and content components
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
@@ -20,7 +21,7 @@ import {
 const DashboardPage = () => {
   const { t } = useTranslation();
   const [sheetOpen, setSheetOpen] = useState(false);
-  // Removed user from useAuth()
+  const { user } = useAuth();
   
   const shiftState = useShiftState();
   const {
@@ -42,7 +43,7 @@ const DashboardPage = () => {
 
   // Create a wrapper function to call confirmShiftEnd with the user ID
   const handleConfirmShiftEnd = () => {
-    confirmShiftEnd(undefined); // Passing undefined as user.id is no longer available
+    confirmShiftEnd(user?.id);
   };
 
   // Type-safe handler for rate type changes

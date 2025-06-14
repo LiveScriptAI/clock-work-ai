@@ -1,28 +1,25 @@
 
 import { useState, useEffect } from "react";
-// Removed useAuth import
+import { useAuth } from "@/hooks/useAuth";
 import { getBreakIntervalsFromSupabase, deleteBreakIntervalsFromSupabase, BreakInterval } from "@/services/breakDataService";
 import { toast } from "sonner";
 
-export const useBreakData = (userId?: string) => { // Accept userId as a parameter
-  // Removed user from useAuth()
+export const useBreakData = () => {
+  const { user } = useAuth();
   const [breakIntervalsByShift, setBreakIntervalsByShift] = useState<Record<string, BreakInterval[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchBreakData = async () => {
-    if (!userId) { // Check passed userId
+    if (!user?.id) {
       setIsLoading(false);
-      setError("User ID not provided to fetch break data.");
-      console.warn("useBreakData: User ID not provided. Cannot fetch break data.");
-      setBreakIntervalsByShift({});
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getBreakIntervalsFromSupabase(userId);
+      const data = await getBreakIntervalsFromSupabase(user.id);
       setBreakIntervalsByShift(data);
     } catch (err) {
       console.error("useBreakData - Error fetching break data:", err);
@@ -33,16 +30,16 @@ export const useBreakData = (userId?: string) => { // Accept userId as a paramet
   };
 
   const deleteBreakForShift = async (shiftId: string): Promise<boolean> => {
-    if (!userId) { // Check passed userId
-      toast.error("User not authenticated to delete break");
-      console.warn("useBreakData: User ID not provided. Cannot delete break data.");
+    if (!user?.id) {
+      toast.error("User not authenticated");
       return false;
     }
 
     try {
-      const success = await deleteBreakIntervalsFromSupabase(shiftId, userId);
+      const success = await deleteBreakIntervalsFromSupabase(shiftId, user.id);
       
       if (success) {
+        // Remove from local state
         setBreakIntervalsByShift(prev => {
           const updated = { ...prev };
           delete updated[shiftId];
@@ -62,13 +59,8 @@ export const useBreakData = (userId?: string) => { // Accept userId as a paramet
   };
 
   useEffect(() => {
-    if (userId) { // Only fetch if userId is provided
-        fetchBreakData();
-    } else {
-        setIsLoading(false);
-        setBreakIntervalsByShift({});
-    }
-  }, [userId]); // Depend on passed userId
+    fetchBreakData();
+  }, [user?.id]);
 
   return {
     breakIntervalsByShift,
