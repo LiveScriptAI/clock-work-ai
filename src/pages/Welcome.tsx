@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -116,7 +115,7 @@ const WelcomePage = () => {
           <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
             <Link to="/register">Start Free Trial</Link>
           </Button>
-          <Button asChild variant="outline" className="px-8 py-4 border-2 border-white text-white font-medium rounded-full hover:bg-white hover:text-purple-600 transition text-lg">
+          <Button asChild className="px-8 py-4 bg-white text-brand-navy font-medium rounded-full hover:bg-white/90 transition text-lg shadow-xl border-2 border-white">
             <Link to="/login">Login</Link>
           </Button>
         </div>
@@ -185,7 +184,7 @@ const WelcomePage = () => {
             <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
               <Link to="/register">Start Free Trial</Link>
             </Button>
-            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+            <Button asChild className="px-8 py-4 bg-white text-brand-navy font-medium rounded-full hover:bg-white/90 transition text-lg shadow-lg border-2 border-brand-navy">
               <Link to="/login">Login</Link>
             </Button>
           </div>
