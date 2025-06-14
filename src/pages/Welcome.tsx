@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
-
 const WelcomePage = () => {
   const containerVariants = {
     hidden: {
@@ -171,10 +170,10 @@ const WelcomePage = () => {
           <motion.div className="text-center" variants={itemVariants}>
             {/* QR Code - smaller and static */}
             <motion.div className="flex justify-center mb-6" variants={itemVariants}>
-              <img src="/lovable-uploads/13bdcfa2-eac3-481e-a07c-1f77b8f37fab.png" alt="Scan to subscribe QR Code" className="w-24 h-24 rounded-lg shadow-lg" />
+              
             </motion.div>
             
-            <motion.p className="font-body text-lg mb-8 max-w-2xl mx-auto opacity-80" variants={itemVariants}>Scan the QR code to start your 7-day free trial and take control of recorded hours so your boss can pay you correctly! </motion.p>
+            
             
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
               <div className="flex items-center gap-2 opacity-70">
