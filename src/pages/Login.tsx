@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,14 +16,32 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isSubscribed, loading } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, check their subscription status
+    // If user is already logged in, handle routing
     if (!loading && user) {
       console.log('User logged in, checking subscription:', { user: user.email, isSubscribed });
+      
+      // Check if there's a pending session ID (user came from payment flow)
+      const pendingSessionId = localStorage.getItem('pending_session_id');
+      if (pendingSessionId) {
+        console.log('Found pending session after login, redirecting to thank-you page');
+        navigate(`/thank-you?session_id=${pendingSessionId}`);
+        return;
+      }
+      
+      // Normal login flow - check subscription
       if (isSubscribed) {
-        navigate("/dashboard");
+        // Check if there was a redirect path stored
+        const redirectPath = localStorage.getItem('redirect_after_payment');
+        if (redirectPath) {
+          localStorage.removeItem('redirect_after_payment');
+          navigate(redirectPath);
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         // User is authenticated but doesn't have subscription - redirect to welcome
         console.log('User authenticated but no subscription - redirecting to welcome');
@@ -90,10 +108,20 @@ const LoginPage = () => {
       } else if (data.user) {
         console.log('Login successful:', data.user.email);
         setRetryCount(0); // Reset retry count on success
-        toast({
-          title: "Login successful",
-          description: "Checking your subscription status..."
-        });
+        
+        // Check if this is part of a payment verification flow
+        const pendingSessionId = localStorage.getItem('pending_session_id');
+        if (pendingSessionId) {
+          toast({
+            title: "Login successful",
+            description: "Verifying your payment..."
+          });
+        } else {
+          toast({
+            title: "Login successful",
+            description: "Checking your subscription status..."
+          });
+        }
         // Note: useEffect will handle the redirect based on subscription status
       }
     } catch (error) {
@@ -117,6 +145,10 @@ const LoginPage = () => {
     );
   }
 
+  // Check if user came from payment flow
+  const pendingSessionId = localStorage.getItem('pending_session_id');
+  const isPaymentFlow = pendingSessionId || location.state?.fromPayment;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
       <div className="flex flex-col items-center max-w-md w-full">
@@ -133,7 +165,14 @@ const LoginPage = () => {
         {/* Login Form */}
         <Card className="w-full max-w-sm shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">Log In</CardTitle>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">
+              {isPaymentFlow ? "Complete Your Payment" : "Log In"}
+            </CardTitle>
+            {isPaymentFlow && (
+              <p className="text-center text-sm text-gray-600 mt-2">
+                Your payment was successful! Please log in to activate your subscription.
+              </p>
+            )}
           </CardHeader>
           <CardContent className="pb-6">
             {retryCount >= 2 && (
@@ -183,10 +222,12 @@ const LoginPage = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {retryCount > 0 ? 'Retrying...' : 'Logging in...'}
+                    {retryCount > 0 ? 'Retrying...' : isPaymentFlow ? 'Verifying Payment...' : 'Logging in...'}
                   </>
                 ) : retryCount >= 3 ? (
                   "Too many attempts - Please wait"
+                ) : isPaymentFlow ? (
+                  "Log In to Verify Payment"
                 ) : (
                   "Log In"
                 )}
