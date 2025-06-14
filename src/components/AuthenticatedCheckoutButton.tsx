@@ -10,11 +10,13 @@ import { useNavigate } from "react-router-dom";
 interface AuthenticatedCheckoutButtonProps {
   className?: string;
   size?: "sm" | "default" | "lg";
+  priceId?: string;
 }
 
 export function AuthenticatedCheckoutButton({ 
   className = "", 
-  size = "lg" 
+  size = "lg",
+  priceId 
 }: AuthenticatedCheckoutButtonProps) {
   const { user, isSubscribed, isLoading: authLoading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -22,27 +24,27 @@ export function AuthenticatedCheckoutButton({
 
   const handleCheckout = async () => {
     if (!user) {
-      // Redirect to registration if not authenticated
       navigate("/register");
       return;
     }
 
     if (isSubscribed) {
-      // User already has subscription, go to billing page
       navigate("/billing");
       return;
     }
 
-    // Start checkout process for authenticated user
     setIsProcessing(true);
     
     try {
       console.log("Starting checkout for user:", user.email);
       
+      const payload = priceId ? { priceId } : {};
+      
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify(payload)
       });
       
       if (error) {
@@ -51,10 +53,24 @@ export function AuthenticatedCheckoutButton({
         return;
       }
       
+      if (data?.error) {
+        console.error("Server error:", data.error);
+        if (data.redirect) {
+          navigate(data.redirect);
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+      
       if (data?.url) {
         console.log("Redirecting to Stripe checkout:", data.url);
-        // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
+        
+        // Show helpful message
+        toast.success("Checkout opened in new tab. Complete your subscription there!", {
+          duration: 5000
+        });
       } else {
         console.error("No checkout URL received:", data);
         toast.error("Failed to create checkout session. Please try again.");

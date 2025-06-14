@@ -23,6 +23,7 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const frontendUrl = Deno.env.get("FRONTEND_URL") || "http://localhost:3000";
+    const defaultPriceId = Deno.env.get("STRIPE_PRICE_ID");
     
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
@@ -45,18 +46,38 @@ serve(async (req) => {
     if (!user?.id) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
-    const { priceId } = await req.json();
-    if (!priceId) throw new Error("priceId is required");
-    logStep("Price ID received", { priceId });
+    // Parse request body for price ID (optional)
+    let requestBody = {};
+    try {
+      requestBody = await req.json();
+    } catch {
+      // No body or invalid JSON, use defaults
+    }
+    
+    const priceId = requestBody.priceId || defaultPriceId;
+    if (!priceId) throw new Error("No price ID provided and no default price ID configured");
+    logStep("Price ID determined", { priceId });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Check if user already has a Stripe customer ID
     const { data: profile } = await supabaseClient
       .from("profiles")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, subscription_status")
       .eq("id", user.id)
       .single();
+
+    // Check if user already has active subscription
+    if (profile?.subscription_status === 'active') {
+      logStep("User already has active subscription, redirecting to billing");
+      return new Response(JSON.stringify({ 
+        error: "You already have an active subscription",
+        redirect: "/billing"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
     let customerId = profile?.stripe_customer_id;
 
@@ -92,10 +113,16 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${frontendUrl}/billing?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${frontendUrl}/billing?canceled=true`,
       metadata: {
         supabaseUserId: user.id
+      },
+      allow_promotion_codes: true,
+      billing_address_collection: "required",
+      customer_update: {
+        address: "auto",
+        name: "auto"
       }
     });
 

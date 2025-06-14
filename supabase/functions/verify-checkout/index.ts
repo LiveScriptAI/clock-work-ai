@@ -24,75 +24,91 @@ serve(async (req) => {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
-    // Initialize Supabase with service role key for writes
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
+    
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    
+    const user = userData.user;
+    if (!user?.id) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id });
+
     const { sessionId } = await req.json();
-    if (!sessionId) throw new Error("sessionId is required");
+    if (!sessionId) throw new Error("Session ID is required");
     logStep("Session ID received", { sessionId });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Retrieve the checkout session with expanded subscription
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['subscription']
+    
+    // Retrieve the checkout session
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    logStep("Retrieved checkout session", { 
+      status: session.payment_status, 
+      subscriptionId: session.subscription 
     });
 
-    if (!session.subscription) {
-      throw new Error("No subscription found in session");
-    }
+    if (session.payment_status === "paid" && session.subscription) {
+      // Get subscription details
+      const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+      logStep("Retrieved subscription", { 
+        status: subscription.status,
+        currentPeriodEnd: subscription.current_period_end 
+      });
 
-    const subscription = session.subscription as Stripe.Subscription;
-    const userId = session.metadata?.supabaseUserId;
-
-    if (!userId) {
-      throw new Error("No user ID found in session metadata");
-    }
-
-    logStep("Session retrieved", { 
-      subscriptionId: subscription.id, 
-      userId, 
-      status: subscription.status 
-    });
-
-    // Determine subscription tier based on price
-    let subscriptionTier = "basic";
-    if (subscription.items.data.length > 0) {
-      const price = subscription.items.data[0].price;
+      // Determine subscription tier based on price
+      const priceId = subscription.items.data[0].price.id;
+      const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
-      if (amount >= 2500) { // £25 or more
-        subscriptionTier = "pro";
+      
+      let subscriptionTier = "Basic";
+      if (amount > 1999) {
+        subscriptionTier = "Enterprise";
+      } else if (amount > 999) {
+        subscriptionTier = "Premium";
       }
+      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
+
+      // Update user profile with subscription info
+      await supabaseClient
+        .from("profiles")
+        .update({
+          stripe_subscription_id: subscription.id,
+          subscription_status: subscription.status,
+          subscription_tier: subscriptionTier,
+        })
+        .eq("id", user.id);
+      
+      logStep("Updated profile with subscription info");
+
+      return new Response(JSON.stringify({
+        success: true,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+          tier: subscriptionTier,
+          current_period_end: subscription.current_period_end
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } else {
+      logStep("Payment not completed or no subscription found");
+      return new Response(JSON.stringify({
+        success: false,
+        message: "Payment not completed or subscription not found"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
-
-    // Update user's subscription status
-    const { error: updateError } = await supabaseClient
-      .from("profiles")
-      .update({
-        stripe_subscription_id: subscription.id,
-        subscription_status: subscription.status,
-        subscription_tier: subscriptionTier
-      })
-      .eq("id", userId);
-
-    if (updateError) {
-      throw new Error(`Failed to update profile: ${updateError.message}`);
-    }
-
-    logStep("Profile updated successfully", { 
-      subscriptionId: subscription.id, 
-      status: subscription.status,
-      tier: subscriptionTier
-    });
-
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

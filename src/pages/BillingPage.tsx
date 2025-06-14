@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { Navigate, useSearchParams } from 'react-router-dom';
+import { Loader2 } from '@/components/ui/loader';
+import { CheckoutSuccess } from "@/components/CheckoutSuccess";
 
 interface SubscriptionStatus {
   subscription_status: string | null;
@@ -17,16 +19,43 @@ interface SubscriptionStatus {
 
 export default function BillingPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  // Check if this is a checkout success/cancel scenario
+  const sessionId = searchParams.get('session_id');
+  const success = searchParams.get('success');
+  const canceled = searchParams.get('canceled');
+
+  if (!isLoading && !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+      </div>
+    );
+  }
+
+  // Show checkout success/cancel handling
+  if (sessionId || success || canceled) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-4 py-8">
+          <CheckoutSuccess />
+        </div>
+      </div>
+    );
+  }
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
   // Check URL for session_id on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get('session_id');
-    const canceled = params.get('canceled');
     if (sessionId) {
       verifyCheckout(sessionId);
     } else if (canceled) {
