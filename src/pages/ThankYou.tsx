@@ -23,14 +23,14 @@ const ThankYou = () => {
       console.log('Thank You page - Session ID from URL:', sessionId);
       console.log('Current user:', user?.email);
       
+      // If no session ID, this person shouldn't be on this page
       if (!sessionId) {
-        console.error('No session ID found in URL');
-        setStatus('error');
-        setMessage('No session ID found. The payment verification link may be incomplete.');
+        console.log('No session ID found - redirecting to welcome');
+        navigate('/welcome', { replace: true });
         return;
       }
 
-      // CRITICAL FIX: If no user is logged in, store session ID and redirect to login
+      // If no user is logged in, store session ID and redirect to login
       if (!user) {
         console.log('No user logged in, storing session ID and redirecting to login');
         localStorage.setItem('pending_session_id', sessionId);
