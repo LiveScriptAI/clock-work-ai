@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [profileError, setProfileError] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isSubscribed = subscriptionStatus === 'active';
 
@@ -34,6 +35,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       setSubscriptionStatus(null);
       setProfileError(false);
+      // Clear any pending session IDs
+      localStorage.removeItem('pending_session_id');
       navigate('/welcome');
       toast.success('Signed out successfully');
     } catch (error) {
@@ -56,10 +59,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // If user doesn't exist in profiles table, this is a critical issue
         if (error.code === 'PGRST116') {
-          console.log('Profile not found for authenticated user - clearing session');
+          console.log('Profile not found for authenticated user - setting profile error');
           setProfileError(true);
           setSubscriptionStatus(null);
-          toast.error('Account setup incomplete. Please log out and try again.');
+          toast.error('Account setup incomplete. Please log out and create a new account.');
           return;
         }
         
@@ -147,6 +150,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_IN' && session?.user?.id) {
         console.log('User signed in:', session.user.email);
         await fetchUserProfile(session.user.id);
+        
+        // CRITICAL FIX: Check for pending session verification after login
+        const pendingSessionId = localStorage.getItem('pending_session_id');
+        if (pendingSessionId && location.pathname !== '/thank-you') {
+          console.log('Found pending session after login, redirecting to thank-you page');
+          navigate(`/thank-you?session_id=${pendingSessionId}`);
+        }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setSubscriptionStatus(null);
@@ -162,7 +172,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location.pathname]);
 
   const value = {
     user,

@@ -37,8 +37,8 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
 
       if (data?.url) {
         console.log('Checkout session created, redirecting to:', data.url);
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+        // CRITICAL FIX: Open in same tab to preserve auth context
+        window.location.href = data.url;
       } else {
         throw new Error('No checkout URL received from server');
       }

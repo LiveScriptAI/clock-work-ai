@@ -26,15 +26,16 @@ const ThankYou = () => {
       if (!sessionId) {
         console.error('No session ID found in URL');
         setStatus('error');
-        setMessage('No session ID found. The payment verification link may be incomplete. Please try logging in to check your subscription status.');
+        setMessage('No session ID found. The payment verification link may be incomplete.');
         return;
       }
 
-      // If no user is logged in, show message to log in
+      // CRITICAL FIX: If no user is logged in, store session ID and redirect to login
       if (!user) {
-        console.log('No user logged in, need to authenticate first');
+        console.log('No user logged in, storing session ID and redirecting to login');
+        localStorage.setItem('pending_session_id', sessionId);
         setStatus('error');
-        setMessage('Please log in to verify your payment. Your payment was successful, but we need you to sign in to activate your subscription.');
+        setMessage('Your payment was successful! Please log in to activate your subscription.');
         return;
       }
 
@@ -57,6 +58,9 @@ const ThankYou = () => {
           console.log('Payment verification successful');
           setStatus('success');
           setMessage('Your subscription has been activated successfully!');
+          
+          // Clear any stored session ID
+          localStorage.removeItem('pending_session_id');
           
           // Refresh the user profile to get updated subscription status
           console.log('Refreshing user profile...');
@@ -96,9 +100,25 @@ const ThankYou = () => {
       }
     };
 
+    // Check for pending session ID from localStorage (after login redirect)
+    const checkPendingSession = () => {
+      const pendingSessionId = localStorage.getItem('pending_session_id');
+      if (pendingSessionId && user) {
+        console.log('Found pending session ID after login:', pendingSessionId);
+        // Update URL with session ID and trigger verification
+        const url = new URL(window.location.href);
+        url.searchParams.set('session_id', pendingSessionId);
+        window.history.replaceState({}, '', url.toString());
+        // Re-trigger effect with new session ID
+        setTimeout(() => verifyCheckout(), 100);
+        return;
+      }
+      verifyCheckout();
+    };
+
     // Small delay to ensure auth state is loaded
     const timer = setTimeout(() => {
-      verifyCheckout();
+      checkPendingSession();
     }, 1000);
 
     return () => clearTimeout(timer);
