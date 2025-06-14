@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,10 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield } from 'lucide-react';
+import { Check, Crown, Clock, FileText, Calculator, Share2, TrendingUp, Shield, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { Loader2 } from '@/components/ui/loader';
 import { CheckoutSuccess } from "@/components/CheckoutSuccess";
 
 interface SubscriptionStatus {
