@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
@@ -22,20 +22,6 @@ const EmailVerificationSuccess = () => {
         <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
       </div>
     );
-  }
-
-  // If email still not verified, stay on this page
-  if (!isEmailVerified && verificationStatus === 'success') {
-    return null;
-  }
-
-  // Once verified and successful:
-  if (verificationStatus === 'success' && isEmailVerified) {
-    if (isSubscribed) {
-      return <Navigate to="/dashboard" replace />;
-    } else {
-      return <Navigate to="/subscription-required" replace />;
-    }
   }
 
   useEffect(() => {
@@ -93,6 +79,22 @@ const EmailVerificationSuccess = () => {
 
     handleVerification();
   }, [searchParams]);
+
+  // Handle navigation after successful verification
+  useEffect(() => {
+    if (verificationStatus !== 'success') return;
+    
+    // Give user a moment to see the ✅ success message
+    const timer = setTimeout(() => {
+      if (isSubscribed) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/subscription-required", { replace: true });
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [verificationStatus, isSubscribed, navigate]);
 
   const handleLoginRedirect = () => {
     navigate('/login');
