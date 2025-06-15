@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -106,105 +107,107 @@ const WelcomePage = () => {
   const stepTwoContent = getStepTwoContent();
   
   return (
-    <div className="font-body">
+    <div className="font-body w-full min-h-screen">
       {/* Hero Section */}
       <motion.section 
-        className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6" 
+        className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 lg:px-8" 
         initial="hidden" 
         animate="visible" 
         variants={containerVariants}
       >
-        {/* Logo */}
-        <motion.div className="mb-8" variants={itemVariants}>
-          <img 
-            src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
-            alt="Clock Work Pal logo" 
-            className="w-64 h-auto mx-auto" 
-          />
-        </motion.div>
+        <div className="w-full max-w-6xl mx-auto text-center">
+          {/* Logo */}
+          <motion.div className="mb-8" variants={itemVariants}>
+            <img 
+              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
+              alt="Clock Work Pal logo" 
+              className="w-64 h-auto mx-auto" 
+            />
+          </motion.div>
 
-        {/* Headline */}
-        <motion.h1 variants={itemVariants} className="font-display md:text-6xl text-white mb-4 text-center text-5xl">
-          Smarter Time Tracking
-        </motion.h1>
+          {/* Headline */}
+          <motion.h1 variants={itemVariants} className="font-display text-4xl sm:text-5xl md:text-6xl text-white mb-4 text-center">
+            Smarter Time Tracking
+          </motion.h1>
 
-        {/* Subtext */}
-        <motion.p variants={itemVariants} className="font-body max-w-2xl text-white/90 text-center mb-8 text-lg md:text-lg">
-          Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.
-        </motion.p>
+          {/* Subtext */}
+          <motion.p variants={itemVariants} className="font-body max-w-4xl text-white/90 text-center mb-8 text-lg md:text-xl mx-auto">
+            Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.
+          </motion.p>
 
-        {/* Get Started Instructions */}
-        <motion.div className="text-center mb-8" variants={itemVariants}>
-          <h3 className="font-display text-white mb-4 text-3xl">Get started in 2 simple steps:</h3>
-        </motion.div>
+          {/* Get Started Instructions */}
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <h3 className="font-display text-white mb-4 text-2xl sm:text-3xl">Get started in 2 simple steps:</h3>
+          </motion.div>
 
-        {/* Step 1: Create Account / Verify Email */}
-        <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
-          <div className="flex items-center mb-3">
-            <span className={`${stepOneStatus.complete ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
-              {stepOneStatus.complete ? '✓' : '1'}
-            </span>
-            <span className="font-body text-lg text-white">
-              {stepOneStatus.text}
-            </span>
-          </div>
-          
-          {!stepOneStatus.complete && !stepOneStatus.loading && (
-            <div className="flex gap-3">
-              {!hasAccount ? (
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
-                >
-                  <Link to="/register">Create Account</Link>
-                </Button>
-              ) : (
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
-                >
-                  <Link to="/email-verification">Check Email for Verification</Link>
-                </Button>
-              )}
+          {/* Step 1: Create Account / Verify Email */}
+          <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
+            <div className="flex items-center mb-3">
+              <span className={`${stepOneStatus.complete ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
+                {stepOneStatus.complete ? '✓' : '1'}
+              </span>
+              <span className="font-body text-lg text-white">
+                {stepOneStatus.text}
+              </span>
             </div>
+            
+            {!stepOneStatus.complete && !stepOneStatus.loading && (
+              <div className="flex gap-3">
+                {!hasAccount ? (
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
+                  >
+                    <Link to="/register">Create Account</Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200"
+                  >
+                    <Link to="/email-verification">Check Email for Verification</Link>
+                  </Button>
+                )}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Step 2: Start Trial */}
+          <motion.div className="flex flex-col items-center" variants={itemVariants}>
+            <div className="flex items-center mb-3">
+              <span className={`${isSubscribed ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
+                {isSubscribed ? '✓' : '2'}
+              </span>
+              <span className="font-body text-lg text-white">{stepTwoContent.text}</span>
+            </div>
+            <div className="flex justify-center px-0 mx-0 my-[20px] py-0">
+              {stepTwoContent.component}
+            </div>
+          </motion.div>
+
+          {/* Status Messages */}
+          {!isLoading && !hasAccount && (
+            <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4 mx-auto" variants={itemVariants}>
+              ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
+            </motion.p>
           )}
-        </motion.div>
 
-        {/* Step 2: Start Trial */}
-        <motion.div className="flex flex-col items-center" variants={itemVariants}>
-          <div className="flex items-center mb-3">
-            <span className={`${isSubscribed ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
-              {isSubscribed ? '✓' : '2'}
-            </span>
-            <span className="font-body text-lg text-white">{stepTwoContent.text}</span>
-          </div>
-          <div className="flex justify-center px-0 mx-0 my-[20px] py-0">
-            {stepTwoContent.component}
-          </div>
-        </motion.div>
-
-        {/* Status Messages */}
-        {!isLoading && !hasAccount && (
-          <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
-            ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
-          </motion.p>
-        )}
-
-        {!isLoading && hasAccount && !isEmailVerified && (
-          <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
-            📧 Please check your email and click the verification link to complete your account setup.
-          </motion.p>
-        )}
+          {!isLoading && hasAccount && !isEmailVerified && (
+            <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4 mx-auto" variants={itemVariants}>
+              📧 Please check your email and click the verification link to complete your account setup.
+            </motion.p>
+          )}
+        </div>
       </motion.section>
 
       {/* Features Section */}
       <FeaturesGrid />
 
       {/* Redesigned Unlock Your Full Potential Section */}
-      <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-6 text-white overflow-hidden" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}>
-        <div className="max-w-7xl mx-auto">
+      <motion.section className="bg-gradient-to-r from-purple-600 to-blue-600 py-16 px-4 sm:px-6 lg:px-8 text-white overflow-hidden w-full" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}>
+        <div className="max-w-7xl mx-auto w-full">
           <motion.div className="text-center mb-12" variants={itemVariants}>
             <motion.div className="mb-6" variants={itemVariants}>
               <span className="text-5xl">💎</span>
@@ -253,9 +256,9 @@ const WelcomePage = () => {
         whileInView="visible" 
         viewport={{ once: true }} 
         variants={containerVariants} 
-        className="py-12 px-6 text-center bg-[#cfeaff]"
+        className="py-12 px-4 sm:px-6 lg:px-8 text-center bg-[#cfeaff] w-full"
       >
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="max-w-4xl mx-auto">
           <h3 className="font-display text-3xl text-brand-navy mb-4">
             Ready to Get Started?
           </h3>
