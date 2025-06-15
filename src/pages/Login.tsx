@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -15,31 +16,31 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const { isInitialized, isLoading: authLoading, user, isEmailVerified, isSubscribed } = useAuth();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      if (session) {
-        // Let the useAuth hook handle the subscription check and redirect
+    if (!isInitialized || authLoading) return;
+    
+    if (user) {
+      // Unverified → email-verification
+      if (!isEmailVerified) {
+        navigate("/email-verification");
+      }
+      // Verified but not subscribed → subscription-required
+      else if (!isSubscribed) {
+        navigate("/subscription-required");
+      }
+      // Good to go → dashboard
+      else {
         navigate("/dashboard");
       }
-    };
-    checkSession();
+    }
+  }, [isInitialized, authLoading, user, isEmailVerified, isSubscribed, navigate]);
 
-    // Set up auth state listener
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Let the useAuth hook handle the subscription check and redirect
-        navigate("/dashboard");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  // If user is already authenticated and fully verified/subscribed, redirect immediately
+  if (user && isEmailVerified && isSubscribed) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +98,9 @@ const LoginPage = () => {
         setRetryCount(0); // Reset retry count on success
         toast({
           title: "Login successful",
-          description: "Checking your subscription status..."
+          description: "Checking your verification and subscription status..."
         });
+        // The useEffect hook will handle the redirect based on user status
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
