@@ -13,7 +13,9 @@ interface AuthContextType {
   isEmailVerified: boolean;
   isSubscribed: boolean;
   subscriptionTier: string | null;
+  hasIncompletePayment: boolean;
   signOut: () => Promise<void>;
+  handleSignOut: () => Promise<void>; // Add alias for backward compatibility
   refreshProfile: () => Promise<void>;
   refreshSubscriptionStatus: () => Promise<void>;
 }
@@ -91,6 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Alias for backward compatibility
+  const handleSignOut = signOut;
+
   useEffect(() => {
     let mounted = true;
 
@@ -166,6 +171,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isEmailVerified = !!user?.email_confirmed_at;
   const isSubscribed = profile?.subscription_status === 'active';
   const subscriptionTier = profile?.subscription_tier || null;
+  
+  // Check for incomplete payment - this would be when user has a subscription but it's not active
+  const hasIncompletePayment = !!(profile?.stripe_subscription_id && profile?.subscription_status !== 'active');
 
   const value: AuthContextType = {
     user,
@@ -176,7 +184,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isEmailVerified,
     isSubscribed,
     subscriptionTier,
+    hasIncompletePayment,
     signOut,
+    handleSignOut,
     refreshProfile,
     refreshSubscriptionStatus
   };
