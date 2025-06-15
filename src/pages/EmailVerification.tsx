@@ -1,8 +1,23 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+
 const EmailVerificationPage = () => {
-  return <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
+  const { isInitialized, isLoading, user, isEmailVerified } = useAuth();
+
+  if (!isInitialized || isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // If user is already verified, send them straight to dashboard
+  if (user && isEmailVerified) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
       <div className="flex flex-col items-center max-w-md w-full">
         {/* Logo */}
         <div className="mb-8">
@@ -22,19 +37,15 @@ const EmailVerificationPage = () => {
                 <ol className="text-left space-y-3 text-sm text-brand-navy">
                   <li className="flex items-start">
                     <span className="bg-brand-accent text-brand-navy rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
-                    <span>Open your inbox and find the email titled “Confirm Your Signup.”</span>
+                    <span>Open your inbox and find the email titled "Confirm Your Signup."</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-brand-accent text-brand-navy rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
-                    <span>Click the verification link in that message. You’ll then be taken back to the home page.</span>
+                    <span>Click the verification link in that message. You'll then be taken back to the home page.</span>
                   </li>
                   <li className="flex items-start">
                     <span className="bg-brand-accent text-brand-navy rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-                    <span>On the home page, click the “7 Day Free Trial” (as shown below) to begin your free trial.</span>
-                  </li>
-                  <li className="flex items-start">
-                    
-                    
+                    <span>On the home page, click the "7 Day Free Trial" (as shown below) to begin your free trial.</span>
                   </li>
                 </ol>
               </div>
@@ -61,6 +72,8 @@ const EmailVerificationPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default EmailVerificationPage;
