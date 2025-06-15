@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
@@ -9,7 +8,17 @@ import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutB
 import { useAuth } from "@/contexts/AuthContext";
 
 const WelcomePage = () => {
-  const { user, isSubscribed, isLoading, isEmailVerified } = useAuth();
+  const { user, isSubscribed, isLoading, isEmailVerified, isInitialized } = useAuth();
+  
+  // While auth state loads, show a loading placeholder
+  if (!isInitialized || isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // Already fully authenticated & subscribed? Jump straight to dashboard
+  if (user && isEmailVerified && isSubscribed) {
+    return <Navigate to="/dashboard" replace />;
+  }
   
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -34,15 +43,13 @@ const WelcomePage = () => {
   // Determine user state more accurately
   const hasAccount = !isLoading && !!user;
   const isAccountVerified = hasAccount && isEmailVerified;
-  const isFullyReady = isAccountVerified && !isSubscribed;
 
   console.log('Welcome page state:', {
     isLoading,
     hasAccount,
     isEmailVerified,
     isAccountVerified,
-    isSubscribed,
-    isFullyReady
+    isSubscribed
   });
 
   const getStepOneStatus = () => {
