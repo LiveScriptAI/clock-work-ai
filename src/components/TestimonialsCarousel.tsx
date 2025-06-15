@@ -100,9 +100,7 @@ export default function TestimonialsCarousel() {
 
         {/* Progress indicator */}
         <div className="mt-4 text-center">
-          <span className="font-body text-sm text-neutral-500">
-            {currentIndex + 1} of {testimonials.length}
-          </span>
+          
         </div>
       </motion.div>
     </motion.section>;
