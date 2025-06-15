@@ -1,13 +1,37 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Crown, ArrowRight, LogOut } from "lucide-react";
+import { Crown, ArrowRight, LogOut, Loader2 } from "lucide-react";
 
 const SubscriptionRequiredPage = () => {
-  const { handleSignOut } = useAuth();
+  const { isInitialized, isLoading: authLoading, user, isEmailVerified, isSubscribed, handleSignOut } = useAuth();
+
+  // While auth state loads
+  if (!isInitialized || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+      </div>
+    );
+  }
+
+  // Must be logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Must have verified email
+  if (!isEmailVerified) {
+    return <Navigate to="/email-verification" replace />;
+  }
+
+  // Only unsubscribed users should see this page
+  if (isSubscribed) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
