@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 const EmailVerificationSuccess = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [verificationStatus, setVerificationStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -27,20 +26,9 @@ const EmailVerificationSuccess = () => {
   useEffect(() => {
     const handleVerification = async () => {
       try {
-        // Get the token and type from URL params
-        const token = searchParams.get('token');
-        const type = searchParams.get('type');
-        
-        console.log('Email verification params:', { token: !!token, type });
+        console.log('Checking email verification status...');
 
-        if (!token || !type) {
-          setVerificationStatus('error');
-          setErrorMessage('Invalid verification link. Please try again.');
-          return;
-        }
-
-        // The verification should already be handled by Supabase auth
-        // Let's check if we have a session now
+        // Check if we have a session now
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -55,8 +43,7 @@ const EmailVerificationSuccess = () => {
           setVerificationStatus('success');
           toast.success('Email verified successfully! You are now logged in.');
         } else {
-          // If no session, the verification might have worked but user isn't logged in
-          // Let's try to refresh the session
+          // If no session, try to refresh the session
           console.log('No session found, attempting to refresh...');
           await supabase.auth.refreshSession();
           
@@ -78,7 +65,7 @@ const EmailVerificationSuccess = () => {
     };
 
     handleVerification();
-  }, [searchParams]);
+  }, []);
 
   // Handle navigation after successful verification
   useEffect(() => {
