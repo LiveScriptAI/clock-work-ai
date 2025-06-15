@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -15,70 +16,57 @@ const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, isEmailVerified } = useAuth();
   
   useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && window.location.pathname !== '/email-verification') {
-        // Let the useAuth hook handle the subscription check and redirect
-        navigate("/dashboard");
-      }
-    };
-    
-    checkSession();
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session && window.location.pathname !== '/email-verification') {
-        // Let the useAuth hook handle the subscription check and redirect
-        navigate("/dashboard");
-      }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    // If user is already logged in and verified, redirect to welcome
+    if (user && isEmailVerified) {
+      navigate("/welcome");
+    }
+  }, [user, isEmailVerified, navigate]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      console.log('Attempting registration for:', email);
+      
+      // Set up proper redirect URL for email verification
+      const redirectUrl = `${window.location.origin}/email-verification-success`;
+      
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
             full_name: fullName
           },
-          emailRedirectTo: `${window.location.origin}/email-verification`
+          emailRedirectTo: redirectUrl
         }
       });
       
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: error.message
-        });
+        console.error('Registration error:', error);
+        
+        if (error.message.includes('User already registered')) {
+          toast.error("Account already exists. Please log in instead.");
+        } else if (error.message.includes('Password')) {
+          toast.error("Password must be at least 6 characters long.");
+        } else {
+          toast.error(error.message || "Registration failed. Please try again.");
+        }
       } else if (data.user) {
-        // Store email for the verification page
-        localStorage.setItem('pendingVerificationEmail', email);
+        console.log('Registration successful:', data.user.email);
         
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account."
-        });
+        toast.success("Account created! Please check your email to verify your account.");
         
-        // Redirect to email verification page
+        // Redirect to email verification page with instructions
         navigate("/email-verification");
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: "An unexpected error occurred."
-      });
+      console.error('Unexpected registration error:', error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -112,6 +100,7 @@ const RegisterPage = () => {
                   placeholder="John Doe"
                   required
                   className="font-body"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -125,6 +114,7 @@ const RegisterPage = () => {
                   placeholder="your.email@example.com"
                   required
                   className="font-body"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -139,6 +129,7 @@ const RegisterPage = () => {
                   minLength={6}
                   required
                   className="font-body"
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-gray-500 font-body">Password must be at least 6 characters</p>
               </div>

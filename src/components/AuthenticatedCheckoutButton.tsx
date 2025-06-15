@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -18,31 +18,51 @@ export function AuthenticatedCheckoutButton({
   size = "lg",
   priceId 
 }: AuthenticatedCheckoutButtonProps) {
-  const { user, isSubscribed, isLoading: authLoading } = useAuth();
+  const { user, isSubscribed, isLoading: authLoading, isEmailVerified } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
+  const logStep = (step: string, details?: any) => {
+    console.log(`[CHECKOUT] ${step}`, details ? details : '');
+  };
+
   const handleCheckout = async () => {
-    console.log("🚀 Checkout button clicked", { user: !!user, isSubscribed, authLoading });
+    logStep('Checkout button clicked', { 
+      hasUser: !!user, 
+      isSubscribed, 
+      isEmailVerified,
+      authLoading 
+    });
     
     if (!user) {
-      console.log("📝 No user found, redirecting to register");
+      logStep('No user found, redirecting to register');
       navigate("/register");
       return;
     }
 
+    if (!isEmailVerified) {
+      logStep('Email not verified, showing verification reminder');
+      toast.error("Please verify your email address before subscribing. Check your inbox for the verification link.");
+      navigate("/email-verification");
+      return;
+    }
+
     if (isSubscribed) {
-      console.log("✅ User already subscribed, redirecting to billing");
+      logStep('User already subscribed, redirecting to billing');
       navigate("/billing");
       return;
     }
 
     setIsProcessing(true);
-    console.log("⏳ Starting checkout process...");
+    logStep('Starting checkout process...');
     
     try {
+      // Store checkout state in localStorage for recovery
+      localStorage.setItem('checkout_in_progress', 'true');
+      localStorage.setItem('checkout_timestamp', Date.now().toString());
+      
       const payload = priceId ? { priceId } : {};
-      console.log("📦 Checkout payload:", payload);
+      logStep('Checkout payload:', payload);
       
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         headers: {
@@ -51,19 +71,19 @@ export function AuthenticatedCheckoutButton({
         body: JSON.stringify(payload)
       });
       
-      console.log("📊 Checkout response:", { data, error });
+      logStep('Checkout response:', { data, error });
       
       if (error) {
-        console.error("❌ Checkout error:", error);
+        console.error("Checkout error:", error);
         toast.error("Failed to start checkout. Please try again.");
         setIsProcessing(false);
         return;
       }
       
       if (data?.error) {
-        console.error("❌ Server error:", data.error);
+        console.error("Server error:", data.error);
         if (data.redirect) {
-          console.log("🔄 Redirecting to:", data.redirect);
+          logStep('Redirecting to:', data.redirect);
           navigate(data.redirect);
         } else {
           toast.error(data.error);
@@ -73,18 +93,17 @@ export function AuthenticatedCheckoutButton({
       }
       
       if (data?.url) {
-        console.log("🔗 Redirecting to Stripe checkout (same tab):", data.url);
-        // Use same tab redirect instead of new tab
+        logStep('Redirecting to Stripe checkout (same tab):', data.url);
+        // Use same tab redirect for better session management
         window.location.href = data.url;
-        // Don't reset loading state since we're redirecting
         return;
       } else {
-        console.error("❌ No checkout URL received:", data);
+        console.error("No checkout URL received:", data);
         toast.error("Failed to create checkout session. Please try again.");
         setIsProcessing(false);
       }
     } catch (error) {
-      console.error("💥 Unexpected checkout error:", error);
+      console.error("Unexpected checkout error:", error);
       toast.error("An unexpected error occurred. Please try again.");
       setIsProcessing(false);
     }
@@ -93,6 +112,7 @@ export function AuthenticatedCheckoutButton({
   const getButtonText = () => {
     if (authLoading) return "Loading...";
     if (!user) return "Create Account";
+    if (!isEmailVerified) return "Verify Email First";
     if (isSubscribed) return "Manage Subscription";
     return "Start Your 7-Day Free Trial";
   };

@@ -1,12 +1,11 @@
 
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 export function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
@@ -20,6 +19,12 @@ export function CheckoutSuccess() {
     const success = searchParams.get('success');
     const canceled = searchParams.get('canceled');
 
+    console.log('CheckoutSuccess params:', { sessionId, success, canceled });
+
+    // Clear checkout state from localStorage
+    localStorage.removeItem('checkout_in_progress');
+    localStorage.removeItem('checkout_timestamp');
+
     if (canceled) {
       toast.info("Checkout was canceled. You can try again anytime!");
       setVerificationStatus('error');
@@ -28,6 +33,9 @@ export function CheckoutSuccess() {
 
     if (success && sessionId) {
       verifyCheckout(sessionId);
+    } else {
+      console.error('Missing required parameters for checkout verification');
+      setVerificationStatus('error');
     }
   }, [searchParams]);
 
