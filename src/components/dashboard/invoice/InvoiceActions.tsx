@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { generateInvoicePDF } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
 

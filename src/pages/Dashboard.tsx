@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useShiftState } from "@/hooks/useShiftState";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import layout and content components
 import DashboardLayout from "@/components/dashboard/layout/DashboardLayout";
