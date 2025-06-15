@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,48 +66,26 @@ const LoginPage = () => {
         if (error.message.includes('captcha') || 
             error.message.includes('verification process failed') ||
             error.message.includes('Security verification required')) {
-          toast({
-            variant: "destructive",
-            title: "Security verification required",
-            description: retryCount < 2 
-              ? "Please wait a moment and try again." 
-              : "Multiple failed attempts detected. Please wait a few minutes before trying again, or contact support if the issue persists."
-          });
+          toast.error(retryCount < 2 
+            ? "Security verification required: Please wait a moment and try again." 
+            : "Security verification required: Multiple failed attempts detected. Please wait a few minutes before trying again, or contact support if the issue persists."
+          );
         } else if (error.message.includes('Invalid login credentials')) {
-          toast({
-            variant: "destructive",
-            title: "Login failed",
-            description: "Please check your email and password and try again."
-          });
+          toast.error("Login failed: Please check your email and password and try again.");
         } else if (error.message.includes('Email not confirmed')) {
-          toast({
-            variant: "destructive",
-            title: "Email not confirmed",
-            description: "Please check your email and click the confirmation link before logging in."
-          });
+          toast.error("Email not confirmed: Please check your email and click the confirmation link before logging in.");
         } else {
-          toast({
-            variant: "destructive",
-            title: "Login failed",
-            description: error.message
-          });
+          toast.error(`Login failed: ${error.message}`);
         }
       } else if (data.user) {
         console.log('Login successful:', data.user.email);
         setRetryCount(0); // Reset retry count on success
-        toast({
-          title: "Login successful",
-          description: "Checking your verification and subscription status..."
-        });
+        toast.success("Login successful: Checking your verification and subscription status...");
         // The useEffect hook will handle the redirect based on user status
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: "An unexpected error occurred. Please try again."
-      });
+      toast.error("Login failed: An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
