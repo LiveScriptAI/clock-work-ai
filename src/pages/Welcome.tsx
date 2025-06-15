@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutB
 import { useAuth } from "@/hooks/useAuth";
 
 const WelcomePage = () => {
-  const { user, isSubscribed } = useAuth();
+  const { user, isSubscribed, isLoading } = useAuth();
   
   const containerVariants = {
     hidden: {
@@ -60,9 +61,12 @@ const WelcomePage = () => {
     }
   };
 
+  // Check if user has actually created an account (not just loading state)
+  const hasCreatedAccount = !isLoading && !!user;
+
   // Dynamic content based on user state
   const getStepTwoContent = () => {
-    if (!user) {
+    if (!hasCreatedAccount) {
       return {
         text: "Start your 7-day free trial",
         component: <AuthenticatedCheckoutButton className="px-12 py-4 text-lg" />
@@ -112,17 +116,17 @@ const WelcomePage = () => {
           <div className="flex items-center mb-3">
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">1</span>
             <span className="font-body text-lg text-white">
-              {user ? "Account created ✓" : "Create your account"}
+              {hasCreatedAccount ? "Account created ✓" : "Create your account"}
             </span>
           </div>
-          {!user && (
+          {!hasCreatedAccount && (
             <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
               <Link to="/register">Create Account</Link>
             </Button>
           )}
         </motion.div>
 
-        {/* Step 2: Start Trial */}
+        {/* Step 2: Start Trial - Only show if account is created OR if no account (for guest access) */}
         <motion.div className="flex flex-col items-center" variants={itemVariants}>
           <div className="flex items-center mb-3">
             <span className="bg-brand-accent text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg">2</span>
@@ -133,8 +137,8 @@ const WelcomePage = () => {
           </div>
         </motion.div>
 
-        {/* Important Note */}
-        {!user && (
+        {/* Important Note - Only show if no account created */}
+        {!hasCreatedAccount && (
           <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4" variants={itemVariants}>
             ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
           </motion.p>
@@ -222,7 +226,7 @@ const WelcomePage = () => {
             Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {!user ? (
+            {!hasCreatedAccount ? (
               <>
                 <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
                   <Link to="/register">Create Account</Link>

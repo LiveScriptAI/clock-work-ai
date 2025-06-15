@@ -56,6 +56,7 @@ export function AuthenticatedCheckoutButton({
       if (error) {
         console.error("❌ Checkout error:", error);
         toast.error("Failed to start checkout. Please try again.");
+        setIsProcessing(false);
         return;
       }
       
@@ -67,6 +68,7 @@ export function AuthenticatedCheckoutButton({
         } else {
           toast.error(data.error);
         }
+        setIsProcessing(false);
         return;
       }
       
@@ -74,18 +76,16 @@ export function AuthenticatedCheckoutButton({
         console.log("🔗 Redirecting to Stripe checkout (same tab):", data.url);
         // Use same tab redirect instead of new tab
         window.location.href = data.url;
-        return; // Don't reset loading state since we're redirecting
+        // Don't reset loading state since we're redirecting
+        return;
       } else {
         console.error("❌ No checkout URL received:", data);
         toast.error("Failed to create checkout session. Please try again.");
+        setIsProcessing(false);
       }
     } catch (error) {
       console.error("💥 Unexpected checkout error:", error);
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      // Only reset loading if we're not redirecting
-      if (!isProcessing) return;
-      console.log("✅ Resetting loading state");
       setIsProcessing(false);
     }
   };

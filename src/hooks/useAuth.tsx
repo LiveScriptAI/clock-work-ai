@@ -22,79 +22,86 @@ export function useAuth() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     console.log("🔐 useAuth: Setting up auth state listener");
     
-    // Set up auth state listener FIRST
+    // Check for existing session FIRST
+    const initializeAuth = async () => {
+      try {
+        console.log("🔍 Checking existing session...");
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("❌ Session check error:", error);
+          setUser(null);
+          setProfile(null);
+          setIsLoading(false);
+          setIsInitialized(true);
+          return;
+        }
+        
+        if (session?.user) {
+          console.log("✅ Found existing session for:", session.user.email);
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
+          checkSubscriptionAndRedirect();
+        } else {
+          console.log("❌ No existing session found");
+          setUser(null);
+          setProfile(null);
+          // Only redirect to login if not on public pages
+          if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
+            navigate("/login");
+          }
+        }
+        
+        setIsLoading(false);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("💥 Unexpected session check error:", error);
+        setUser(null);
+        setProfile(null);
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    // Set up auth state listener AFTER initial check
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Only process auth changes after initialization
+      if (!isInitialized) return;
+      
       console.log('🔄 Auth state change:', event, session?.user?.email || 'no user');
       
       if (event === 'SIGNED_OUT' || !session) {
         console.log("👋 User signed out, clearing state");
         setUser(null);
         setProfile(null);
-        setIsLoading(false);
         // Only redirect to login if not on public pages
         if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
           navigate("/login");
         }
-      } else if (session) {
+      } else if (session?.user) {
         console.log("👤 User signed in:", session.user.email);
         setUser(session.user);
         
         // Fetch profile data and check subscription status
-        if (session.user?.id) {
-          await fetchUserProfile(session.user.id);
-          
-          // After fetching profile, check if we need to redirect based on subscription
-          setTimeout(() => {
-            checkSubscriptionAndRedirect();
-          }, 100);
-        }
-        setIsLoading(false);
+        await fetchUserProfile(session.user.id);
+        
+        // After fetching profile, check if we need to redirect based on subscription
+        setTimeout(() => {
+          checkSubscriptionAndRedirect();
+        }, 100);
       }
     });
     
-    // THEN check for existing session
-    const checkSession = async () => {
-      console.log("🔍 Checking existing session...");
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("❌ Session check error:", error);
-          setIsLoading(false);
-          return;
-        }
-        
-        if (!session) {
-          console.log("❌ No existing session found");
-          setIsLoading(false);
-          // Only redirect to login if not on public pages and not on welcome page
-          if (!['/welcome', '/register', '/login', '/email-verification'].includes(location.pathname)) {
-            navigate("/login");
-          }
-        } else {
-          console.log("✅ Found existing session for:", session.user.email);
-          setUser(session.user);
-          // Fetch profile data and check subscription
-          if (session.user?.id) {
-            await fetchUserProfile(session.user.id);
-            checkSubscriptionAndRedirect();
-          }
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("💥 Unexpected session check error:", error);
-        setIsLoading(false);
-      }
-    };
-    
-    checkSession();
+    // Initialize auth state
+    initializeAuth();
     
     return () => subscription.unsubscribe();
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, isInitialized]);
 
   const fetchUserProfile = async (userId: string) => {
     console.log("📊 Fetching user profile for:", userId);
@@ -190,7 +197,8 @@ export function useAuth() {
     isSubscribed,
     subscriptionTier,
     hasIncompletePayment,
-    isLoading
+    isLoading,
+    isInitialized
   });
 
   return { 
