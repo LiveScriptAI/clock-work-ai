@@ -21,25 +21,32 @@ interface SubscriptionStatus {
 
 export default function BillingPage() {
   const { t } = useTranslation();
-  const { user, profile, isLoading } = useAuth();
+  const { isInitialized, isLoading: authLoading, user, isEmailVerified, profile, isLoading } = useAuth();
   const [searchParams] = useSearchParams();
 
-  // Check if this is a checkout success/cancel scenario
-  const sessionId = searchParams.get('session_id');
-  const success = searchParams.get('success');
-  const canceled = searchParams.get('canceled');
-
-  if (!isLoading && !user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (isLoading) {
+  // Auth guards - must come first
+  if (!isInitialized || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
       </div>
     );
   }
+
+  // Must be logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Must have verified email
+  if (!isEmailVerified) {
+    return <Navigate to="/email-verification" replace />;
+  }
+
+  // Check if this is a checkout success/cancel scenario
+  const sessionId = searchParams.get('session_id');
+  const success = searchParams.get('success');
+  const canceled = searchParams.get('canceled');
 
   // Show checkout success/cancel handling
   if (sessionId || success || canceled) {
