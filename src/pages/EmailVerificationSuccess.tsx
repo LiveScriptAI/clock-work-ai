@@ -1,17 +1,42 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EmailVerificationSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [verificationStatus, setVerificationStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const { isInitialized, isLoading, isEmailVerified, isSubscribed } = useAuth();
+
+  // Wait for auth to initialize
+  if (!isInitialized || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+      </div>
+    );
+  }
+
+  // If email still not verified, stay on this page
+  if (!isEmailVerified && verificationStatus === 'success') {
+    return null;
+  }
+
+  // Once verified and successful:
+  if (verificationStatus === 'success' && isEmailVerified) {
+    if (isSubscribed) {
+      return <Navigate to="/dashboard" replace />;
+    } else {
+      return <Navigate to="/subscription-required" replace />;
+    }
+  }
 
   useEffect(() => {
     const handleVerification = async () => {
@@ -43,11 +68,6 @@ const EmailVerificationSuccess = () => {
           console.log('✅ User verified and logged in:', session.user.email);
           setVerificationStatus('success');
           toast.success('Email verified successfully! You are now logged in.');
-          
-          // Wait a moment then redirect to welcome page
-          setTimeout(() => {
-            navigate('/welcome', { replace: true });
-          }, 2000);
         } else {
           // If no session, the verification might have worked but user isn't logged in
           // Let's try to refresh the session
@@ -59,9 +79,6 @@ const EmailVerificationSuccess = () => {
           if (refreshedSession?.user) {
             setVerificationStatus('success');
             toast.success('Email verified successfully! You are now logged in.');
-            setTimeout(() => {
-              navigate('/welcome', { replace: true });
-            }, 2000);
           } else {
             setVerificationStatus('error');
             setErrorMessage('Email verified but login failed. Please try logging in manually.');
@@ -75,7 +92,7 @@ const EmailVerificationSuccess = () => {
     };
 
     handleVerification();
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const handleLoginRedirect = () => {
     navigate('/login');
@@ -120,15 +137,9 @@ const EmailVerificationSuccess = () => {
                 <div>
                   <h3 className="font-semibold text-brand-navy mb-2">Email Verified Successfully! ✅</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Your email has been verified and you are now logged in. You'll be redirected automatically.
+                    Your email has been verified and you are now logged in. Redirecting you now...
                   </p>
                 </div>
-                <Button 
-                  onClick={handleWelcomeRedirect}
-                  className="bg-brand-accent text-brand-navy font-semibold rounded-full"
-                >
-                  Continue to Welcome Page
-                </Button>
               </div>
             )}
 
