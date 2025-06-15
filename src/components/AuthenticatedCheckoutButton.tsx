@@ -23,22 +23,26 @@ export function AuthenticatedCheckoutButton({
   const navigate = useNavigate();
 
   const handleCheckout = async () => {
+    console.log("🚀 Checkout button clicked", { user: !!user, isSubscribed, authLoading });
+    
     if (!user) {
+      console.log("📝 No user found, redirecting to register");
       navigate("/register");
       return;
     }
 
     if (isSubscribed) {
+      console.log("✅ User already subscribed, redirecting to billing");
       navigate("/billing");
       return;
     }
 
     setIsProcessing(true);
+    console.log("⏳ Starting checkout process...");
     
     try {
-      console.log("Starting checkout for user:", user.email);
-      
       const payload = priceId ? { priceId } : {};
+      console.log("📦 Checkout payload:", payload);
       
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         headers: {
@@ -47,15 +51,18 @@ export function AuthenticatedCheckoutButton({
         body: JSON.stringify(payload)
       });
       
+      console.log("📊 Checkout response:", { data, error });
+      
       if (error) {
-        console.error("Checkout error:", error);
+        console.error("❌ Checkout error:", error);
         toast.error("Failed to start checkout. Please try again.");
         return;
       }
       
       if (data?.error) {
-        console.error("Server error:", data.error);
+        console.error("❌ Server error:", data.error);
         if (data.redirect) {
+          console.log("🔄 Redirecting to:", data.redirect);
           navigate(data.redirect);
         } else {
           toast.error(data.error);
@@ -64,21 +71,21 @@ export function AuthenticatedCheckoutButton({
       }
       
       if (data?.url) {
-        console.log("Redirecting to Stripe checkout:", data.url);
-        window.open(data.url, '_blank');
-        
-        // Show helpful message
-        toast.success("Checkout opened in new tab. Complete your subscription there!", {
-          duration: 5000
-        });
+        console.log("🔗 Redirecting to Stripe checkout (same tab):", data.url);
+        // Use same tab redirect instead of new tab
+        window.location.href = data.url;
+        return; // Don't reset loading state since we're redirecting
       } else {
-        console.error("No checkout URL received:", data);
+        console.error("❌ No checkout URL received:", data);
         toast.error("Failed to create checkout session. Please try again.");
       }
     } catch (error) {
-      console.error("Unexpected checkout error:", error);
+      console.error("💥 Unexpected checkout error:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
+      // Only reset loading if we're not redirecting
+      if (!isProcessing) return;
+      console.log("✅ Resetting loading state");
       setIsProcessing(false);
     }
   };

@@ -85,20 +85,6 @@ const WelcomePage = () => {
   };
 
   const stepTwoContent = getStepTwoContent();
-
-  React.useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/buy-button.js';
-    script.async = true;
-    document.head.appendChild(script);
-    return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
-      if (existingScript) {
-        document.head.removeChild(existingScript);
-      }
-    };
-  }, []);
   
   return <div className="font-body">
       {/* Hero Section */}
@@ -210,13 +196,6 @@ const WelcomePage = () => {
 
           {/* CTA Section */}
           <motion.div className="text-center" variants={itemVariants}>
-            {/* QR Code - smaller and static */}
-            <motion.div className="flex justify-center mb-6" variants={itemVariants}>
-              
-            </motion.div>
-            
-            
-            
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center items-center" variants={itemVariants}>
               <div className="flex items-center gap-2 opacity-70">
                 <span className="text-sm">No credit card required</span>

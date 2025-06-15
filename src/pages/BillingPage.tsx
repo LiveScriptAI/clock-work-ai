@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { CheckoutSuccess } from "@/components/CheckoutSuccess";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
+import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutButton";
 
 interface SubscriptionStatus {
   subscription_status: string | null;
@@ -114,10 +114,6 @@ export default function BillingPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleStartTrial = () => {
-    window.open('https://buy.stripe.com/aFa9AT1mo0sRbiTdANc7u00', '_blank');
   };
 
   const isSubscribed = subscriptionStatus?.subscription_status === 'active';
@@ -273,12 +269,10 @@ export default function BillingPage() {
 
                 {/* Action Button */}
                 <div className="flex justify-center items-center w-full">
-                  <Button 
-                    onClick={handleStartTrial}
+                  <AuthenticatedCheckoutButton 
                     className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-primaryStart to-brand-primaryEnd text-white shadow-lg hover:opacity-90 transition"
-                  >
-                    Start Your Free Trial
-                  </Button>
+                    size="lg"
+                  />
                 </div>
 
                 <p className="text-center text-sm text-gray-500 mt-4">
