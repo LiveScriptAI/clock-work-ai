@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,6 +75,7 @@ export function AuthenticatedCheckoutButton({
       if (error) {
         console.error("Checkout error:", error);
         toast.error("Failed to start checkout. Please try again.");
+        localStorage.removeItem("checkout_in_progress");
         setIsProcessing(false);
         return;
       }
@@ -88,23 +88,35 @@ export function AuthenticatedCheckoutButton({
         } else {
           toast.error(data.error);
         }
+        localStorage.removeItem("checkout_in_progress");
         setIsProcessing(false);
         return;
       }
       
       if (data?.url) {
-        logStep('Redirecting to Stripe checkout (same tab):', data.url);
-        // Use same tab redirect for better session management
-        window.location.href = data.url;
-        return;
+        logStep('Opening Stripe checkout in new tab:', data.url);
+        // Open checkout in a new tab
+        const checkoutWindow = window.open(data.url, "_blank");
+        if (!checkoutWindow) {
+          // Popup blocked
+          toast.error("Unable to open checkout. Please allow popups and try again.");
+          localStorage.removeItem("checkout_in_progress");
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Reset processing state since checkout opened successfully
+        setIsProcessing(false);
       } else {
         console.error("No checkout URL received:", data);
         toast.error("Failed to create checkout session. Please try again.");
+        localStorage.removeItem("checkout_in_progress");
         setIsProcessing(false);
       }
     } catch (error) {
       console.error("Unexpected checkout error:", error);
       toast.error("An unexpected error occurred. Please try again.");
+      localStorage.removeItem("checkout_in_progress");
       setIsProcessing(false);
     }
   };
