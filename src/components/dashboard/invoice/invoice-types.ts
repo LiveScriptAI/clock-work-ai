@@ -23,3 +23,22 @@ export interface InvoiceFormData {
   postcode: string;
   country: string;
 }
+
+export interface InvoiceData {
+  customer: string;
+  customerEmail: string;
+  invoiceDate: Date;
+  reference: string;
+  notes: string;
+  terms: string;
+  lineItems: LineItem[];
+  address1: string;
+  address2: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
+  subtotal: string;
+  vat: string;
+  total: string;
+}

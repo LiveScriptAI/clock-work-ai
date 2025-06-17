@@ -3,11 +3,11 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { exportToPDF, exportToCSV } from "./export-utils";
-import { Shift } from "./types";
+import { downloadPDF, downloadCSV } from "./export-utils";
+import { ShiftEntry } from "./types";
 
 interface ExportActionsProps {
-  shifts: Shift[];
+  shifts: ShiftEntry[];
   selectedShifts: string[];
   companyName?: string;
   startDate?: Date;
@@ -28,11 +28,11 @@ export const ExportActions: React.FC<ExportActionsProps> = ({
   );
 
   const handlePDFExport = () => {
-    exportToPDF(filteredShifts, companyName, startDate, endDate);
+    downloadPDF(filteredShifts, false);
   };
 
   const handleCSVExport = () => {
-    exportToCSV(filteredShifts, companyName);
+    downloadCSV(filteredShifts, false);
   };
 
   return (
