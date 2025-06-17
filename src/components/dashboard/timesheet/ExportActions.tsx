@@ -1,61 +1,84 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Mail } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { downloadPDF, downloadCSV } from "./export-utils";
+import { downloadCSV, downloadPDF } from "./export-utils";
 import { ShiftEntry } from "./types";
 
 interface ExportActionsProps {
-  shifts: ShiftEntry[];
-  selectedShifts: string[];
-  companyName?: string;
-  startDate?: Date;
-  endDate?: Date;
+  filteredShifts: ShiftEntry[];
+  isLoading: boolean;
+  isExporting: string | null;
+  setIsExporting: (value: string | null) => void;
+  importBreaksToExport?: boolean;
 }
 
-export const ExportActions: React.FC<ExportActionsProps> = ({
-  shifts,
-  selectedShifts,
-  companyName = "Company",
-  startDate,
-  endDate,
+const ExportActions: React.FC<ExportActionsProps> = ({
+  filteredShifts,
+  isLoading,
+  isExporting,
+  setIsExporting,
+  importBreaksToExport = false
 }) => {
-  const { t } = useTranslation();
+  // Debug logging
+  console.log("ExportActions render:", {
+    filteredShiftsCount: filteredShifts.length,
+    isLoading,
+    isExporting,
+    importBreaksToExport
+  });
 
-  const filteredShifts = shifts.filter(shift => 
-    selectedShifts.length === 0 || selectedShifts.includes(shift.id)
-  );
-
-  const handlePDFExport = () => {
-    downloadPDF(filteredShifts, false);
+  // Export handlers
+  const handleExportCSV = () => {
+    console.log("handleExportCSV: Starting CSV export");
+    setIsExporting('csv');
+    setTimeout(() => {
+      downloadCSV(filteredShifts, importBreaksToExport);
+      setIsExporting(null);
+      console.log("handleExportCSV: CSV export completed");
+    }, 500);
   };
 
-  const handleCSVExport = () => {
-    downloadCSV(filteredShifts, false);
+  const handleExportPDF = () => {
+    console.log("handleExportPDF: Starting PDF export");
+    setIsExporting('pdf');
+    setTimeout(() => {
+      downloadPDF(filteredShifts, importBreaksToExport);
+      setIsExporting(null);
+      console.log("handleExportPDF: PDF export completed");
+    }, 500);
   };
+
+  // Calculate if buttons should be disabled
+  const buttonsDisabled = isLoading || isExporting !== null || filteredShifts.length === 0;
+  
+  console.log("ExportActions buttons disabled:", buttonsDisabled, {
+    isLoading,
+    isExporting: isExporting !== null,
+    noShifts: filteredShifts.length === 0
+  });
 
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
       <Button
-        onClick={handlePDFExport}
         variant="outline"
         size="sm"
-        className="flex items-center gap-2"
+        onClick={handleExportCSV}
+        disabled={buttonsDisabled}
+        className="w-full sm:w-auto"
       >
-        <FileText className="w-4 h-4" />
-        {t('Export PDF')}
+        {isExporting === 'csv' ? 'Exporting...' : 'Download CSV'}
       </Button>
-      
       <Button
-        onClick={handleCSVExport}
         variant="outline"
         size="sm"
-        className="flex items-center gap-2"
+        onClick={handleExportPDF}
+        disabled={buttonsDisabled}
+        className="w-full sm:w-auto"
       >
-        <Download className="w-4 h-4" />
-        {t('Export CSV')}
+        {isExporting === 'pdf' ? 'Exporting...' : 'Download PDF'}
       </Button>
     </div>
   );
 };
+
+export default ExportActions;

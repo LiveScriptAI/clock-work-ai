@@ -14,6 +14,3 @@ export interface ShiftEntry {
   breakIntervals?: { start: string; end: string }[];
   clientEmail?: string; // Add optional client email field
 }
-
-// Export alias for backwards compatibility
-export type Shift = ShiftEntry;

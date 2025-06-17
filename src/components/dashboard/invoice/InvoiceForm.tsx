@@ -6,7 +6,7 @@ import LineItemsTable from "./LineItemsTable";
 import NotesAndTerms from "./NotesAndTerms";
 import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
-import { InvoiceActions } from "./InvoiceActions";
+import InvoiceActions from "./InvoiceActions";
 import { sendInvoice, generateInvoicePDF } from "./invoice-utils";
 import { convertInvoiceToShift } from "./invoice-conversion-utils";
 import { LineItem } from "./invoice-types";
@@ -24,9 +24,10 @@ declare global {
     _pendingAutofill?: (shiftData: ShiftEntry) => void;
   }
 }
-
 const InvoiceForm = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const today = new Date();
   const [customer, setCustomer] = useState<string>("");
   const [customerEmail, setCustomerEmail] = useState<string>("");
@@ -118,13 +119,7 @@ const InvoiceForm = () => {
       if (!shiftData) return;
 
       // Check if we already have this shift in the line items
-      const shiftAlreadyAdded = lineItems.some(item => 
-        item.description?.includes(shiftData.employer) && 
-        item.date?.toDateString() === shiftData.date.toDateString() && 
-        Math.abs(item.quantity - shiftData.hoursWorked) < 0.01 && 
-        item.unitPrice === shiftData.payRate
-      );
-
+      const shiftAlreadyAdded = lineItems.some(item => item.description?.includes(shiftData.employer) && item.date?.toDateString() === shiftData.date.toDateString() && Math.abs(item.quantity - shiftData.hoursWorked) < 0.01 && item.unitPrice === shiftData.payRate);
       if (shiftAlreadyAdded) {
         toast({
           title: "Already Added",
@@ -155,13 +150,11 @@ const InvoiceForm = () => {
         description: "Shift added to invoice"
       });
     };
-
     return () => {
       // Cleanup
       delete window._pendingAutofill;
     };
   }, [lineItems]);
-
   const addLineItem = () => {
     setLineItems([...lineItems, {
       id: `item-${Date.now()}`,
@@ -172,31 +165,26 @@ const InvoiceForm = () => {
       unitPrice: 0
     }]);
   };
-
   const removeLineItem = (id: string) => {
     if (lineItems.length === 1) return;
     setLineItems(lineItems.filter(item => item.id !== id));
   };
-
   const updateLineItem = (id: string, field: keyof LineItem, value: any) => {
-    setLineItems(lineItems.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+    setLineItems(lineItems.map(item => item.id === id ? {
+      ...item,
+      [field]: value
+    } : item));
   };
-
   const calculateLineTotal = (quantity: number, unitPrice: number) => {
     return (quantity * unitPrice).toFixed(2);
   };
-
   const calculateSubtotal = () => {
-    return lineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0).toFixed(2);
+    return lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toFixed(2);
   };
-
   const calculateVAT = () => {
     const subtotal = parseFloat(calculateSubtotal());
     return (subtotal * 0.20).toFixed(2); // Placeholder VAT rate of 20%
   };
-
   const calculateTotal = () => {
     const subtotal = parseFloat(calculateSubtotal());
     const vat = parseFloat(calculateVAT());
@@ -213,7 +201,8 @@ const InvoiceForm = () => {
     // Include sender information with invoice data
     const invoiceData = {
       customer,
-      customerEmail, // Include the actual customer email
+      customerEmail,
+      // Include the actual customer email
       invoiceDate,
       reference,
       notes,
@@ -246,10 +235,10 @@ const InvoiceForm = () => {
       });
       return;
     }
-
     const invoiceData = {
       customer,
-      customerEmail, // Include the actual customer email
+      customerEmail,
+      // Include the actual customer email
       invoiceDate,
       reference,
       lineItems,
@@ -265,7 +254,6 @@ const InvoiceForm = () => {
       postcode,
       country
     };
-
     try {
       const pdfBlob = await generateInvoicePDF(invoiceData, sender);
       const url = URL.createObjectURL(pdfBlob);
@@ -287,17 +275,14 @@ const InvoiceForm = () => {
       });
     }
   };
-
-  return (
-    <div className="my-8" id="invoice-form">
+  return <div className="my-8" id="invoice-form">
       <Card className="rounded-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Display Sender Information if available */}
-          {sender && (
-            <Card className="mb-4">
+          {sender && <Card className="mb-4">
               <CardContent className="pt-4">
                 <h3 className="text-sm font-semibold mb-2">From</h3>
                 <p>{sender.business_name}</p>
@@ -309,8 +294,7 @@ const InvoiceForm = () => {
                 </p>
                 <p>{sender.country}</p>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
         
           {/* Company Selection Tabs */}
           <Tabs defaultValue="load-company" className="my-6">
@@ -331,113 +315,33 @@ const InvoiceForm = () => {
           </Tabs>
           
           {/* Header Section */}
-          <InvoiceHeader 
-            customer={customer} 
-            setCustomer={setCustomer} 
-            customerEmail={customerEmail} 
-            setCustomerEmail={setCustomerEmail} 
-            invoiceDate={invoiceDate} 
-            setInvoiceDate={setInvoiceDate} 
-            reference={reference} 
-            setReference={setReference} 
-            address1={address1} 
-            setAddress1={setAddress1} 
-            address2={address2} 
-            setAddress2={setAddress2} 
-            city={city} 
-            setCity={setCity} 
-            county={county} 
-            setCounty={setCounty} 
-            postcode={postcode} 
-            setPostcode={setPostcode} 
-            country={country} 
-            setCountry={setCountry} 
-          />
+          <InvoiceHeader customer={customer} setCustomer={setCustomer} customerEmail={customerEmail} setCustomerEmail={setCustomerEmail} invoiceDate={invoiceDate} setInvoiceDate={setInvoiceDate} reference={reference} setReference={setReference} address1={address1} setAddress1={setAddress1} address2={address2} setAddress2={setAddress2} city={city} setCity={setCity} county={county} setCounty={setCounty} postcode={postcode} setPostcode={setPostcode} country={country} setCountry={setCountry} />
 
           {/* Line Items Table */}
           <div data-testid="line-items-container">
-            <LineItemsTable 
-              lineItems={lineItems} 
-              updateLineItem={updateLineItem} 
-              removeLineItem={removeLineItem} 
-              addLineItem={addLineItem} 
-              calculateLineTotal={calculateLineTotal} 
-            />
+            <LineItemsTable lineItems={lineItems} updateLineItem={updateLineItem} removeLineItem={removeLineItem} addLineItem={addLineItem} calculateLineTotal={calculateLineTotal} />
           </div>
 
           {/* Notes and Terms */}
-          <NotesAndTerms 
-            notes={notes} 
-            setNotes={setNotes} 
-            terms={terms} 
-            setTerms={setTerms} 
-          />
+          <NotesAndTerms notes={notes} setNotes={setNotes} terms={terms} setTerms={setTerms} />
 
           {/* Financial Summary */}
-          <InvoiceSummary 
-            subtotal={calculateSubtotal()} 
-            vat={calculateVAT()} 
-            total={calculateTotal()} 
-          />
+          <InvoiceSummary subtotal={calculateSubtotal()} vat={calculateVAT()} total={calculateTotal()} />
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end">
-          <Button variant="outline" className="w-full sm:w-auto" onClick={handlePreviewInvoice}>
-            Preview Invoice
-          </Button>
-          <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPDF}>
-            Download PDF
-          </Button>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={handlePreviewInvoice}>Preview Invoice</Button>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPDF}>Download PDF</Button>
           
           {/* Updated Invoice Actions Component with all address props */}
           <div className="w-full sm:w-auto">
-            <InvoiceActions 
-              shift={getShiftData()} 
-              clientEmail={customerEmail} 
-              customer={customer} 
-              invoiceDate={invoiceDate} 
-              reference={reference} 
-              lineItems={lineItems} 
-              notes={notes} 
-              terms={terms} 
-              subtotal={calculateSubtotal()} 
-              vat={calculateVAT()} 
-              total={calculateTotal()} 
-              address1={address1} 
-              address2={address2} 
-              city={city} 
-              county={county} 
-              postcode={postcode} 
-              country={country} 
-            />
+            <InvoiceActions shift={getShiftData()} clientEmail={customerEmail} customer={customer} invoiceDate={invoiceDate} reference={reference} lineItems={lineItems} notes={notes} terms={terms} subtotal={calculateSubtotal()} vat={calculateVAT()} total={calculateTotal()} address1={address1} address2={address2} city={city} county={county} postcode={postcode} country={country} />
           </div>
         </CardFooter>
       </Card>
 
       {/* Invoice Preview Dialog */}
-      <PreviewInvoiceDialog 
-        isOpen={isPreviewOpen} 
-        onOpenChange={setIsPreviewOpen} 
-        customer={customer} 
-        customerEmail={customerEmail} 
-        invoiceDate={invoiceDate} 
-        reference={reference} 
-        lineItems={lineItems} 
-        notes={notes} 
-        terms={terms} 
-        subtotal={calculateSubtotal()} 
-        vat={calculateVAT()} 
-        total={calculateTotal()} 
-        address1={address1} 
-        address2={address2} 
-        city={city} 
-        county={county} 
-        postcode={postcode} 
-        country={country} 
-        sender={sender} 
-      />
-    </div>
-  );
+      <PreviewInvoiceDialog isOpen={isPreviewOpen} onOpenChange={setIsPreviewOpen} customer={customer} customerEmail={customerEmail} invoiceDate={invoiceDate} reference={reference} lineItems={lineItems} notes={notes} terms={terms} subtotal={calculateSubtotal()} vat={calculateVAT()} total={calculateTotal()} address1={address1} address2={address2} city={city} county={county} postcode={postcode} country={country} sender={sender} />
+    </div>;
 };
-
 export default InvoiceForm;
