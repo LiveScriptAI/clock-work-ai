@@ -14,15 +14,7 @@ const EmailVerificationSuccess = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const { isInitialized, isLoading } = useAuth();
 
-  // Wait for auth to initialize
-  if (!isInitialized || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
-      </div>
-    );
-  }
-
+  // Move ALL useEffect hooks to the top, before any conditional returns
   useEffect(() => {
     const handleVerification = async () => {
       try {
@@ -64,8 +56,11 @@ const EmailVerificationSuccess = () => {
       }
     };
 
-    handleVerification();
-  }, []);
+    // Only run verification logic if auth is initialized
+    if (isInitialized && !isLoading) {
+      handleVerification();
+    }
+  }, [isInitialized, isLoading]);
 
   // Handle navigation after successful verification
   useEffect(() => {
@@ -78,6 +73,15 @@ const EmailVerificationSuccess = () => {
     
     return () => clearTimeout(timer);
   }, [verificationStatus, navigate]);
+
+  // NOW it's safe to have conditional returns, after all hooks are defined
+  if (!isInitialized || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-navy" />
+      </div>
+    );
+  }
 
   const handleLoginRedirect = () => {
     navigate('/login');
