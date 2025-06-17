@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutButton";
 
 interface CallToActionSectionProps {
   containerVariants: any;
@@ -49,7 +48,12 @@ const CallToActionSection = ({
               </Button>
             </>
           ) : (
-            <AuthenticatedCheckoutButton className="px-8 py-4 text-lg" />
+            <Button 
+              asChild 
+              className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg"
+            >
+              <Link to="/dashboard">Go to Dashboard</Link>
+            </Button>
           )}
         </div>
       </motion.div>

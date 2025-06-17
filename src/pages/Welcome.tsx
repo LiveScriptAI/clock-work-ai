@@ -10,15 +10,15 @@ import ExperienceSection from "@/components/welcome/ExperienceSection";
 import CallToActionSection from "@/components/welcome/CallToActionSection";
 
 const WelcomePage = () => {
-  const { user, isSubscribed, isLoading, isEmailVerified, isInitialized } = useAuth();
+  const { user, isLoading, isEmailVerified, isInitialized } = useAuth();
   
   // While auth state loads, show a loading placeholder
   if (!isInitialized || isLoading) {
     return <div>Loading...</div>;
   }
 
-  // Already fully authenticated & subscribed? Jump straight to dashboard
-  if (user && isEmailVerified && isSubscribed) {
+  // Already fully authenticated? Jump straight to dashboard
+  if (user && isEmailVerified) {
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -50,8 +50,7 @@ const WelcomePage = () => {
     isLoading,
     hasAccount,
     isEmailVerified,
-    isAccountVerified,
-    isSubscribed
+    isAccountVerified
   });
   
   return (
@@ -70,7 +69,6 @@ const WelcomePage = () => {
             isLoading={isLoading}
             hasAccount={hasAccount}
             isEmailVerified={isEmailVerified}
-            isSubscribed={isSubscribed}
           />
         </div>
       </div>
