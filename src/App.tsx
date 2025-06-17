@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import EmailVerification from "./pages/EmailVerification";
 import EmailVerificationSuccess from "./pages/EmailVerificationSuccess";
 import Dashboard from "./pages/Dashboard";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -37,6 +38,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/billing"
+              element={
+                <ProtectedRoute>
+                  <Billing />
                 </ProtectedRoute>
               }
             />
