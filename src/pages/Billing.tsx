@@ -4,14 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Shield } from "lucide-react";
+import StartTrialButton from "@/components/billing/StartTrialButton";
 
 const Billing = () => {
   const { signOut } = useAuth();
-
-  const handleStartFreeTrial = () => {
-    // Placeholder function - will connect to Stripe later
-    console.log("Starting free trial...");
-  };
 
   const handleSignOut = async () => {
     try {
@@ -48,12 +44,7 @@ const Billing = () => {
             </p>
             
             {/* CTA Button */}
-            <Button
-              onClick={handleStartFreeTrial}
-              className="w-full h-14 text-lg font-semibold bg-hero-gradient hover:opacity-90 transition-opacity rounded-xl shadow-lg"
-            >
-              Start Free Trial
-            </Button>
+            <StartTrialButton />
             
             {/* Security Info */}
             <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
