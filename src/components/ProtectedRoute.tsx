@@ -6,21 +6,10 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireSubscription?: boolean;
 }
 
-export default function ProtectedRoute({
-  children,
-  requireSubscription = true,
-}: ProtectedRouteProps) {
-  const {
-    isInitialized,
-    isLoading,
-    user,
-    isEmailVerified,
-    isSubscribed,
-    hasIncompletePayment,
-  } = useAuth();
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { isInitialized, isLoading, user, isEmailVerified } = useAuth();
 
   // Wait for auth to initialize
   if (!isInitialized || isLoading) {
@@ -39,16 +28,6 @@ export default function ProtectedRoute({
   // Email not verified
   if (!isEmailVerified) {
     return <Navigate to="/email-verification" replace />;
-  }
-
-  // Subscription required but payment incomplete
-  if (requireSubscription && hasIncompletePayment) {
-    return <Navigate to="/billing" replace />;
-  }
-
-  // Subscription required but not subscribed
-  if (requireSubscription && !isSubscribed) {
-    return <Navigate to="/subscription-required" replace />;
   }
 
   // All checks passed

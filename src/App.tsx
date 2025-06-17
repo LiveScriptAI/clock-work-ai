@@ -13,8 +13,6 @@ import Login from "./pages/Login";
 import EmailVerification from "./pages/EmailVerification";
 import EmailVerificationSuccess from "./pages/EmailVerificationSuccess";
 import Dashboard from "./pages/Dashboard";
-import BillingPage from "./pages/BillingPage";
-import SubscriptionRequired from "./pages/SubscriptionRequired";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -42,15 +40,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/billing"
-              element={
-                <ProtectedRoute>
-                  <BillingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/subscription-required" element={<SubscriptionRequired />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

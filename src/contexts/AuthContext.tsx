@@ -11,13 +11,9 @@ interface AuthContextType {
   isLoading: boolean;
   isInitialized: boolean;
   isEmailVerified: boolean;
-  isSubscribed: boolean;
-  subscriptionTier: string | null;
-  hasIncompletePayment: boolean;
   signOut: () => Promise<void>;
   handleSignOut: () => Promise<void>; // Add alias for backward compatibility
   refreshProfile: () => Promise<void>;
-  refreshSubscriptionStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logStep('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("address1, address2, city, county, postcode, country, stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier")
+        .select("address1, address2, city, county, postcode, country")
         .eq("id", userId)
         .maybeSingle();
       
@@ -47,12 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      logStep('Profile fetched successfully', {
-        hasProfile: !!data,
-        subscriptionStatus: data?.subscription_status,
-        subscriptionTier: data?.subscription_tier
-      });
-      
+      logStep('Profile fetched successfully', { hasProfile: !!data });
       setProfile(data);
     } catch (error) {
       console.error("Unexpected profile fetch error:", error);
@@ -60,13 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshProfile = async () => {
-    if (user?.id) {
-      await fetchUserProfile(user.id);
-    }
-  };
-
-  const refreshSubscriptionStatus = async () => {
-    logStep('Refreshing subscription status...');
     if (user?.id) {
       await fetchUserProfile(user.id);
     }
@@ -169,11 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isEmailVerified = !!user?.email_confirmed_at;
-  const isSubscribed = profile?.subscription_status === 'active';
-  const subscriptionTier = profile?.subscription_tier || null;
-  
-  // Check for incomplete payment - this would be when user has a subscription but it's not active
-  const hasIncompletePayment = !!(profile?.stripe_subscription_id && profile?.subscription_status !== 'active');
 
   const value: AuthContextType = {
     user,
@@ -182,13 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isInitialized,
     isEmailVerified,
-    isSubscribed,
-    subscriptionTier,
-    hasIncompletePayment,
     signOut,
     handleSignOut,
-    refreshProfile,
-    refreshSubscriptionStatus
+    refreshProfile
   };
 
   return (

@@ -12,7 +12,7 @@ const EmailVerificationSuccess = () => {
   const navigate = useNavigate();
   const [verificationStatus, setVerificationStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { isInitialized, isLoading, isEmailVerified, isSubscribed } = useAuth();
+  const { isInitialized, isLoading } = useAuth();
 
   // Wait for auth to initialize
   if (!isInitialized || isLoading) {
@@ -73,15 +73,11 @@ const EmailVerificationSuccess = () => {
     
     // Give user a moment to see the ✅ success message
     const timer = setTimeout(() => {
-      if (isSubscribed) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/subscription-required", { replace: true });
-      }
+      navigate("/dashboard", { replace: true });
     }, 2000);
     
     return () => clearTimeout(timer);
-  }, [verificationStatus, isSubscribed, navigate]);
+  }, [verificationStatus, navigate]);
 
   const handleLoginRedirect = () => {
     navigate('/login');
@@ -126,7 +122,7 @@ const EmailVerificationSuccess = () => {
                 <div>
                   <h3 className="font-semibold text-brand-navy mb-2">Email Verified Successfully! ✅</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Your email has been verified and you are now logged in. Redirecting you now...
+                    Your email has been verified and you are now logged in. Redirecting you to the dashboard...
                   </p>
                 </div>
               </div>

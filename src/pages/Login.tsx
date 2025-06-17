@@ -10,7 +10,7 @@ import { RetryWarning } from "@/components/auth/RetryWarning";
 const LoginPage = () => {
   const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
-  const { isInitialized, isLoading: authLoading, user, isEmailVerified, isSubscribed } = useAuth();
+  const { isInitialized, isLoading: authLoading, user, isEmailVerified } = useAuth();
 
   useEffect(() => {
     if (!isInitialized || authLoading) return;
@@ -20,19 +20,15 @@ const LoginPage = () => {
       if (!isEmailVerified) {
         navigate("/email-verification");
       }
-      // Verified but not subscribed → subscription-required
-      else if (!isSubscribed) {
-        navigate("/subscription-required");
-      }
-      // Good to go → dashboard
+      // Verified → dashboard
       else {
         navigate("/dashboard");
       }
     }
-  }, [isInitialized, authLoading, user, isEmailVerified, isSubscribed]);
+  }, [isInitialized, authLoading, user, isEmailVerified]);
 
-  // If user is already authenticated and fully verified/subscribed, redirect immediately
-  if (user && isEmailVerified && isSubscribed) {
+  // If user is already authenticated and verified, redirect immediately
+  if (user && isEmailVerified) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -3,22 +3,19 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { AuthenticatedCheckoutButton } from "@/components/AuthenticatedCheckoutButton";
 
 interface GetStartedStepsProps {
   itemVariants: any;
   isLoading: boolean;
   hasAccount: boolean;
   isEmailVerified: boolean;
-  isSubscribed: boolean;
 }
 
 const GetStartedSteps = ({ 
   itemVariants, 
   isLoading, 
   hasAccount, 
-  isEmailVerified, 
-  isSubscribed 
+  isEmailVerified
 }: GetStartedStepsProps) => {
   const getStepOneStatus = () => {
     if (isLoading) return { text: "Create your account", complete: false, loading: true };
@@ -61,20 +58,13 @@ const GetStartedSteps = ({
       };
     }
 
-    if (isSubscribed) {
-      return {
-        text: "Access your dashboard",
-        component: (
-          <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
-            <Link to="/dashboard">Go to Dashboard</Link>
-          </Button>
-        )
-      };
-    }
-
     return {
-      text: "Start your 7-day free trial",
-      component: <AuthenticatedCheckoutButton className="px-12 py-4 text-lg" />
+      text: "Access your dashboard",
+      component: (
+        <Button asChild size="lg" className="px-12 py-4 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-lg hover:scale-105 transform duration-200">
+          <Link to="/dashboard">Go to Dashboard</Link>
+        </Button>
+      )
     };
   };
 
@@ -122,11 +112,11 @@ const GetStartedSteps = ({
         )}
       </motion.div>
 
-      {/* Step 2: Start Trial */}
+      {/* Step 2: Access Dashboard */}
       <motion.div className="flex flex-col items-center" variants={itemVariants}>
         <div className="flex items-center mb-3">
-          <span className={`${isSubscribed ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
-            {isSubscribed ? '✓' : '2'}
+          <span className={`${isEmailVerified ? 'bg-green-500' : 'bg-brand-accent'} text-brand-navy font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3 text-lg`}>
+            {isEmailVerified ? '✓' : '2'}
           </span>
           <span className="font-body text-lg text-white">{stepTwoContent.text}</span>
         </div>
@@ -138,7 +128,7 @@ const GetStartedSteps = ({
       {/* Status Messages */}
       {!isLoading && !hasAccount && (
         <motion.p className="font-body text-sm text-white/80 text-center max-w-md mt-4 mx-auto" variants={itemVariants}>
-          ⚠️ Please create your account first to ensure your subscription and activity data are properly saved.
+          ⚠️ Please create your account first to ensure your data is properly saved.
         </motion.p>
       )}
 
