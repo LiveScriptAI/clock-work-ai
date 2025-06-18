@@ -77,7 +77,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_12345", // Placeholder price ID - will be replaced later
+          price: "price_1RWdO5EC1YgoxpP0DJ5KJkUI", // Updated with actual price ID
           quantity: 1,
         },
       ],
