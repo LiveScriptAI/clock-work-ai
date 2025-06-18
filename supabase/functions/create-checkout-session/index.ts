@@ -23,10 +23,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Create Supabase client using the anon key for user authentication
+    // Create Supabase client using the service role key for secure operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     // Retrieve authenticated user
@@ -45,7 +45,7 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Initialize Stripe (placeholder for now - will need actual secret key)
+    // Initialize Stripe
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       throw new Error("STRIPE_SECRET_KEY is not configured");
@@ -68,32 +68,22 @@ serve(async (req) => {
       logStep("No existing customer found");
     }
 
-    // Create checkout session for subscription
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    // Get the site URL for redirect URLs
+    const siteUrl = Deno.env.get("SITE_URL") || "https://clockworkpal.com";
     
+    // Create checkout session for subscription with 7-day trial
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price_data: {
-            currency: "gbp",
-            product_data: { 
-              name: "Clock Work Pal Premium",
-              description: "7-day free trial, then £3.99/month"
-            },
-            unit_amount: 399, // £3.99 in pence
-            recurring: { 
-              interval: "month",
-              trial_period_days: 7
-            },
-          },
+          price: "price_12345", // Placeholder price ID - will be replaced later
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/billing`,
+      success_url: `${siteUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/billing`,
       subscription_data: {
         trial_period_days: 7,
       },
