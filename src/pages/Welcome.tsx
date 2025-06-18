@@ -1,13 +1,13 @@
 
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import FeaturesGrid from "@/components/FeaturesGrid";
 import { useAuth } from "@/contexts/AuthContext";
-import WelcomeHero from "@/components/welcome/WelcomeHero";
-import GetStartedSteps from "@/components/welcome/GetStartedSteps";
 import ExperienceSection from "@/components/welcome/ExperienceSection";
 import CallToActionSection from "@/components/welcome/CallToActionSection";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 const WelcomePage = () => {
   const { user, isLoading, isEmailVerified, isInitialized } = useAuth();
@@ -41,37 +41,48 @@ const WelcomePage = () => {
     y: [-10, 10, -10],
     transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }
   };
-
-  // Determine user state more accurately
-  const hasAccount = !isLoading && !!user;
-  const isAccountVerified = hasAccount && isEmailVerified;
-
-  console.log('Welcome page state:', {
-    isLoading,
-    hasAccount,
-    isEmailVerified,
-    isAccountVerified
-  });
   
   return (
     <div className="font-body w-full min-h-screen">
-      {/* Hero Section with Steps */}
-      <WelcomeHero 
-        containerVariants={containerVariants}
-        itemVariants={itemVariants}
-      />
-      
-      {/* Get Started Steps - now part of the hero section */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 lg:px-8 pb-16">
+      {/* Hero Section */}
+      <motion.section 
+        className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 lg:px-8" 
+        initial="hidden" 
+        animate="visible" 
+        variants={containerVariants}
+      >
         <div className="w-full max-w-6xl mx-auto text-center">
-          <GetStartedSteps
-            itemVariants={itemVariants}
-            isLoading={isLoading}
-            hasAccount={hasAccount}
-            isEmailVerified={isEmailVerified}
-          />
+          {/* Logo */}
+          <motion.div className="mb-8" variants={itemVariants}>
+            <img 
+              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
+              alt="Clock Work Pal logo" 
+              className="w-64 h-auto mx-auto" 
+            />
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1 variants={itemVariants} className="font-display text-4xl sm:text-5xl md:text-6xl text-white mb-4 text-center">
+            Smarter Time Tracking
+          </motion.h1>
+
+          {/* Subtext */}
+          <motion.p variants={itemVariants} className="font-body max-w-4xl text-white/90 text-center mb-12 text-lg md:text-xl mx-auto">
+            Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.
+          </motion.p>
+
+          {/* Get Started CTA */}
+          <motion.div className="flex justify-center" variants={itemVariants}>
+            <Button 
+              asChild 
+              size="lg" 
+              className="px-16 py-6 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-xl hover:scale-105 transform duration-200"
+            >
+              <Link to="/register">Get Started</Link>
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </motion.section>
 
       {/* Features Section */}
       <FeaturesGrid />
@@ -91,7 +102,7 @@ const WelcomePage = () => {
       <CallToActionSection
         containerVariants={containerVariants}
         itemVariants={itemVariants}
-        isAccountVerified={isAccountVerified}
+        isAccountVerified={false}
       />
     </div>
   );
