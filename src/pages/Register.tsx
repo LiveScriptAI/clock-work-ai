@@ -19,9 +19,9 @@ const RegisterPage = () => {
   const { user, isEmailVerified } = useAuth();
   
   useEffect(() => {
-    // If user is already logged in and verified, redirect to welcome
+    // If user is already logged in and verified, redirect to dashboard
     if (user && isEmailVerified) {
-      navigate("/welcome");
+      navigate("/dashboard");
     }
   }, [user, isEmailVerified, navigate]);
   
@@ -33,7 +33,7 @@ const RegisterPage = () => {
       console.log('Attempting registration for:', email);
       
       // Set up proper redirect URL for email verification
-      const redirectUrl = `${window.location.origin}/email-verification-success`;
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -59,10 +59,12 @@ const RegisterPage = () => {
       } else if (data.user) {
         console.log('Registration successful:', data.user.email);
         
-        toast.success("Account created! Please check your email to verify your account.");
+        toast.success("Account created! Please check your email to verify your account, then you can access your dashboard.");
         
-        // Redirect to email verification page with instructions
-        navigate("/email-verification");
+        // Clear form
+        setEmail("");
+        setPassword("");
+        setFullName("");
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);

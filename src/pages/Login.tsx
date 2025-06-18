@@ -15,17 +15,10 @@ const LoginPage = () => {
   useEffect(() => {
     if (!isInitialized || authLoading) return;
     
-    if (user) {
-      // Unverified → email-verification
-      if (!isEmailVerified) {
-        navigate("/email-verification");
-      }
-      // Verified → dashboard
-      else {
-        navigate("/dashboard");
-      }
+    if (user && isEmailVerified) {
+      navigate("/dashboard");
     }
-  }, [isInitialized, authLoading, user, isEmailVerified]);
+  }, [isInitialized, authLoading, user, isEmailVerified, navigate]);
 
   // If user is already authenticated and verified, redirect immediately
   if (user && isEmailVerified) {

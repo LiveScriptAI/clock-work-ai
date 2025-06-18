@@ -10,8 +10,6 @@ import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import EmailVerification from "./pages/EmailVerification";
-import EmailVerificationSuccess from "./pages/EmailVerificationSuccess";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
@@ -31,8 +29,6 @@ const App = () => (
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/email-verification" element={<EmailVerification />} />
-            <Route path="/email-verification-success" element={<EmailVerificationSuccess />} />
             <Route
               path="/dashboard"
               element={
