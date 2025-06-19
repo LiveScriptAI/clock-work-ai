@@ -71,14 +71,22 @@ const WelcomePage = () => {
             Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.
           </motion.p>
 
-          {/* Get Started CTA */}
-          <motion.div className="flex justify-center" variants={itemVariants}>
+          {/* CTAs */}
+          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center" variants={itemVariants}>
             <Button 
               asChild 
               size="lg" 
-              className="px-16 py-6 bg-brand-accent text-brand-navy font-bold rounded-full shadow-xl hover:opacity-90 transition text-xl hover:scale-105 transform duration-200"
+              className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg text-lg hover:opacity-90 transition hover:scale-105 transform duration-200"
             >
               <Link to="/register">Get Started</Link>
+            </Button>
+            <Button 
+              asChild 
+              variant="outline" 
+              size="lg" 
+              className="px-8 py-4 border-2 border-white text-white font-medium rounded-full text-lg hover:bg-white hover:text-brand-navy transition"
+            >
+              <Link to="/pricing">View Pricing</Link>
             </Button>
           </motion.div>
         </div>

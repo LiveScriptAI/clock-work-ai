@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route
               path="/dashboard"
               element={
