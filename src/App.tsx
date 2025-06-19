@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
-import Register from "./pages/Register";
+import RegisterWithCheckout from "./pages/RegisterWithCheckout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
@@ -28,7 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/welcome" element={<Welcome />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<RegisterWithCheckout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route

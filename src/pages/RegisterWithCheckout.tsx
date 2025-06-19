@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const RegisterPage = () => {
+const RegisterWithCheckout = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -56,20 +56,49 @@ const RegisterPage = () => {
         } else {
           toast.error(error.message || "Registration failed. Please try again.");
         }
-      } else if (data.user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      if (data.user) {
         console.log('Registration successful:', data.user.email);
         
-        toast.success("Account created! Please check your email to verify your account, then you can access your dashboard.");
+        // Show success message
+        toast.success("Account created! Starting your free trial...");
         
-        // Clear form
-        setEmail("");
-        setPassword("");
-        setFullName("");
+        // Wait a moment for the user to be properly authenticated
+        setTimeout(async () => {
+          try {
+            // Launch Stripe Checkout
+            const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout-session", {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            });
+
+            if (checkoutError || !checkoutData?.url) {
+              toast.error("Checkout failed. Please try again or contact support.");
+              console.error('Checkout error:', checkoutError);
+              setIsLoading(false);
+              return;
+            }
+
+            // Open Stripe checkout in new tab
+            const win = window.open(checkoutData.url, "_blank");
+            if (!win) {
+              toast.error("Popup blocked. Please allow popups and try again.");
+            }
+            
+            setIsLoading(false);
+          } catch (checkoutErr) {
+            console.error('Checkout invocation error:', checkoutErr);
+            toast.error("Failed to start checkout. Please try again.");
+            setIsLoading(false);
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -88,7 +117,10 @@ const RegisterPage = () => {
 
         <Card className="w-full shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">Create Account</CardTitle>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">Start Your Free Trial</CardTitle>
+            <p className="text-center text-sm text-gray-600 mt-2">
+              7 days free, then £3.99/month. Cancel anytime.
+            </p>
           </CardHeader>
           <CardContent className="pb-6">
             <form onSubmit={handleRegister} className="space-y-4">
@@ -144,10 +176,10 @@ const RegisterPage = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
+                    Starting trial...
                   </>
                 ) : (
-                  "Create Account"
+                  "Start Free Trial"
                 )}
               </Button>
               
@@ -176,4 +208,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default RegisterWithCheckout;
