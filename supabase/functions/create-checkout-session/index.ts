@@ -23,10 +23,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Create Supabase client using the service role key for secure operations
+    // Create Supabase client using the anon key for user authentication
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
     // Retrieve authenticated user
@@ -36,10 +36,19 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    logStep("Authenticating user with token");
+    
+    const { data, error } = await supabaseClient.auth.getUser(token);
+    
+    if (error) {
+      logStep("Authentication error", { error: error.message });
+      throw new Error(`Authentication failed: ${error.message}`);
+    }
+    
     const user = data.user;
     
     if (!user?.email) {
+      logStep("No user or email found", { user: !!user, email: user?.email });
       throw new Error("User not authenticated or email not available");
     }
 
