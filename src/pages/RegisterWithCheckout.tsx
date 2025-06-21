@@ -25,6 +25,49 @@ const RegisterWithCheckout = () => {
     }
   }, [user, isEmailVerified, navigate]);
   
+  const createCheckoutSession = async () => {
+    try {
+      console.log('Creating checkout session for authenticated user');
+      
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('No active session found');
+      }
+
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout-session", {
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionData.session.access_token}`
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (checkoutError) {
+        console.error('Checkout error:', checkoutError);
+        throw checkoutError;
+      }
+
+      if (!checkoutData?.url) {
+        throw new Error("No checkout URL received");
+      }
+
+      console.log('Checkout session created successfully:', checkoutData.url);
+      
+      // Open Stripe checkout in new tab
+      const win = window.open(checkoutData.url, "_blank");
+      if (!win) {
+        toast.error("Popup blocked. Please allow popups and try again.");
+        return;
+      }
+      
+      toast.success("Redirecting to Stripe checkout...");
+      
+    } catch (error) {
+      console.error('Checkout creation failed:', error);
+      toast.error(`Checkout failed: ${error.message}`);
+    }
+  };
+  
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -64,37 +107,13 @@ const RegisterWithCheckout = () => {
         console.log('Registration successful:', data.user.email);
         
         // Show success message
-        toast.success("Account created! Starting your free trial...");
+        toast.success("Account created! Please check your email to verify your account before starting your trial.");
         
-        // Wait a moment for the user to be properly authenticated
-        setTimeout(async () => {
-          try {
-            // Launch Stripe Checkout
-            const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout-session", {
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({}),
-            });
-
-            if (checkoutError || !checkoutData?.url) {
-              toast.error("Checkout failed. Please try again or contact support.");
-              console.error('Checkout error:', checkoutError);
-              setIsLoading(false);
-              return;
-            }
-
-            // Open Stripe checkout in new tab
-            const win = window.open(checkoutData.url, "_blank");
-            if (!win) {
-              toast.error("Popup blocked. Please allow popups and try again.");
-            }
-            
-            setIsLoading(false);
-          } catch (checkoutErr) {
-            console.error('Checkout invocation error:', checkoutErr);
-            toast.error("Failed to start checkout. Please try again.");
-            setIsLoading(false);
-          }
-        }, 1000);
+        // Don't try to create checkout session immediately
+        // User needs to verify email first, then they'll be redirected to dashboard
+        // where they can start their trial
+        
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
@@ -176,10 +195,10 @@ const RegisterWithCheckout = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Starting trial...
+                    Creating account...
                   </>
                 ) : (
-                  "Start Free Trial"
+                  "Create Account"
                 )}
               </Button>
               

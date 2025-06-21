@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { TrialSetup } from "@/components/dashboard/TrialSetup";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,7 +23,18 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke("check-subscription");
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          setHasActiveSubscription(false);
+          setIsCheckingSubscription(false);
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke("check-subscription", {
+          headers: {
+            "Authorization": `Bearer ${sessionData.session.access_token}`
+          }
+        });
         
         if (error) {
           console.error("Subscription check error:", error);
@@ -94,9 +106,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // No active subscription - redirect to register to start trial
+  // No active subscription - show trial setup
   if (hasActiveSubscription === false) {
-    return <Navigate to="/register" replace />;
+    return <TrialSetup onTrialStarted={() => setHasActiveSubscription(null)} />;
   }
 
   // All checks passed - user has active subscription
