@@ -4,20 +4,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TrialSetup } from "@/components/dashboard/TrialSetup";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isInitialized, isLoading, user, isEmailVerified } = useAuth();
+  const { isInitialized, isLoading, user } = useAuth();
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
 
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!user || !isEmailVerified) {
+      if (!user) {
         setIsCheckingSubscription(false);
         return;
       }
@@ -53,7 +52,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (isInitialized && !isLoading) {
       checkSubscription();
     }
-  }, [isInitialized, isLoading, user, isEmailVerified]);
+  }, [isInitialized, isLoading, user]);
 
   // Wait for auth to initialize
   if (!isInitialized || isLoading) {
@@ -69,34 +68,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/register" replace />;
   }
 
-  // Email not verified
-  if (!isEmailVerified) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6">
-        <div className="max-w-md w-full text-center">
-          <div className="mb-8">
-            <img 
-              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
-              alt="Clock Work Pal logo" 
-              className="w-48 h-auto mx-auto"
-            />
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-display text-brand-navy mb-4">
-              Please Verify Your Email
-            </h2>
-            <p className="text-gray-600 mb-6">
-              We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.
-            </p>
-            <p className="text-sm text-gray-500">
-              Can't find the email? Check your spam folder or contact support.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Still checking subscription status
   if (isCheckingSubscription) {
     return (
@@ -106,9 +77,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // No active subscription - show trial setup
+  // No active subscription - redirect to register/checkout
   if (hasActiveSubscription === false) {
-    return <TrialSetup onTrialStarted={() => setHasActiveSubscription(null)} />;
+    return <Navigate to="/register" replace />;
   }
 
   // All checks passed - user has active subscription

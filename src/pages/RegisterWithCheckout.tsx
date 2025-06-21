@@ -16,14 +16,14 @@ const RegisterWithCheckout = () => {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, isEmailVerified } = useAuth();
+  const { user } = useAuth();
   
   useEffect(() => {
-    // If user is already logged in and verified, redirect to dashboard
-    if (user && isEmailVerified) {
+    // If user is already logged in, redirect to dashboard
+    if (user) {
       navigate("/dashboard");
     }
-  }, [user, isEmailVerified, navigate]);
+  }, [user, navigate]);
   
   const createCheckoutSession = async () => {
     try {
@@ -53,18 +53,13 @@ const RegisterWithCheckout = () => {
 
       console.log('Checkout session created successfully:', checkoutData.url);
       
-      // Open Stripe checkout in new tab
-      const win = window.open(checkoutData.url, "_blank");
-      if (!win) {
-        toast.error("Popup blocked. Please allow popups and try again.");
-        return;
-      }
-      
-      toast.success("Redirecting to Stripe checkout...");
+      // Redirect to Stripe checkout in the same tab
+      window.location.href = checkoutData.url;
       
     } catch (error) {
       console.error('Checkout creation failed:', error);
       toast.error(`Checkout failed: ${error.message}`);
+      setIsLoading(false);
     }
   };
   
@@ -75,17 +70,13 @@ const RegisterWithCheckout = () => {
     try {
       console.log('Attempting registration for:', email);
       
-      // Set up proper redirect URL for email verification
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           data: {
             full_name: fullName
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
       
@@ -105,15 +96,12 @@ const RegisterWithCheckout = () => {
       
       if (data.user) {
         console.log('Registration successful:', data.user.email);
+        toast.success("Account created! Redirecting to checkout...");
         
-        // Show success message
-        toast.success("Account created! Please check your email to verify your account before starting your trial.");
-        
-        // Don't try to create checkout session immediately
-        // User needs to verify email first, then they'll be redirected to dashboard
-        // where they can start their trial
-        
-        setIsLoading(false);
+        // Wait a moment for the session to be established, then create checkout
+        setTimeout(() => {
+          createCheckoutSession();
+        }, 1000);
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
@@ -138,7 +126,7 @@ const RegisterWithCheckout = () => {
           <CardHeader className="pb-4">
             <CardTitle className="text-center text-xl font-display text-brand-navy">Start Your Free Trial</CardTitle>
             <p className="text-center text-sm text-gray-600 mt-2">
-              7 days free, then £3.99/month. Cancel anytime.
+              Create your account to start your free 7-day trial. Just £3.99/month after that.
             </p>
           </CardHeader>
           <CardContent className="pb-6">
@@ -195,10 +183,10 @@ const RegisterWithCheckout = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
+                    {isLoading && email ? "Redirecting to checkout..." : "Creating account..."}
                   </>
                 ) : (
-                  "Create Account"
+                  "Start Free Trial"
                 )}
               </Button>
               

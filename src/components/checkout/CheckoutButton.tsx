@@ -14,7 +14,7 @@ interface CheckoutButtonProps {
 }
 
 export function CheckoutButton({ className = "", size = "lg", priceId }: CheckoutButtonProps) {
-  const { user, isEmailVerified } = useAuth();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
@@ -24,37 +24,34 @@ export function CheckoutButton({ className = "", size = "lg", priceId }: Checkou
       return;
     }
 
-    if (!isEmailVerified) {
-      toast.error("Please verify your email address before subscribing.");
-      navigate("/dashboard"); // Redirect where your logic now handles verification
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
-      localStorage.setItem("checkout_in_progress", "true");
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error("Please log in to continue.");
+        navigate("/login");
+        return;
+      }
 
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionData.session.access_token}`
+        },
         body: JSON.stringify(priceId ? { priceId } : {}),
       });
 
       if (error || !data?.url) {
         toast.error("Checkout failed. Please try again.");
-        localStorage.removeItem("checkout_in_progress");
         setIsProcessing(false);
         return;
       }
 
-      const win = window.open(data.url, "_blank");
-      if (!win) {
-        toast.error("Popup blocked. Please allow popups and try again.");
-        localStorage.removeItem("checkout_in_progress");
-      }
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
     } catch (e) {
       toast.error("Unexpected error during checkout.");
-    } finally {
       setIsProcessing(false);
     }
   };

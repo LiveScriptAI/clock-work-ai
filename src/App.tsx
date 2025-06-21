@@ -11,7 +11,6 @@ import Welcome from "./pages/Welcome";
 import RegisterWithCheckout from "./pages/RegisterWithCheckout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Billing from "./pages/Billing";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import "./App.css";
@@ -36,14 +35,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/billing"
-              element={
-                <ProtectedRoute>
-                  <Billing />
                 </ProtectedRoute>
               }
             />
