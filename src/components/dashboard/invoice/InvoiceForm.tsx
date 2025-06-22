@@ -14,7 +14,7 @@ import { ShiftEntry } from "../timesheet/types";
 import { toast } from "@/hooks/use-toast";
 import CompanySelector from "./CompanySelector";
 import MyCompanyForm from "./MyCompanyForm";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InvoiceSettingsType, fetchInvoiceSettings } from "@/services/invoiceSettingsService";
 

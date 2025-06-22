@@ -1,122 +1,122 @@
-
 import React from "react";
-import { Navigate, Link } from "react-router-dom";
-import TestimonialsCarousel from "@/components/TestimonialsCarousel";
-import FeaturesGrid from "@/components/FeaturesGrid";
-import { useAuth } from "@/contexts/AuthContext";
-import ExperienceSection from "@/components/welcome/ExperienceSection";
-import CallToActionSection from "@/components/welcome/CallToActionSection";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
+import { motion } from "framer-motion";
 const WelcomePage = () => {
-  const { user, isLoading, isEmailVerified, isInitialized } = useAuth();
-  
-  // While auth state loads, show a loading placeholder
-  if (!isInitialized || isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  // Allow first session through immediately, even before clicking email link
-  const justSignedUp = user && new Date().getTime() - new Date(user.created_at).getTime() < 5 * 60 * 1000;
-  
-  // Already fully authenticated or just signed up? Jump straight to dashboard
-  if (user && (isEmailVerified || justSignedUp)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
   const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+    hidden: {
+      opacity: 0
+    },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
   };
-  
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    hidden: {
+      opacity: 0,
+      y: 20
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
   };
-  
-  const imageVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut" } }
-  };
-  
-  const floatAnimation = {
-    y: [-10, 10, -10],
-    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-  };
-  
-  return (
-    <div className="font-body w-full min-h-screen">
+  const features = [{
+    icon: "⌚",
+    title: "Live Time Tracking",
+    description: "Start and end shifts and breaks in real time. Your time keeps counting even if you reload the app."
+  }, {
+    icon: "📊",
+    title: "Smart Work Summaries",
+    description: "Instant daily, weekly and monthly dashboards that show total hours, breaks and earnings all at a glance."
+  }, {
+    icon: "📝",
+    title: "Easy Invoicing and PDF Export",
+    description: "Convert shifts into invoices. Customise your company and client details, then download or email a PDF in seconds."
+  }, {
+    icon: "📤",
+    title: "Instant Sharing",
+    description: "Send timesheets, summaries or invoices via Email, WhatsApp or download. No extra apps needed."
+  }, {
+    icon: "💰",
+    title: "Earnings Overview",
+    description: "See what you have earned automatically based on your rates, including break deductions and day or hour calculations."
+  }];
+  return <div className="font-body">
       {/* Hero Section */}
-      <motion.section 
-        className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 lg:px-8" 
-        initial="hidden" 
-        animate="visible" 
-        variants={containerVariants}
-      >
-        <div className="w-full max-w-6xl mx-auto text-center">
-          {/* Logo */}
-          <motion.div className="mb-8" variants={itemVariants}>
-            <img 
-              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
-              alt="Clock Work Pal logo" 
-              className="w-64 h-auto mx-auto" 
-            />
-          </motion.div>
+      <motion.section className="min-h-screen flex flex-col items-center justify-center bg-hero-gradient text-white px-6" initial="hidden" animate="visible" variants={containerVariants}>
+        {/* Logo */}
+        <motion.div className="mb-8" variants={itemVariants}>
+          <img src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" alt="Clock Work Pal logo" className="w-64 h-auto mx-auto" />
+        </motion.div>
 
-          {/* Headline */}
-          <motion.h1 variants={itemVariants} className="font-display text-4xl sm:text-5xl md:text-6xl text-white mb-4 text-center">
-            Smarter Time Tracking
-          </motion.h1>
+        {/* Headline */}
+        <motion.h1 className="font-display text-5xl md:text-6xl text-white mb-4 text-center" variants={itemVariants}>
+          Smarter Time Tracking
+        </motion.h1>
 
-          {/* Subtext */}
-          <motion.p variants={itemVariants} className="font-body max-w-4xl text-white/90 text-center mb-12 text-lg md:text-xl mx-auto">
-            Clock Work Pal is a simple web app for workers, freelancers and contractors. Track your shifts, breaks and earnings in real time. Generate professional invoices and share timesheets in seconds.
-          </motion.p>
+        {/* Subtext */}
+        <motion.p className="font-body text-lg md:text-xl max-w-2xl text-white/90 text-center mb-8" variants={itemVariants}>
+          Workers, freelancers & contractors: track shifts on the go, clock in/out in seconds, view earnings and send invoices anywhere.
+        </motion.p>
 
-          {/* CTAs */}
-          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center" variants={itemVariants}>
-            <Button 
-              asChild 
-              size="lg" 
-              className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg text-lg hover:opacity-90 transition hover:scale-105 transform duration-200"
-            >
-              <Link to="/register">Get Started</Link>
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              size="lg" 
-              className="px-8 py-4 border-2 border-white text-white font-medium rounded-full text-lg hover:bg-white hover:text-brand-navy transition"
-            >
-              <Link to="/pricing">View Pricing</Link>
-            </Button>
-          </motion.div>
-        </div>
+        {/* Buttons */}
+        <motion.div className="flex flex-col sm:flex-row gap-4" variants={itemVariants}>
+          <Button asChild className="px-8 py-3 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition">
+            <Link to="/register" className="px-[32px] py-[29px] my-0 mx-0">Get Started</Link>
+          </Button>
+          <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/20 transition">
+            <a href="#features">Learn More</a>
+          </button>
+        </motion.div>
       </motion.section>
 
       {/* Features Section */}
-      <FeaturesGrid />
-
-      {/* Experience Section */}
-      <ExperienceSection
-        containerVariants={containerVariants}
-        itemVariants={itemVariants}
-        imageVariants={imageVariants}
-        floatAnimation={floatAnimation}
-      />
-
-      {/* Testimonials Section */}
-      <TestimonialsCarousel />
+      <section id="features" className="bg-brand-neutralBg py-12 px-6">
+        <motion.div initial="hidden" whileInView="visible" viewport={{
+        once: true
+      }} variants={containerVariants}>
+          <motion.h2 className="font-display text-3xl md:text-4xl text-brand-navy text-center mb-8" variants={itemVariants}>
+            Key Features
+          </motion.h2>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            {features.map((feature, index) => <motion.div key={index} className="bg-white rounded-xl shadow-md p-5 flex flex-col items-start hover:shadow-lg transition-shadow" variants={itemVariants}>
+                <span className="text-4xl mb-3">{feature.icon}</span>
+                <h3 className="font-display text-2xl text-brand-navy mb-2">{feature.title}</h3>
+                <p className="font-body text-neutral-700 leading-snug">{feature.description}</p>
+              </motion.div>)}
+          </div>
+        </motion.div>
+      </section>
 
       {/* CTA Section */}
-      <CallToActionSection
-        containerVariants={containerVariants}
-        itemVariants={itemVariants}
-        isAccountVerified={false}
-      />
-    </div>
-  );
+      <motion.section className="bg-white py-12 px-6 text-center" initial="hidden" whileInView="visible" viewport={{
+      once: true
+    }} variants={containerVariants}>
+        <motion.div variants={itemVariants}>
+          <h3 className="font-display text-3xl text-brand-navy mb-4">
+            Ready to Get Started?
+          </h3>
+          <p className="font-body text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            Join thousands of workers, freelancers, and contractors who trust Clock Work Pal for their time tracking needs.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="px-8 py-4 bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition text-lg">
+              <Link to="/register">Create Account</Link>
+            </Button>
+            <Button asChild variant="outline" className="px-8 py-4 border-2 border-brand-navy text-brand-navy font-medium rounded-full hover:bg-brand-navy hover:text-white transition text-lg">
+              <Link to="/login">Sign In</Link>
+            </Button>
+          </div>
+        </motion.div>
+      </motion.section>
+    </div>;
 };
-
 export default WelcomePage;

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { getBreakIntervalsFromSupabase, deleteBreakIntervalsFromSupabase, BreakInterval } from "@/services/breakDataService";
 import { toast } from "sonner";
 

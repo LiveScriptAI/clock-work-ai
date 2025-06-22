@@ -6,72 +6,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
-const RegisterWithCheckout = () => {
+const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   useEffect(() => {
-    // If user is already logged in, redirect to dashboard
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
-  
-  const createCheckoutSession = async () => {
-    try {
-      console.log('Creating checkout session for authenticated user');
-      
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        throw new Error('No active session found');
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
       }
-
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout-session", {
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${sessionData.session.access_token}`
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (checkoutError) {
-        console.error('Checkout error:', checkoutError);
-        throw checkoutError;
+    };
+    
+    checkSession();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        navigate("/dashboard");
       }
-
-      if (!checkoutData?.url) {
-        throw new Error("No checkout URL received");
-      }
-
-      console.log('Checkout session created successfully:', checkoutData.url);
-      
-      // Redirect to Stripe checkout in the same tab
-      window.location.href = checkoutData.url;
-      
-    } catch (error) {
-      console.error('Checkout creation failed:', error);
-      toast.error(`Checkout failed: ${error.message}`);
-      setIsLoading(false);
-    }
-  };
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [navigate]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      console.log('Attempting registration for:', email);
-      
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email,
         password,
         options: {
           data: {
@@ -81,34 +54,73 @@ const RegisterWithCheckout = () => {
       });
       
       if (error) {
-        console.error('Registration error:', error);
-        
-        if (error.message.includes('User already registered')) {
-          toast.error("Account already exists. Please log in instead.");
-        } else if (error.message.includes('Password')) {
-          toast.error("Password must be at least 6 characters long.");
-        } else {
-          toast.error(error.message || "Registration failed. Please try again.");
-        }
-        setIsLoading(false);
-        return;
-      }
-      
-      if (data.user) {
-        console.log('Registration successful:', data.user.email);
-        toast.success("Account created! Redirecting to checkout...");
-        
-        // Wait a moment for the session to be established, then create checkout
-        setTimeout(() => {
-          createCheckoutSession();
-        }, 1000);
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: error.message
+        });
+      } else if (data.user) {
+        setEmailSent(true);
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account."
+        });
       }
     } catch (error) {
-      console.error('Unexpected registration error:', error);
-      toast.error("An unexpected error occurred. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: "An unexpected error occurred."
+      });
+    } finally {
       setIsLoading(false);
     }
   };
+  
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
+        <div className="flex flex-col items-center max-w-md w-full">
+          {/* Logo */}
+          <div className="mb-8">
+            <img 
+              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
+              alt="Clock Work Pal logo" 
+              className="w-56 h-auto mx-auto"
+            />
+          </div>
+
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Sent</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-6">
+              <p className="font-body text-brand-navy">
+                We've sent a verification email to <strong>{email}</strong>.
+                Please check your inbox and click on the verification link to complete your registration.
+              </p>
+              
+              <Button 
+                onClick={() => navigate("/login")}
+                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
+              >
+                Go to Login
+              </Button>
+              
+              <div className="text-center">
+                <Link 
+                  to="/welcome" 
+                  className="text-gray-500 text-sm hover:underline font-body"
+                >
+                  Back to Welcome
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
@@ -124,10 +136,7 @@ const RegisterWithCheckout = () => {
 
         <Card className="w-full shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl font-display text-brand-navy">Start Your Free Trial</CardTitle>
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Create your account to start your free 7-day trial. Just £3.99/month after that.
-            </p>
+            <CardTitle className="text-center text-xl font-display text-brand-navy">Create Account</CardTitle>
           </CardHeader>
           <CardContent className="pb-6">
             <form onSubmit={handleRegister} className="space-y-4">
@@ -141,7 +150,6 @@ const RegisterWithCheckout = () => {
                   placeholder="John Doe"
                   required
                   className="font-body"
-                  disabled={isLoading}
                 />
               </div>
               
@@ -155,7 +163,6 @@ const RegisterWithCheckout = () => {
                   placeholder="your.email@example.com"
                   required
                   className="font-body"
-                  disabled={isLoading}
                 />
               </div>
               
@@ -170,7 +177,6 @@ const RegisterWithCheckout = () => {
                   minLength={6}
                   required
                   className="font-body"
-                  disabled={isLoading}
                 />
                 <p className="text-xs text-gray-500 font-body">Password must be at least 6 characters</p>
               </div>
@@ -183,10 +189,10 @@ const RegisterWithCheckout = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isLoading && email ? "Redirecting to checkout..." : "Creating account..."}
+                    Creating account...
                   </>
                 ) : (
-                  "Start Free Trial"
+                  "Create Account"
                 )}
               </Button>
               
@@ -215,4 +221,4 @@ const RegisterWithCheckout = () => {
   );
 };
 
-export default RegisterWithCheckout;
+export default RegisterPage;

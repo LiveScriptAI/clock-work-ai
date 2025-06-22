@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { formatISO, parseISO } from "date-fns";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface BreakInterval {
   start: string;
