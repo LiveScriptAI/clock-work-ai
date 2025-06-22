@@ -17,8 +17,11 @@ const WelcomePage = () => {
     return <div>Loading...</div>;
   }
 
-  // Already fully authenticated? Jump straight to dashboard
-  if (user && isEmailVerified) {
+  // Allow first session through immediately, even before clicking email link
+  const justSignedUp = user && new Date().getTime() - new Date(user.created_at).getTime() < 5 * 60 * 1000;
+  
+  // Already fully authenticated or just signed up? Jump straight to dashboard
+  if (user && (isEmailVerified || justSignedUp)) {
     return <Navigate to="/dashboard" replace />;
   }
   
