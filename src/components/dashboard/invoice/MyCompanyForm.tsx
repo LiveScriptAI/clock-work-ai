@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "react-hook-form";
@@ -318,7 +317,7 @@ const MyCompanyForm = () => {
                         <Input placeholder="City" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormMessage>
+                    </FormItem>
                   )}
                 />
                 
