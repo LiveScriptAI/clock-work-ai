@@ -1,8 +1,6 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useShiftState } from "@/hooks/useShiftState";
-import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 
 // Import layout and content components
@@ -19,7 +17,6 @@ import {
 } from "@/components/dashboard/utils";
 
 const DashboardPage = () => {
-  const { t } = useTranslation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const { user } = useAuth();
   
