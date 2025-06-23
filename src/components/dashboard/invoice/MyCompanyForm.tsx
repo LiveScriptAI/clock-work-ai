@@ -22,10 +22,9 @@ import {
   FormControl,
   FormMessage
 } from "@/components/ui/form";
-import { Image } from "lucide-react";
 
 const MyCompanyForm = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,21 +45,23 @@ const MyCompanyForm = () => {
   // Fetch existing settings on component mount
   useEffect(() => {
     const loadSettings = async () => {
-      if (!user?.id) return;
+      if (!user?.id || authLoading) return;
       
       setIsLoading(true);
       try {
+        console.log("Loading settings for user:", user.id);
         const data = await fetchInvoiceSettings(user.id);
         if (data) {
+          console.log("Loaded settings:", data);
           // Reset form with fetched data
           form.reset({
-            business_name: data.business_name,
-            address1: data.address1,
+            business_name: data.business_name || "",
+            address1: data.address1 || "",
             address2: data.address2 || "",
-            city: data.city,
+            city: data.city || "",
             county: data.county || "",
-            postcode: data.postcode,
-            country: data.country,
+            postcode: data.postcode || "",
+            country: data.country || "",
             logo_url: data.logo_url || ""
           });
           
@@ -71,17 +72,31 @@ const MyCompanyForm = () => {
         }
       } catch (error) {
         console.error("Failed to load company settings:", error);
+        toast({
+          title: "Error loading settings",
+          description: "Failed to load your company settings. Please try again.",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
     
     loadSettings();
-  }, [user, form]);
+  }, [user, authLoading, form]);
   
   const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file || !user?.id) {
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to upload a logo",
+          variant: "destructive"
+        });
+      }
+      return;
+    }
     
     // Validate file type
     if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(file.type)) {
@@ -111,13 +126,20 @@ const MyCompanyForm = () => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/${timestamp}.${fileExt}`;
       
+      console.log("Uploading file to:", filePath);
+      
       // Upload the file to Supabase storage
       const { data, error } = await supabase
         .storage
         .from('logos')
         .upload(filePath, file, { upsert: true });
         
-      if (error) throw error;
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+      
+      console.log("Upload successful:", data);
       
       // Get the public URL for the uploaded file
       const publicUrl = supabase
@@ -125,6 +147,8 @@ const MyCompanyForm = () => {
         .from('logos')
         .getPublicUrl(filePath)
         .data.publicUrl;
+      
+      console.log("Public URL:", publicUrl);
       
       // Update the form value and preview
       form.setValue('logo_url', publicUrl);
@@ -139,7 +163,7 @@ const MyCompanyForm = () => {
       console.error("Error uploading logo:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload logo. Please try again.",
+        description: `Failed to upload logo: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
@@ -159,24 +183,48 @@ const MyCompanyForm = () => {
     
     setIsLoading(true);
     try {
-      const { error } = await upsertInvoiceSettings(user.id, data);
-      if (error) throw error;
+      console.log("Saving settings:", data);
+      await upsertInvoiceSettings(user.id, data);
       
       toast({
         title: "Success",
-        description: "My Company information saved",
+        description: "My Company information saved successfully",
       });
     } catch (error) {
       console.error("Error saving company settings:", error);
       toast({
         title: "Error",
-        description: "Failed to save company settings",
+        description: `Failed to save company settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error if user is not authenticated
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-600">
+            You must be logged in to access company settings.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Form {...form}>
@@ -270,7 +318,7 @@ const MyCompanyForm = () => {
                         <Input placeholder="City" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
+                    </FormMessage>
                   )}
                 />
                 
