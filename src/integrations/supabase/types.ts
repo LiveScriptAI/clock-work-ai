@@ -136,7 +136,7 @@ export type Database = {
           logo_url: string | null
           postcode: string
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           address1: string
@@ -150,7 +150,7 @@ export type Database = {
           logo_url?: string | null
           postcode: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           address1?: string
@@ -164,9 +164,17 @@ export type Database = {
           logo_url?: string | null
           postcode?: string
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoice_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
