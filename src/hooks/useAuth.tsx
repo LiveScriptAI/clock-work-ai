@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ProfileType = {
@@ -15,29 +14,27 @@ export type ProfileType = {
 };
 
 export function useAuth() {
-  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, session);
       
-      if (event === 'SIGNED_OUT' || !session) {
-        setUser(null);
-        setProfile(null);
-        navigate("/register");
-      } else if (session) {
+      if (session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {
           fetchUserProfile(session.user.id);
         }
+      } else {
+        setUser(null);
+        setProfile(null);
       }
     });
     
-    // THEN check for existing session
+    // Check for existing session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -52,7 +49,7 @@ export function useAuth() {
     checkSession();
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -79,7 +76,6 @@ export function useAuth() {
       }
       
       console.log("Sign out successful");
-      // The navigation will be handled by the auth state change listener
     } catch (error) {
       console.error("Unexpected error during sign out:", error);
     }
