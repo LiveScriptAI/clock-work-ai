@@ -10,6 +10,8 @@ export type ProfileType = {
   county?: string;
   postcode?: string;
   country?: string;
+  subscription_status?: string;
+  stripe_subscription_id?: string;
 };
 
 export function useAuth() {
@@ -25,13 +27,7 @@ export function useAuth() {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setProfile(null);
-        navigate("/login");
-      } else if (event === 'SIGNED_IN' && session) {
-        setUser(session.user);
-        // Fetch profile data if user is authenticated
-        if (session.user?.id) {
-          fetchUserProfile(session.user.id);
-        }
+        navigate("/register");
       } else if (session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
@@ -44,9 +40,7 @@ export function useAuth() {
     // THEN check for existing session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-      } else {
+      if (session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {
@@ -64,7 +58,7 @@ export function useAuth() {
     try {
       const { data } = await supabase
         .from("profiles")
-        .select("address1, address2, city, county, postcode, country")
+        .select("address1, address2, city, county, postcode, country, subscription_status, stripe_subscription_id")
         .eq("id", userId)
         .maybeSingle();
       

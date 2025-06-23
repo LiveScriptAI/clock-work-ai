@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const RegisterPage = () => {
@@ -14,7 +14,6 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -27,15 +26,6 @@ const RegisterPage = () => {
     };
     
     checkSession();
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        navigate("/dashboard");
-      }
-    });
-    
-    return () => subscription.unsubscribe();
   }, [navigate]);
   
   const handleRegister = async (e: React.FormEvent) => {
@@ -43,7 +33,8 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Step 1: Create the user account
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -53,74 +44,34 @@ const RegisterPage = () => {
         }
       });
       
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: error.message
-        });
-      } else if (data.user) {
-        setEmailSent(true);
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account."
-        });
+      if (signUpError) {
+        toast.error(`Registration failed: ${signUpError.message}`);
+        return;
       }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: "An unexpected error occurred."
+
+      // Step 2: Immediately sign in the user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
+      
+      if (signInError) {
+        toast.error(`Auto sign-in failed: ${signInError.message}`);
+        return;
+      }
+
+      toast.success("Account created successfully!");
+      
+      // Step 3: Redirect to payment
+      navigate("/payment");
+      
+    } catch (error) {
+      toast.error("An unexpected error occurred.");
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  if (emailSent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
-        <div className="flex flex-col items-center max-w-md w-full">
-          {/* Logo */}
-          <div className="mb-8">
-            <img 
-              src="/lovable-uploads/5e5ad164-5fad-4fa8-8d19-cbccf2382c0e.png" 
-              alt="Clock Work Pal logo" 
-              className="w-56 h-auto mx-auto"
-            />
-          </div>
-
-          <Card className="w-full shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-center text-2xl font-display text-brand-navy">Email Verification Sent</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <p className="font-body text-brand-navy">
-                We've sent a verification email to <strong>{email}</strong>.
-                Please check your inbox and click on the verification link to complete your registration.
-              </p>
-              
-              <Button 
-                onClick={() => navigate("/login")}
-                className="w-full bg-brand-accent text-brand-navy font-semibold rounded-full shadow-lg hover:opacity-90 transition font-body"
-              >
-                Go to Login
-              </Button>
-              
-              <div className="text-center">
-                <Link 
-                  to="/welcome" 
-                  className="text-gray-500 text-sm hover:underline font-body"
-                >
-                  Back to Welcome
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-hero-gradient px-6 font-body">
@@ -192,7 +143,7 @@ const RegisterPage = () => {
                     Creating account...
                   </>
                 ) : (
-                  "Create Account"
+                  "Create Account & Continue"
                 )}
               </Button>
               
@@ -202,15 +153,6 @@ const RegisterPage = () => {
                   className="text-brand-navy text-sm hover:underline font-body"
                 >
                   Already have an account? Log in
-                </Link>
-              </div>
-              
-              <div className="text-center">
-                <Link 
-                  to="/welcome" 
-                  className="text-gray-500 text-sm hover:underline font-body"
-                >
-                  Back to Welcome
                 </Link>
               </div>
             </form>
