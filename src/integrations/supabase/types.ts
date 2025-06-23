@@ -136,7 +136,7 @@ export type Database = {
           logo_url: string | null
           postcode: string
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           address1: string
@@ -150,7 +150,7 @@ export type Database = {
           logo_url?: string | null
           postcode: string
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           address1?: string
@@ -164,17 +164,9 @@ export type Database = {
           logo_url?: string | null
           postcode?: string
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "invoice_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -188,10 +180,6 @@ export type Database = {
           full_name: string | null
           id: string
           postcode: string | null
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          subscription_status: string | null
-          subscription_tier: string | null
           updated_at: string
         }
         Insert: {
@@ -205,10 +193,6 @@ export type Database = {
           full_name?: string | null
           id: string
           postcode?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_status?: string | null
-          subscription_tier?: string | null
           updated_at?: string
         }
         Update: {
@@ -222,10 +206,6 @@ export type Database = {
           full_name?: string | null
           id?: string
           postcode?: string | null
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_status?: string | null
-          subscription_tier?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -278,42 +258,6 @@ export type Database = {
           start_time?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      subscribers: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          stripe_customer_id: string | null
-          subscribed: boolean
-          subscription_end: string | null
-          subscription_tier: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: []
       }

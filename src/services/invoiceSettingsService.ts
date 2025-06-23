@@ -17,48 +17,28 @@ export async function upsertInvoiceSettings(
   userId: string,
   data: InvoiceSettingsType
 ) {
-  console.log("Attempting to upsert invoice settings for user:", userId, data);
-  
-  try {
-    const response = await supabase
-      .from('invoice_settings')
-      .upsert({ user_id: userId, ...data }, { onConflict: 'user_id' })
-      .select();
-      
-    console.log("Upsert response:", response);
+  const response = await supabase
+    .from('invoice_settings')
+    .upsert({ user_id: userId, ...data }, { onConflict: 'user_id' });
     
-    if (response.error) {
-      console.error("upsertInvoiceSettings error:", response.error);
-      throw new Error(`Failed to save invoice settings: ${response.error.message}`);
-    }
-    
-    return response;
-  } catch (error) {
-    console.error("Exception in upsertInvoiceSettings:", error);
-    throw error;
+  if (response.error) {
+    console.error("upsertInvoiceSettings error:", response.error);
+    throw response.error;
   }
+  
+  return response;
 }
 
 export async function fetchInvoiceSettings(userId: string) {
-  console.log("Fetching invoice settings for user:", userId);
-  
-  try {
-    const { data, error } = await supabase
-      .from('invoice_settings')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-      
-    console.log("Fetch response:", { data, error });
+  const { data, error } = await supabase
+    .from('invoice_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
     
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error fetching invoice settings:", error);
-      throw new Error(`Failed to fetch invoice settings: ${error.message}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error("Exception in fetchInvoiceSettings:", error);
-    return null;
+  if (error && error.code !== 'PGRST116') {
+    console.error("Error fetching invoice settings:", error);
   }
+  
+  return data;
 }

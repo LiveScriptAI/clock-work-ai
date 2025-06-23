@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ProfileType = {
@@ -9,81 +10,67 @@ export type ProfileType = {
   county?: string;
   postcode?: string;
   country?: string;
-  subscription_status?: string;
-  stripe_subscription_id?: string;
 };
 
 export function useAuth() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, session);
       
-      if (session) {
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setProfile(null);
+        navigate("/login");
+      } else if (event === 'SIGNED_IN' && session) {
         setUser(session.user);
         // Fetch profile data if user is authenticated
         if (session.user?.id) {
           fetchUserProfile(session.user.id);
         }
-      } else {
-        setUser(null);
-        setProfile(null);
+      } else if (session) {
+        setUser(session.user);
+        // Fetch profile data if user is authenticated
+        if (session.user?.id) {
+          fetchUserProfile(session.user.id);
+        }
       }
-      setIsLoading(false);
     });
     
-    // Check for existing session
+    // THEN check for existing session
     const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Error getting session:", error);
-          setIsLoading(false);
-          return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/login");
+      } else {
+        setUser(session.user);
+        // Fetch profile data if user is authenticated
+        if (session.user?.id) {
+          fetchUserProfile(session.user.id);
         }
-        
-        if (session) {
-          setUser(session.user);
-          // Fetch profile data if user is authenticated
-          if (session.user?.id) {
-            fetchUserProfile(session.user.id);
-          }
-        }
-      } catch (error) {
-        console.error("Exception in checkSession:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
     
     checkSession();
     
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log("Fetching profile for user:", userId);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("profiles")
-        .select("address1, address2, city, county, postcode, country, subscription_status, stripe_subscription_id")
+        .select("address1, address2, city, county, postcode, country")
         .eq("id", userId)
         .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching profile:", error);
-        return;
-      }
-      
-      console.log("Profile data:", data);
       setProfile(data);
     } catch (error) {
-      console.error("Exception in fetchUserProfile:", error);
+      console.error("Error fetching profile:", error);
     }
   };
 
@@ -98,10 +85,11 @@ export function useAuth() {
       }
       
       console.log("Sign out successful");
+      // The navigation will be handled by the auth state change listener
     } catch (error) {
       console.error("Unexpected error during sign out:", error);
     }
   };
 
-  return { user, profile, handleSignOut, isLoading };
+  return { user, profile, handleSignOut };
 }
