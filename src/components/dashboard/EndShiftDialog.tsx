@@ -15,11 +15,15 @@ import { format } from "date-fns";
 type EndShiftDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+
   endManagerName: string;
   setEndManagerName: (name: string) => void;
+
   isSignatureEmpty: boolean;
   setIsSignatureEmpty: (empty: boolean) => void;
-  confirmShiftEnd: () => void;         // ← this must be the real “finish shift” function
+
+  confirmShiftEnd: () => void;       // ← the real “finish shift” callback
+
   startTime: Date | null;
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
@@ -49,26 +53,26 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Manager Approval: Shift End</DialogTitle>
           <DialogDescription>
-            Manager approval is required to end a shift. Please enter manager's name and signature.
+            Manager approval is required to end a shift. Please enter manager’s name and signature.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
             <label htmlFor="endManagerName" className="text-sm font-medium block mb-1">
-              Manager's Name
+              Manager’s Name
             </label>
             <Input
               id="endManagerName"
               value={endManagerName}
               onChange={(e) => setEndManagerName(e.target.value)}
-              placeholder="Enter manager's name"
+              placeholder="Enter manager’s name"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium block mb-1">
-              Manager's Signature
+              Manager’s Signature
             </label>
             <SignatureCanvas
               onSignatureChange={setIsSignatureEmpty}
@@ -102,8 +106,8 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
           </Button>
           <Button
             onClick={() => {
-              confirmShiftEnd();      // ← end & clear the shift
-              onOpenChange(false);    // ← then close the dialog
+              confirmShiftEnd();    // ← actually ends & clears the shift
+              onOpenChange(false);  // ← then close the dialog
             }}
           >
             Confirm End
