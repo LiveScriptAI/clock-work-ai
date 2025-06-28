@@ -74,8 +74,42 @@ const CustomerTabs = () => {
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
     try {
-      // Save to localStorage
+      // Save to localStorage as general customer info
       save('customerInfo', data);
+      
+      // Also save as a specific customer record for invoice loading
+      const customerId = data.email || `customer_${Date.now()}`;
+      const customerRecord = {
+        id: customerId,
+        company_name: data.businessName,
+        contact_name: data.contactName,
+        email: data.email,
+        address1: data.address1 || "",
+        address2: data.address2 || "",
+        city: data.city || "",
+        county: data.county || "",
+        postcode: data.postcode || "",
+        country: data.country || "",
+        phone_number: data.phoneNumber || "",
+        vat_number: data.vatNumber || "",
+        terms_conditions: data.termsAndConditions || "",
+        notes: data.notes || ""
+      };
+      
+      // Save individual customer record
+      save(`customer_${customerId}`, customerRecord);
+      
+      // Add to customers list for invoice dropdown
+      const customersList = load<any[]>('invoiceRecipients') || [];
+      const existingIndex = customersList.findIndex(c => c.id === customerId);
+      
+      if (existingIndex >= 0) {
+        customersList[existingIndex] = customerRecord;
+      } else {
+        customersList.push(customerRecord);
+      }
+      
+      save('invoiceRecipients', customersList);
       
       toast({
         title: "Success",

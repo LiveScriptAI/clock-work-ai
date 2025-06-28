@@ -49,6 +49,19 @@ export function useShiftPersistence(
         setStartTime(parsedStartTime);
       }
 
+      // Restore break state with proper break intervals handling
+      if (currentShift.breaks && Array.isArray(currentShift.breaks)) {
+        const totalDuration = currentShift.breaks.reduce((sum: number, brk: any) => {
+          return sum + (brk.duration || 0);
+        }, 0);
+        setTotalBreakDuration(totalDuration);
+      }
+
+      setIsBreakActive(currentShift.isBreakActive || false);
+      if (currentShift.isBreakActive && currentShift.breakStart) {
+        setBreakStart(new Date(currentShift.breakStart));
+      }
+
       toast.info("Restored active shift from previous session");
     } else if (savedState && savedState.isShiftActive) {
       // Fallback to old storage method
@@ -93,6 +106,10 @@ export function useShiftPersistence(
   // Save state whenever relevant values change
   useEffect(() => {
     if (isShiftActive) {
+      // Get existing breaks from storage
+      const currentShift = load<any>('currentShift') || {};
+      const existingBreaks = currentShift.breaks || [];
+
       // Save to both storage methods for compatibility
       saveShiftState({
         isShiftActive,
@@ -107,7 +124,7 @@ export function useShiftPersistence(
         startSignatureData
       });
 
-      // Also save to new localStorage method
+      // Also save to new localStorage method with breaks array
       const currentShiftData = {
         isActive: isShiftActive,
         startTime: startTime ? startTime.toISOString() : null,
@@ -118,7 +135,8 @@ export function useShiftPersistence(
         startSignatureData,
         isBreakActive,
         breakStart: breakStart ? breakStart.toISOString() : null,
-        totalBreakDuration
+        totalBreakDuration,
+        breaks: existingBreaks
       };
       
       save('currentShift', currentShiftData);

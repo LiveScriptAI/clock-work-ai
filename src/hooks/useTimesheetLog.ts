@@ -3,12 +3,96 @@ import { useState, useEffect, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { toast } from "@/components/ui/use-toast";
-import { 
-  fetchUserShifts, 
-  filterShiftsByPeriod, 
-  filterShiftsByDateRange,
-  deleteShift 
-} from "@/services/shiftService";
+import { load, save } from "@/services/localStorageService";
+
+// Local storage service functions for shifts
+const fetchUserShifts = async (): Promise<ShiftEntry[]> => {
+  const shiftsHistory = load<any[]>('shiftsHistory') || [];
+  const shifts = load<any[]>('shifts') || [];
+  
+  // Combine both sources and deduplicate
+  const allShifts = [...shiftsHistory, ...shifts];
+  const uniqueShifts = allShifts.filter((shift, index, arr) => 
+    arr.findIndex(s => s.id === shift.id) === index
+  );
+  
+  // Convert to ShiftEntry format
+  return uniqueShifts.map(shift => ({
+    id: shift.id,
+    date: new Date(shift.date || shift.startTime),
+    employer: shift.employer,
+    startTime: new Date(shift.startTime),
+    endTime: new Date(shift.endTime),
+    breakDuration: shift.breakDuration || 0,
+    hoursWorked: shift.hoursWorked || 0,
+    earnings: shift.earnings || 0,
+    payRate: shift.payRate || 0,
+    payType: shift.payType || shift.rateType || "Per Hour",
+    status: shift.status || "Unpaid"
+  }));
+};
+
+const filterShiftsByPeriod = (shifts: ShiftEntry[], period: string): ShiftEntry[] => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  switch (period) {
+    case "day":
+      return shifts.filter(shift => {
+        const shiftDate = new Date(shift.date.getFullYear(), shift.date.getMonth(), shift.date.getDate());
+        return shiftDate.getTime() === today.getTime();
+      });
+    
+    case "week":
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      return shifts.filter(shift => {
+        const shiftDate = new Date(shift.date.getFullYear(), shift.date.getMonth(), shift.date.getDate());
+        return shiftDate >= weekStart && shiftDate <= weekEnd;
+      });
+    
+    case "month":
+      return shifts.filter(shift => 
+        shift.date.getMonth() === now.getMonth() && 
+        shift.date.getFullYear() === now.getFullYear()
+      );
+    
+    default:
+      return shifts;
+  }
+};
+
+const filterShiftsByDateRange = (shifts: ShiftEntry[], fromDate: Date, toDate: Date): ShiftEntry[] => {
+  return shifts.filter(shift => {
+    const shiftDate = new Date(shift.date.getFullYear(), shift.date.getMonth(), shift.date.getDate());
+    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    const to = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+    
+    return shiftDate >= from && shiftDate <= to;
+  });
+};
+
+const deleteShift = async (shiftId: string): Promise<boolean> => {
+  try {
+    // Remove from shiftsHistory
+    const shiftsHistory = load<any[]>('shiftsHistory') || [];
+    const updatedHistory = shiftsHistory.filter(shift => shift.id !== shiftId);
+    save('shiftsHistory', updatedHistory);
+    
+    // Remove from shifts for compatibility
+    const shifts = load<any[]>('shifts') || [];
+    const updatedShifts = shifts.filter(shift => shift.id !== shiftId);
+    save('shifts', updatedShifts);
+    
+    return true;
+  } catch (error) {
+    console.error("Error deleting shift:", error);
+    return false;
+  }
+};
 
 export function useTimesheetLog() {
   const [activeTab, setActiveTab] = useState("day");

@@ -87,6 +87,15 @@ export function useShiftState() {
     endSignatureData
   );
 
+  // Break toggle handler that uses the actions
+  const handleBreakToggle = () => {
+    if (isBreakActive) {
+      actions.handleEndBreak();
+    } else {
+      actions.handleStartBreak();
+    }
+  };
+
   return {
     // State
     isShiftActive,
@@ -131,6 +140,7 @@ export function useShiftState() {
     // Actions
     handleStartShift: actions.handleStartShift,
     handleEndShift: actions.handleEndShift,
+    handleBreakToggle,
     confirmShiftStart: actions.confirmShiftStart,
     confirmShiftEnd: actions.confirmShiftEnd,
   };
