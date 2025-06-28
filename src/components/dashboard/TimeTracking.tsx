@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format, formatDistanceStrict, differenceInSeconds } from "date-fns";
-import { useBreakTime } from "@/hooks/useBreakTime";
 
 type TimeTrackingProps = {
   startTime: Date | null;
