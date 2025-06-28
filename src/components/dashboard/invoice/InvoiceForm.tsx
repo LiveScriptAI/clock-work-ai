@@ -2,53 +2,52 @@ import React, { useState, useEffect, useCallback } from "react";
 import { load } from "@/services/localStorageService";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import InvoiceHeader from "./InvoiceHeader";
 import LineItemsTable from "./LineItemsTable";
 import NotesAndTerms from "./NotesAndTerms";
 import InvoiceSummary from "./InvoiceSummary";
 import PreviewInvoiceDialog from "./PreviewInvoiceDialog";
-import InvoiceActions from "./InvoiceActions";
 import CompanySelector from "./CompanySelector";
-import MyCompanyForm from "./MyCompanyForm";  // now accepts onSettingsSaved prop
-import { useAuth } from "@/hooks/useAuth";
+import MyCompanyForm from "./MyCompanyForm";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { InvoiceSettingsType } from "@/services/invoiceLocalService";
-import { ShiftEntry } from "../timesheet/types";
-import { LineItem } from "./invoice-types";
-import { toast } from "@/hooks/use-toast";
+import { InvoiceSettingsType } from "@/services/invoiceLocalService"; // or wherever your localStorageService types live
 import { sendInvoice, generateInvoicePDF } from "./invoice-utils";
 import { convertInvoiceToShift } from "./invoice-conversion-utils";
+import { ShiftEntry } from "../timesheet/types";
+import { LineItem } from "./invoice-types";
 
 const InvoiceForm: React.FC = () => {
-  const { user } = useAuth();
   const today = new Date();
 
-  // --- Invoice form state ---
-  const [customer, setCustomer] = useState<string>("");
-  const [customerEmail, setCustomerEmail] = useState<string>("");
+  // — Invoice form fields —
+  const [customer, setCustomer] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
-  const [reference, setReference] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
-  const [terms, setTerms] = useState<string>(
+  const [reference, setReference] = useState("");
+  const [notes, setNotes] = useState("");
+  const [terms, setTerms] = useState(
     "Payment due within 30 days. Late payments are subject to a 2% monthly fee."
   );
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
 
-  // --- “From” (sender) info loaded from MyCompanyForm ---
+  // — “My Company” (sender) data —
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
-  const [settingsVersion, setSettingsVersion] = useState<number>(0);
+  const [settingsVersion, setSettingsVersion] = useState(0);
 
-  // Helper to reload company settings
+  // Helper to reload company settings from localStorage
   const loadCompanySettings = useCallback(() => {
     const data = load<InvoiceSettingsType>("companySettings");
-    if (data) {
+    if (data && data.business_name && data.address1) {
       setSender(data);
+    } else {
+      setSender(null);
     }
   }, []);
 
-  // On mount & whenever settingsVersion changes, reload “From” info
+  // On mount and whenever MyCompanyForm tells us it’s saved, reload
   useEffect(() => {
     loadCompanySettings();
   }, [loadCompanySettings, settingsVersion]);
@@ -56,19 +55,25 @@ const InvoiceForm: React.FC = () => {
   // Called by MyCompanyForm after it successfully saves
   const handleSettingsSaved = () => {
     setSettingsVersion((v) => v + 1);
-    toast({ title: "Company Info Updated", description: "Your ‘From’ section has been refreshed." });
+    toast({
+      title: "My Company Updated",
+      description: "Your ‘From’ section has been refreshed.",
+    });
   };
 
-  // --- CompanySelector (for loading a customer) ---
+  // — CompanySelector (for billing “To:” side) —
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
     setCustomer(companyData.company_name || "");
     setCustomerEmail(companyData.email || "");
-    setReference((r) => (r || `Invoice for ${companyData.company_name}`));
-    toast({ title: "Customer Loaded", description: `Now invoicing ${companyData.company_name}` });
+    setReference((r) => r || `Invoice for ${companyData.company_name}`);
+    toast({
+      title: "Customer Loaded",
+      description: `Now invoicing ${companyData.company_name}.`,
+    });
   };
 
-  // --- Line items helpers ---
+  // — Line‐item helpers —
   const addLineItem = () => {
     setLineItems((items) => [
       ...items,
@@ -90,20 +95,44 @@ const InvoiceForm: React.FC = () => {
   const calculateTotal = () =>
     (parseFloat(calculateSubtotal()) + parseFloat(calculateVAT())).toFixed(2);
 
-  // Convert to ShiftEntry for InvoiceActions
+  // Convert invoice data into a ShiftEntry if you’re also recording it
   const getShiftData = (): ShiftEntry =>
     convertInvoiceToShift(customer, invoiceDate, reference, lineItems, customerEmail);
 
-  // --- Actions: preview, download, send ---
+  // — Preview Modal —
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const handlePreview = () => setIsPreviewOpen(true);
 
+  // — Download PDF handler with improved guard & toast copy —
   const handleDownloadPDF = async () => {
     if (!sender) {
-      toast({ title: "Missing company info", description: "Please fill out My Company first", variant: "destructive" });
+      toast({
+        title: "Missing My Company Details",
+        description: "Please save your company details in the My Company tab before downloading.",
+        variant: "destructive"
+      });
       return;
     }
-    const payload = { customer, customerEmail, invoiceDate, reference, notes, terms, lineItems, address1: sender.address1, address2: sender.address2, city: sender.city, county: sender.county, postcode: sender.postcode, country: sender.country, subtotal: calculateSubtotal(), vat: calculateVAT(), total: calculateTotal() };
+
+    const payload = {
+      customer,
+      customerEmail,
+      invoiceDate,
+      reference,
+      notes,
+      terms,
+      lineItems,
+      address1: sender.address1,
+      address2: sender.address2,
+      city: sender.city,
+      county: sender.county,
+      postcode: sender.postcode,
+      country: sender.country,
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal()
+    };
+
     try {
       const blob = await generateInvoicePDF(payload, sender);
       const url = URL.createObjectURL(blob);
@@ -112,16 +141,48 @@ const InvoiceForm: React.FC = () => {
       a.download = `Invoice-${reference || Date.now()}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Downloaded", description: "Invoice PDF ready" });
+      toast({ title: "Downloaded", description: "Invoice PDF is ready." });
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "PDF generation failed", variant: "destructive" });
+      toast({
+        title: "Error Generating PDF",
+        description: "Something went wrong creating your invoice PDF.",
+        variant: "destructive"
+      });
     }
   };
 
+  // — Email / Send Invoice handler with the same guard —
   const handleSendInvoice = () => {
-    const payload = { customer, customerEmail, invoiceDate, reference, notes, terms, lineItems, address1: sender?.address1, address2: sender?.address2, city: sender?.city, county: sender?.county, postcode: sender?.postcode, country: sender?.country, subtotal: calculateSubtotal(), vat: calculateVAT(), total: calculateTotal() };
-    sendInvoice(payload);
+    if (!sender) {
+      toast({
+        title: "Missing My Company Details",
+        description: "Please save your company details in the My Company tab before sending.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const invoiceData = {
+      customer,
+      customerEmail,
+      invoiceDate,
+      reference,
+      notes,
+      terms,
+      lineItems,
+      address1: sender.address1,
+      address2: sender.address2,
+      city: sender.city,
+      county: sender.county,
+      postcode: sender.postcode,
+      country: sender.country,
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal()
+    };
+
+    sendInvoice(invoiceData);
   };
 
   return (
@@ -130,8 +191,9 @@ const InvoiceForm: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-6">
-          {/* — From (my company) */}
+          {/* — FROM (My Company) */}
           {sender && (
             <Card className="mb-4">
               <CardContent className="pt-4">
@@ -148,7 +210,7 @@ const InvoiceForm: React.FC = () => {
             </Card>
           )}
 
-          {/* — Tabs: load existing customer or edit My Company */}
+          {/* — TABS: pick an existing customer or edit My Company */}
           <Tabs defaultValue="load-company" className="my-6">
             <TabsList>
               <TabsTrigger value="load-company">Load Company</TabsTrigger>
@@ -164,7 +226,7 @@ const InvoiceForm: React.FC = () => {
             </TabsContent>
           </Tabs>
 
-          {/* — Invoice header (customer & billing address) */}
+          {/* — BILL TO / INVOICE HEADER */}
           <InvoiceHeader
             customer={customer}
             setCustomer={setCustomer}
@@ -188,7 +250,7 @@ const InvoiceForm: React.FC = () => {
             setCountry={() => {}}
           />
 
-          {/* — Line items, notes, summary */}
+          {/* — LINE ITEMS */}
           <LineItemsTable
             lineItems={lineItems}
             updateLineItem={updateLineItem}
@@ -196,32 +258,22 @@ const InvoiceForm: React.FC = () => {
             addLineItem={addLineItem}
             calculateLineTotal={(q, p) => (q * p).toFixed(2)}
           />
+
+          {/* — NOTES & TERMS */}
           <NotesAndTerms notes={notes} setNotes={setNotes} terms={terms} setTerms={setTerms} />
-          <InvoiceSummary subtotal={calculateSubtotal()} vat={calculateVAT()} total={calculateTotal()} />
+
+          {/* — SUMMARY */}
+          <InvoiceSummary
+            subtotal={calculateSubtotal()}
+            vat={calculateVAT()}
+            total={calculateTotal()}
+          />
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end">
           <Button variant="outline" onClick={handlePreview}>Preview</Button>
           <Button variant="outline" onClick={handleDownloadPDF}>Download PDF</Button>
-          <InvoiceActions
-            shift={getShiftData()}
-            clientEmail={customerEmail}
-            customer={customer}
-            invoiceDate={invoiceDate}
-            reference={reference}
-            lineItems={lineItems}
-            notes={notes}
-            terms={terms}
-            subtotal={calculateSubtotal()}
-            vat={calculateVAT()}
-            total={calculateTotal()}
-            address1={sender?.address1}
-            address2={sender?.address2}
-            city={sender?.city}
-            county={sender?.county}
-            postcode={sender?.postcode}
-            country={sender?.country}
-          />
+          <Button onClick={handleSendInvoice}>Email Invoice</Button>
         </CardFooter>
       </Card>
 
