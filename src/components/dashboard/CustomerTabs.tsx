@@ -1,17 +1,17 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { save, load } from "@/services/localStorageService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-// Define the form schema with Zod - removed payment details fields
+// Define the form schema with Zod
 const formSchema = z.object({
   businessName: z.string().min(1, {
     message: "Business name is required"
@@ -30,19 +30,14 @@ const formSchema = z.object({
   country: z.string().optional(),
   phoneNumber: z.string().optional(),
   vatNumber: z.string().optional(),
-  // Terms and conditions moved to notes tab
   termsAndConditions: z.string().optional(),
-  // Notes field
   notes: z.string().optional()
 });
+
 type FormValues = z.infer<typeof formSchema>;
+
 const CustomerTabs = () => {
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { toast } = useToast();
 
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
@@ -51,7 +46,6 @@ const CustomerTabs = () => {
       businessName: "",
       contactName: "",
       email: "",
-      // Address fields
       address1: "",
       address2: "",
       city: "",
@@ -60,82 +54,48 @@ const CustomerTabs = () => {
       country: "",
       phoneNumber: "",
       vatNumber: "",
-      // Terms and conditions default
       termsAndConditions: "",
-      // Notes default
       notes: ""
     }
   });
 
-  // Handle form submission
-  const onSubmit = async (data: FormValues) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save customer data",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Load existing customer data from localStorage on component mount
+  useEffect(() => {
     try {
-      // Map form data to database fields - removed payment details
-      const payload = {
-        user_id: user.id,
-        company_name: data.businessName,
-        contact_name: data.contactName,
-        email: data.email,
-        // Map granular address fields
-        address1: data.address1 || null,
-        address2: data.address2 || null,
-        city: data.city || null,
-        county: data.county || null,
-        postcode: data.postcode || null,
-        country: data.country || null,
-        // Keep other fields
-        phone_number: data.phoneNumber || null,
-        vat_number: data.vatNumber || null,
-        // Terms and conditions field
-        terms_conditions: data.termsAndConditions || null,
-        // Notes field
-        notes: data.notes || null,
-        // Set payment details fields to null since we removed them
-        payment_terms: null,
-        credit_terms: null,
-        bank_account_name: null,
-        sort_code: null,
-        account_number: null,
-        bic_swift: null,
-        iban: null
-      };
-
-      // Save to Supabase
-      const {
-        error
-      } = await supabase.from("invoice_recipients").insert([payload]);
-      if (error) {
-        console.error("Error saving customer:", error);
-        toast({
-          title: "Error",
-          description: "Failed to save customer information",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Customer information saved successfully"
-        });
-        form.reset();
+      const savedData = load<FormValues>('customerInfo');
+      if (savedData) {
+        form.reset(savedData);
       }
     } catch (error) {
-      console.error("Error in customer save:", error);
+      console.error("Failed to load customer data:", error);
+    }
+  }, [form]);
+
+  // Handle form submission
+  const onSubmit = async (data: FormValues) => {
+    try {
+      // Save to localStorage
+      save('customerInfo', data);
+      
+      toast({
+        title: "Success",
+        description: "Customer information saved locally"
+      });
+      
+      // Optionally reset form after successful save
+      // form.reset();
+    } catch (error) {
+      console.error("Error saving customer data:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "Failed to save customer information",
         variant: "destructive"
       });
     }
   };
-  return <div className="space-y-6 p-4 bg-white shadow-sm rounded-xl">
+
+  return (
+    <div className="space-y-6 p-4 bg-white shadow-sm rounded-xl">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Customer Information</h2>
         <p className="text-sm text-muted-foreground">
@@ -156,126 +116,170 @@ const CustomerTabs = () => {
             <TabsContent value="customer-details" className="space-y-4 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Business Name */}
-                <FormField control={form.control} name="businessName" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="businessName"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Business Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter business name" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Contact Name */}
-                <FormField control={form.control} name="contactName" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="contactName"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Contact Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter contact name" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Email */}
-                <FormField control={form.control} name="email" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter email address" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Phone Number */}
-                <FormField control={form.control} name="phoneNumber" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter phone number" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* VAT Number */}
-                <FormField control={form.control} name="vatNumber" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="vatNumber"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>VAT Number</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter VAT number" {...field} />
                       </FormControl>
                       <FormDescription>Optional</FormDescription>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Address Line 1 */}
-                <FormField control={form.control} name="address1" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="address1"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Address Line 1</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter address line 1" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Address Line 2 */}
-                <FormField control={form.control} name="address2" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="address2"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Address Line 2</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter address line 2" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* City */}
-                <FormField control={form.control} name="city" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter city" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* County */}
-                <FormField control={form.control} name="county" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="county"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>County/State</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter county or state" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Postcode */}
-                <FormField control={form.control} name="postcode" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="postcode"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Postcode/ZIP</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter postcode or ZIP code" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Country */}
-                <FormField control={form.control} name="country" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Country</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter country" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
               </div>
             </TabsContent>
             
@@ -283,26 +287,42 @@ const CustomerTabs = () => {
             <TabsContent value="notes" className="space-y-4 pt-4">
               <div className="grid grid-cols-1 gap-6">
                 {/* Terms and Conditions */}
-                <FormField control={form.control} name="termsAndConditions" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="termsAndConditions"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Terms and Conditions</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter terms and conditions" className="min-h-[120px]" {...field} />
+                        <Textarea
+                          placeholder="Enter terms and conditions"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
                 
                 {/* Notes */}
-                <FormField control={form.control} name="notes" render={({
-                field
-              }) => <FormItem>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter additional notes about this customer" className="min-h-[120px]" {...field} />
+                        <Textarea
+                          placeholder="Enter additional notes about this customer"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )}
+                />
               </div>
             </TabsContent>
             
@@ -312,6 +332,8 @@ const CustomerTabs = () => {
           </form>
         </Form>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
+
 export default CustomerTabs;

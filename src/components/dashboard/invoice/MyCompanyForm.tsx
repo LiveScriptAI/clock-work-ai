@@ -1,14 +1,8 @@
 
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { 
-  InvoiceSettingsType, 
-  fetchInvoiceSettings, 
-  upsertInvoiceSettings 
-} from "@/services/invoiceSettingsService";
+import { save, load } from "@/services/localStorageService";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,10 +16,19 @@ import {
   FormControl,
   FormMessage
 } from "@/components/ui/form";
-import { Image } from "lucide-react";
+
+export type InvoiceSettingsType = {
+  business_name: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  county?: string;
+  postcode: string;
+  country: string;
+  logo_url?: string;
+};
 
 const MyCompanyForm = () => {
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -43,31 +46,30 @@ const MyCompanyForm = () => {
     }
   });
   
-  // Fetch existing settings on component mount
+  // Load existing settings from localStorage on component mount
   useEffect(() => {
-    const loadSettings = async () => {
-      if (!user?.id) return;
-      
+    const loadSettings = () => {
       setIsLoading(true);
       try {
-        const data = await fetchInvoiceSettings(user.id);
+        const data = load<InvoiceSettingsType>('companySettings');
+        const logoData = load<string>('companyLogo');
+        
         if (data) {
-          // Reset form with fetched data
           form.reset({
-            business_name: data.business_name,
-            address1: data.address1,
+            business_name: data.business_name || "",
+            address1: data.address1 || "",
             address2: data.address2 || "",
-            city: data.city,
+            city: data.city || "",
             county: data.county || "",
-            postcode: data.postcode,
-            country: data.country,
+            postcode: data.postcode || "",
+            country: data.country || "",
             logo_url: data.logo_url || ""
           });
-          
-          // Set preview URL if logo exists
-          if (data.logo_url) {
-            setPreviewUrl(data.logo_url);
-          }
+        }
+        
+        if (logoData) {
+          setPreviewUrl(logoData);
+          form.setValue('logo_url', logoData);
         }
       } catch (error) {
         console.error("Failed to load company settings:", error);
@@ -77,11 +79,11 @@ const MyCompanyForm = () => {
     };
     
     loadSettings();
-  }, [user, form]);
+  }, [form]);
   
   const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
     
     // Validate file type
     if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(file.type)) {
@@ -106,40 +108,35 @@ const MyCompanyForm = () => {
     setIsUploading(true);
     
     try {
-      // Create a filename with timestamp to avoid conflicts
-      const timestamp = new Date().getTime();
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${timestamp}.${fileExt}`;
-      
-      // Upload the file to Supabase storage
-      const { data, error } = await supabase
-        .storage
-        .from('logos')
-        .upload(filePath, file, { upsert: true });
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
         
-      if (error) throw error;
+        // Save logo as base64 string
+        save('companyLogo', base64String);
+        
+        // Update form and preview
+        form.setValue('logo_url', base64String);
+        setPreviewUrl(base64String);
+        
+        toast({
+          title: "Logo uploaded",
+          description: "Your logo has been saved locally"
+        });
+      };
       
-      // Get the public URL for the uploaded file
-      const publicUrl = supabase
-        .storage
-        .from('logos')
-        .getPublicUrl(filePath)
-        .data.publicUrl;
+      reader.onerror = () => {
+        throw new Error("Failed to read file");
+      };
       
-      // Update the form value and preview
-      form.setValue('logo_url', publicUrl);
-      setPreviewUrl(publicUrl);
-      
-      toast({
-        title: "Logo uploaded",
-        description: "Your logo has been uploaded successfully"
-      });
+      reader.readAsDataURL(file);
       
     } catch (error) {
-      console.error("Error uploading logo:", error);
+      console.error("Error processing logo:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload logo. Please try again.",
+        description: "Failed to process logo. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -148,23 +145,14 @@ const MyCompanyForm = () => {
   };
   
   const onSubmit = async (data: InvoiceSettingsType) => {
-    if (!user?.id) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to save company settings",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsLoading(true);
     try {
-      const { error } = await upsertInvoiceSettings(user.id, data);
-      if (error) throw error;
+      // Save to localStorage
+      save('companySettings', data);
       
       toast({
         title: "Success",
-        description: "My Company information saved",
+        description: "Company information saved locally",
       });
     } catch (error) {
       console.error("Error saving company settings:", error);

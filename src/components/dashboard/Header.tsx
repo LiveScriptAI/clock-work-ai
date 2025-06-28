@@ -5,7 +5,7 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from '@/hooks/useAuth';
-import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
+import { load } from "@/services/localStorageService";
 
 type HeaderProps = {
   setSheetOpen: (open: boolean) => void;
@@ -20,21 +20,20 @@ const Header: React.FC<HeaderProps> = ({
   const { user, handleSignOut } = useAuth();
   const [logo, setLogo] = useState<string | null>(null);
 
-  // Fetch logo when component mounts if user is logged in
+  // Load logo from localStorage when component mounts
   useEffect(() => {
-    const fetchLogo = async () => {
-      if (!user?.id) return;
+    const loadLogo = () => {
       try {
-        const settings = await fetchInvoiceSettings(user.id);
-        if (settings?.logo_url) {
-          setLogo(settings.logo_url);
+        const logoData = load<string>('companyLogo');
+        if (logoData) {
+          setLogo(logoData);
         }
       } catch (error) {
-        console.error("Failed to fetch logo:", error);
+        console.error("Failed to load logo:", error);
       }
     };
-    fetchLogo();
-  }, [user]);
+    loadLogo();
+  }, []);
 
   return (
     <header className="shadow-sm border-b border-gray-200 rounded-none bg-white">
