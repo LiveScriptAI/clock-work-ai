@@ -1,11 +1,11 @@
 // src/components/dashboard/layout/DashboardContent.tsx
 
 import React from "react";
-import TimeTracking from "@/components/dashboard/TimeTracking";
-import DailySummary from "@/components/dashboard/DailySummary";
-import TimesheetLog from "@/components/dashboard/TimesheetLog";
-import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
-import CustomerTabs from "@/components/dashboard/CustomerTabs";
+import TimeTracking   from "../TimeTracking";
+import DailySummary  from "../DailySummary";
+import TimesheetLog  from "../TimesheetLog";
+import InvoiceForm   from "../invoice/InvoiceForm";
+import CustomerTabs  from "../CustomerTabs";
 
 interface DashboardContentProps {
   startTime: Date | null;
