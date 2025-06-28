@@ -42,10 +42,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   calculateTimeWorked,
   calculateEarnings
 }) => {
-  const {
-    breakIntervals,
-    isBreakActive
-  } = useBreakTime();
   return <>
       {/* Time Tracking Component */}
       <TimeTracking startTime={startTime} endTime={endTime} isShiftActive={isShiftActive} isShiftComplete={isShiftComplete} managerName={managerName} endManagerName={endManagerName} handleStartShift={handleStartShift} handleEndShift={handleEndShift} />
