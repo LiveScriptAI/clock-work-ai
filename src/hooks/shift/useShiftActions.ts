@@ -1,12 +1,12 @@
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
-import { load, save } from "@/services/localStorageService";
 import { clearShiftState, clearBreakState } from "@/services/storageService";
+import { load, save } from "@/services/localStorageService";
 import { ShiftActions } from "./shiftTypes";
 
 /**
  * Manages start/end shift, persisting completed shifts in localStorage
- * and fully clearing the “ongoing” state so the buttons reset.
+ * and fully clearing the “ongoing” shift state so the UI resets properly.
  */
 export function useShiftActions(
   setIsStartSignatureOpen: (v: boolean) => void,
@@ -35,7 +35,7 @@ export function useShiftActions(
   endSignatureData: string | null
 ): ShiftActions {
 
-  // 1) Start shift
+  // --- Start shift ---
   const handleStartShift = () => setIsStartSignatureOpen(true);
   const confirmShiftStart = () => {
     if (isStartSignatureEmpty || !managerName.trim()) {
@@ -47,7 +47,7 @@ export function useShiftActions(
     setIsShiftActive(true);
     setStartTime(new Date());
     setIsShiftComplete(false);
-    // clear any leftover end/break
+    // wipe any leftover end/break
     setEndTime(null);
     setTotalBreakDuration(0);
     setBreakStart(null);
@@ -55,7 +55,7 @@ export function useShiftActions(
     toast.success("Shift started");
   };
 
-  // 2) End shift
+  // --- End shift ---
   const handleEndShift = () => setIsEndSignatureOpen(true);
   const confirmShiftEnd = () => {
     if (isEndSignatureEmpty || !endManagerName.trim()) {
@@ -64,7 +64,7 @@ export function useShiftActions(
       return;
     }
 
-    // finish any running break
+    // wrap up any active break
     let finalBreak = totalBreakDuration;
     if (isBreakActive && breakStart) {
       finalBreak += differenceInSeconds(new Date(), breakStart);
@@ -75,14 +75,14 @@ export function useShiftActions(
     const end = new Date();
     setEndTime(end);
 
-    // compute worked time & earnings
+    // calculate worked time & pay
     const rawSeconds = startTime
       ? differenceInSeconds(end, startTime) - finalBreak
       : 0;
     const hoursWorked = parseFloat((rawSeconds / 3600).toFixed(2));
     const earnings = parseFloat((hoursWorked * payRate).toFixed(2));
 
-    // build the shift record
+    // build the record
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       date: (startTime || end).toISOString(),
@@ -111,14 +111,20 @@ export function useShiftActions(
       toast.error("Could not save shift");
     }
 
-    // FULLY clear the in-progress state so UI resets—even after reload
-    // This ensures useShiftState / useTimesheetLog won’t re-detect an active shift
-    save("shifts", []);        // clear any stored “ongoing” shift
-    save("breaks", []);        // clear any break intervals
+    // --- remove the “ongoing” shift so persistence won’t reload it ---
+    try {
+      window.localStorage.removeItem("currentShift");
+    } catch (e) {
+      console.warn("Could not remove currentShift:", e);
+    }
+
+    // completely clear any in-progress state
+    save("shifts", []);        // drop any stored ongoing shift
+    save("breaks", []);        // drop break intervals
     clearShiftState();         // your existing cleanup
     clearBreakState();
 
-    // update UI
+    // reset UI
     setIsEndSignatureOpen(false);
     setIsShiftActive(false);
     setIsShiftComplete(true);
