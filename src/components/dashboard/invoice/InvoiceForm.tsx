@@ -13,12 +13,14 @@ import MyCompanyForm from "./MyCompanyForm";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InvoiceSettingsType } from "@/services/invoiceLocalService";
 import { generateInvoicePDF } from "./invoice-utils";
+import { convertInvoiceToShift } from "./invoice-conversion-utils";
+import { ShiftEntry } from "../timesheet/types";
 import { LineItem } from "./invoice-types";
 
 const InvoiceForm: React.FC = () => {
   const today = new Date();
 
-  // Invoice form state
+  // — Invoice form fields —
   const [customer, setCustomer] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
@@ -31,11 +33,11 @@ const InvoiceForm: React.FC = () => {
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
 
-  // “My Company” (sender) data
+  // — “My Company” (sender) data —
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
   const [settingsVersion, setSettingsVersion] = useState(0);
 
-  // Load company settings from localStorage
+  // Reload company settings from localStorage
   const loadCompanySettings = useCallback(() => {
     const data = load<InvoiceSettingsType>("companySettings");
     if (data && data.business_name && data.address1) {
@@ -51,33 +53,33 @@ const InvoiceForm: React.FC = () => {
 
   // Called by MyCompanyForm on successful save
   const handleSettingsSaved = () => {
-    setSettingsVersion((v) => v + 1);
-    toast({ title: "My Company Updated", description: "Your ‘From’ section has been refreshed." });
+    setSettingsVersion(v => v + 1);
+    toast({ title: "My Company Updated", description: "‘From’ section refreshed." });
   };
 
-  // Customer selector
+  // — CompanySelector (billing “To:” side) —
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
     setCustomer(companyData.company_name || "");
     setCustomerEmail(companyData.email || "");
-    setReference((r) => r || `Invoice for ${companyData.company_name}`);
+    setReference(r => r || `Invoice for ${companyData.company_name}`);
     toast({ title: "Customer Loaded", description: `Now invoicing ${companyData.company_name}.` });
   };
 
-  // Line items helpers
+  // — Line‐item helpers —
   const addLineItem = () => {
-    setLineItems((items) => [
+    setLineItems(items => [
       ...items,
       { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
     ]);
   };
   const removeLineItem = (id: string) => {
     if (lineItems.length === 1) return;
-    setLineItems((items) => items.filter((i) => i.id !== id));
+    setLineItems(items => items.filter(i => i.id !== id));
   };
   const updateLineItem = (id: string, field: keyof LineItem, value: any) => {
-    setLineItems((items) =>
-      items.map((i) => (i.id === id ? { ...i, [field]: value } : i))
+    setLineItems(items =>
+      items.map(i => (i.id === id ? { ...i, [field]: value } : i))
     );
   };
   const calculateSubtotal = () =>
@@ -86,16 +88,20 @@ const InvoiceForm: React.FC = () => {
   const calculateTotal = () =>
     (parseFloat(calculateSubtotal()) + parseFloat(calculateVAT())).toFixed(2);
 
-  // Preview dialog
+  // Convert invoice data into a ShiftEntry (for any timesheet sync)
+  const getShiftData = (): ShiftEntry =>
+    convertInvoiceToShift(customer, invoiceDate, reference, lineItems, customerEmail);
+
+  // — Preview Modal —
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const handlePreview = () => setIsPreviewOpen(true);
 
-  // Download PDF
+  // — Download PDF (unchanged) —
   const handleDownloadPDF = async () => {
     if (!sender) {
       toast({
         title: "Missing My Company Details",
-        description: "Please save your company info in the My Company tab first.",
+        description: "Please save your company details first.",
         variant: "destructive"
       });
       return;
@@ -133,82 +139,69 @@ const InvoiceForm: React.FC = () => {
       console.error(err);
       toast({
         title: "Error Generating PDF",
-        description: "Something went wrong creating your invoice PDF.",
+        description: "Could not create invoice PDF.",
         variant: "destructive"
       });
     }
   };
 
-  // Share via Web Share API or fallback to download
+  // — SHARE Invoice (Web Share API + fallback) —
   const handleShareInvoice = async () => {
     if (!sender) {
       toast({
         title: "Missing My Company Details",
-        description: "Please save your company info in the My Company tab first.",
-        variant: "destructive",
+        description: "Please save your company details first.",
+        variant: "destructive"
       });
       return;
     }
 
-    // generate PDF
-    let pdfBlob: Blob;
+    // Build payload same as download
+    const payload = {
+      customer,
+      customerEmail,
+      invoiceDate,
+      reference,
+      notes,
+      terms,
+      lineItems,
+      address1: sender.address1,
+      address2: sender.address2,
+      city: sender.city,
+      county: sender.county,
+      postcode: sender.postcode,
+      country: sender.country,
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal()
+    };
+
     try {
-      pdfBlob = await generateInvoicePDF(
-        {
-          customer,
-          customerEmail,
-          invoiceDate,
-          reference,
-          notes,
-          terms,
-          lineItems,
-          address1: sender.address1,
-          address2: sender.address2,
-          city: sender.city,
-          county: sender.county,
-          postcode: sender.postcode,
-          country: sender.country,
-          subtotal: calculateSubtotal(),
-          vat: calculateVAT(),
-          total: calculateTotal(),
-        },
-        sender
-      );
-    } catch {
-      toast({
-        title: "Error generating PDF",
-        description: "Couldn't build your invoice PDF.",
-        variant: "destructive",
-      });
-      return;
-    }
+      const blob = await generateInvoicePDF(payload, sender);
+      const fileName = `Invoice-${reference || Date.now()}.pdf`;
+      const file = new File([blob], fileName, { type: "application/pdf" });
 
-    const fileName = `Invoice-${reference || Date.now()}.pdf`;
-    const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
-
-    // Web Share API
-    if (navigator.canShare?.({ files: [pdfFile] })) {
-      try {
+      if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
-          files: [pdfFile],
+          files: [file],
           title: `Invoice ${reference}`,
-          text: `Please find attached invoice ${reference}.`,
+          text: `Please find attached Invoice ${reference}.`
         });
-        toast({ title: "Shared!", description: "Choose your mail app to send it." });
-        return;
-      } catch {
-        // user cancelled or failed; fall back
+        toast({ title: "Share Dialog Opened", description: "Choose Mail to send." });
+      } else {
+        // fallback
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast({ title: "Downloaded PDF", description: "Attach in your email app." });
       }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error Sharing Invoice", description: "Something went wrong.", variant: "destructive" });
     }
-
-    // fallback download
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded PDF", description: "Attach it to your email manually." });
   };
 
   return (
@@ -236,16 +229,98 @@ const InvoiceForm: React.FC = () => {
             </Card>
           )}
 
-          {/* TABS: pick existing customer or edit My Company */}
+          {/* TABS */}
           <Tabs defaultValue="load-company" className="my-6">
             <TabsList>
               <TabsTrigger value="load-company">Load Company</TabsTrigger>
               <TabsTrigger value="my-company">My Company</TabsTrigger>
             </TabsList>
-
             <TabsContent value="load-company">
               <CompanySelector onSelect={handleCompanySelect} />
             </TabsContent>
-
             <TabsContent value="my-company">
-              <MyCompanyForm onS
+              <MyCompanyForm onSettingsSaved={handleSettingsSaved} />
+            </TabsContent>
+          </Tabs>
+
+          {/* BILL TO / HEADER */}
+          <InvoiceHeader
+            customer={customer}
+            setCustomer={setCustomer}
+            customerEmail={customerEmail}
+            setCustomerEmail={setCustomerEmail}
+            invoiceDate={invoiceDate}
+            setInvoiceDate={setInvoiceDate}
+            reference={reference}
+            setReference={setReference}
+            address1={sender?.address1 || ""}
+            setAddress1={() => {}}
+            address2={sender?.address2 || ""}
+            setAddress2={() => {}}
+            city={sender?.city || ""}
+            setCity={() => {}}
+            county={sender?.county || ""}
+            setCounty={() => {}}
+            postcode={sender?.postcode || ""}
+            setPostcode={() => {}}
+            country={sender?.country || ""}
+            setCountry={() => {}}
+          />
+
+          {/* LINE ITEMS */}
+          <LineItemsTable
+            lineItems={lineItems}
+            updateLineItem={updateLineItem}
+            removeLineItem={removeLineItem}
+            addLineItem={addLineItem}
+            calculateLineTotal={(q, p) => (q * p).toFixed(2)}
+          />
+
+          {/* NOTES & TERMS */}
+          <NotesAndTerms notes={notes} setNotes={setNotes} terms={terms} setTerms={setTerms} />
+
+          {/* SUMMARY */}
+          <InvoiceSummary
+            subtotal={calculateSubtotal()}
+            vat={calculateVAT()}
+            total={calculateTotal()}
+          />
+        </CardContent>
+
+        <CardFooter className="flex flex-wrap gap-3 justify-end">
+          <Button variant="outline" onClick={handlePreview}>
+            Preview
+          </Button>
+          <Button variant="outline" onClick={handleDownloadPDF}>
+            Download PDF
+          </Button>
+          <Button onClick={handleShareInvoice}>Share Invoice</Button>
+        </CardFooter>
+      </Card>
+
+      <PreviewInvoiceDialog
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        customer={customer}
+        customerEmail={customerEmail}
+        invoiceDate={invoiceDate}
+        reference={reference}
+        lineItems={lineItems}
+        notes={notes}
+        terms={terms}
+        subtotal={calculateSubtotal()}
+        vat={calculateVAT()}
+        total={calculateTotal()}
+        address1={sender?.address1}
+        address2={sender?.address2}
+        city={sender?.city}
+        county={sender?.county}
+        postcode={sender?.postcode}
+        country={sender?.country}
+        sender={sender}
+      />
+    </div>
+  );
+};
+
+export default InvoiceForm;
