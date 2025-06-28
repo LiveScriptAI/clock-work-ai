@@ -1,11 +1,11 @@
 import { toast } from "sonner";
-import { 
-  clearShiftState, 
-  clearBreakState, 
-  resetBreakState, 
-  loadBreakState 
+import { differenceInSeconds } from "date-fns";
+import {
+  clearShiftState,
+  resetBreakState
 } from "@/services/storageService";
-import { save, load } from "@/services/localStorageService";
+import { load, save } from "@/services/localStorageService";
+import type { ShiftActions } from "./shiftTypes";
 
 export function useShiftActions(
   setIsStartSignatureOpen: (open: boolean) => void,
@@ -24,6 +24,7 @@ export function useShiftActions(
   setTotalBreakDuration: (duration: number) => void,
   setBreakStart: (start: Date | null) => void,
   setIsBreakActive: (active: boolean) => void,
+  // Below values are pulled from the same in-progress shift state:
   isBreakActive: boolean,
   breakStart: Date | null,
   totalBreakDuration: number,
@@ -32,68 +33,16 @@ export function useShiftActions(
   rateType: string,
   startSignatureData: string | null,
   endSignatureData: string | null
-) {
+): ShiftActions {
+  // — Shift Start —
   const handleStartShift = () => {
     setIsStartSignatureOpen(true);
   };
 
-  const handleEndShift = () => {
-    setIsEndSignatureOpen(true);
-  };
-
-  const handleStartBreak = () => {
-    const now = new Date();
-    setIsBreakActive(true);
-    setBreakStart(now);
-
-    // Save break start to current shift
-    const currentShift = load<any>('currentShift') || {};
-    currentShift.isBreakActive = true;
-    currentShift.breakStart = now.toISOString();
-    save('currentShift', currentShift);
-
-    toast.info("Break started");
-  };
-
-  const handleEndBreak = () => {
-    if (!breakStart) return;
-
-    const now = new Date();
-    const breakDuration = Math.floor((now.getTime() - breakStart.getTime()) / 1000); // seconds
-
-    setIsBreakActive(false);
-    setBreakStart(null);
-    // ← Fixed: pass a number, not a function
-    setTotalBreakDuration(totalBreakDuration + breakDuration);
-
-    // Save break to current shift breaks array
-    const currentShift = load<any>('currentShift') || {};
-    if (!currentShift.breaks) currentShift.breaks = [];
-
-    currentShift.breaks.push({
-      start: breakStart.toISOString(),
-      end: now.toISOString(),
-      duration: breakDuration
-    });
-
-    currentShift.isBreakActive = false;
-    currentShift.breakStart = null;
-    currentShift.totalBreakDuration = (currentShift.totalBreakDuration || 0) + breakDuration;
-
-    save('currentShift', currentShift);
-    toast.success("Break ended");
-  };
-
   const confirmShiftStart = () => {
-    if (isStartSignatureEmpty) {
-      setShowValidationAlert(true);
+    if (isStartSignatureEmpty || !managerName.trim() || !employerName.trim()) {
       setValidationType("start");
-      return;
-    }
-
-    if (!managerName.trim() || !employerName.trim()) {
       setShowValidationAlert(true);
-      setValidationType("start");
       return;
     }
 
@@ -102,8 +51,8 @@ export function useShiftActions(
     setStartTime(now);
     setIsStartSignatureOpen(false);
 
-    // Persist shift start to localStorage
-    const shiftStartData = {
+    // Initialize a fresh “currentShift” object
+    save("currentShift", {
       isActive: true,
       startTime: now.toISOString(),
       managerName,
@@ -111,96 +60,135 @@ export function useShiftActions(
       payRate,
       rateType,
       startSignatureData,
+      // break state
       isBreakActive: false,
       breakStart: null,
       totalBreakDuration: 0,
-      breaks: []
-    };
-    save('currentShift', shiftStartData);
+      breaks: [] as Array<{
+        start: string;
+        end: string;
+        duration: number;
+      }>
+    });
 
     toast.success("Shift started successfully!");
   };
 
-  const confirmShiftEnd = async (userId?: string) => {
-    if (isEndSignatureEmpty) {
-      setShowValidationAlert(true);
+  // — Breaks —
+  const handleStartBreak = () => {
+    const now = new Date();
+    setIsBreakActive(true);
+    setBreakStart(now);
+
+    // Update the running shift in localStorage
+    const cs = load<any>("currentShift") || {};
+    cs.isBreakActive = true;
+    cs.breakStart = now.toISOString();
+    save("currentShift", cs);
+
+    toast.info("Break started");
+  };
+
+  const handleEndBreak = () => {
+    if (!breakStart) return;
+    const now = new Date();
+    const durSec = differenceInSeconds(now, breakStart);
+
+    // Update local state
+    setIsBreakActive(false);
+    setBreakStart(null);
+    setTotalBreakDuration(totalBreakDuration + durSec);
+
+    // Persist into the running shift
+    const cs = load<any>("currentShift") || {};
+    cs.breaks = cs.breaks || [];
+    cs.breaks.push({ start: breakStart.toISOString(), end: now.toISOString(), duration: durSec });
+    cs.isBreakActive = false;
+    cs.breakStart = null;
+    cs.totalBreakDuration = (cs.totalBreakDuration || 0) + durSec;
+    save("currentShift", cs);
+
+    toast.success("Break ended");
+  };
+
+  // — Shift End —
+  const handleEndShift = () => {
+    setIsEndSignatureOpen(true);
+  };
+
+  const confirmShiftEnd = () => {
+    if (isEndSignatureEmpty || !endManagerName.trim()) {
       setValidationType("end");
+      setShowValidationAlert(true);
       return;
     }
 
-    if (!endManagerName.trim()) {
-      setShowValidationAlert(true);
-      setValidationType("end");
-      return;
-    }
-
-    // End any active break first
+    // Finish any active break first
     if (isBreakActive && breakStart) {
       handleEndBreak();
     }
 
-    const endTime = new Date();
-    const currentShift = load<any>('currentShift') || {};
+    const end = new Date();
+    const cs = load<any>("currentShift") || {};
+    const start = startTime || end;
 
-    // Calculate total hours worked
-    const totalMinutes = startTime
-      ? Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60))
-      : 0;
-    const breakMinutes = Math.floor((currentShift.totalBreakDuration || 0) / 60);
-    const workedMinutes = totalMinutes - breakMinutes;
-    const hoursWorked = workedMinutes / 60;
+    // Compute worked time minus breaks
+    const totalSec = differenceInSeconds(end, start);
+    const breakSec = cs.totalBreakDuration || 0;
+    const workedSec = Math.max(0, totalSec - breakSec);
+    const hoursWorked = workedSec / 3600;
+    const earnings = hoursWorked * payRate;
 
-    // Create completed shift record
-    const completedShift = {
-      id: `shift_${Date.now()}`,
-      date: startTime || endTime,
-      employer: employerName,
-      startTime: startTime || endTime,
-      endTime: endTime,
-      breakDuration: breakMinutes,
-      hoursWorked: Math.max(0, hoursWorked),
-      earnings: Math.max(0, hoursWorked) * payRate,
-      payRate: payRate,
-      payType: rateType,
-      status: "Unpaid",
-      managerStartName: managerName,
-      managerEndName: endManagerName,
-      startSignature: startSignatureData,
-      endSignature: endSignatureData,
-      breaks: currentShift.breaks || [],
-      createdAt: endTime.toISOString()
+    // Build final record
+    const record = {
+      id:             `shift_${Date.now()}`,
+      date:           start,
+      employer:       employerName,
+      startTime:      start,
+      endTime:        end,
+      breakDuration:  Math.floor(breakSec / 60),    // minutes
+      hoursWorked:    parseFloat(hoursWorked.toFixed(2)),
+      earnings:       parseFloat(earnings.toFixed(2)),
+      payRate,
+      payType:        rateType,
+      status:         "Unpaid",
+      managerStart:   managerName,
+      managerEnd:     endManagerName,
+      signatureStart: startSignatureData,
+      signatureEnd:   endSignatureData,
+      breaks:         cs.breaks || [],              // full intervals
+      createdAt:      end.toISOString()
     };
 
-    // Save to shifts history
-    const shiftsHistory = load<any[]>('shiftsHistory') || [];
-    shiftsHistory.push(completedShift);
-    save('shiftsHistory', shiftsHistory);
+    // Append to history
+    const hist = load<any[]>("shiftsHistory") || [];
+    hist.push(record);
+    save("shiftsHistory", hist);
 
-    // Also save for compatibility with other parts of the app
-    const existingShifts = load<any[]>('shifts') || [];
-    existingShifts.push(completedShift);
-    save('shifts', existingShifts);
+    // Also maintain the older “shifts” key for backwards compatibility
+    const old = load<any[]>("shifts") || [];
+    old.push(record);
+    save("shifts", old);
 
-    // Clear current shift
-    save('currentShift', null);
-
-    setEndTime(endTime);
+    // Tear down the in-progress shift
+    save("currentShift", null);
+    setEndTime(end);
     setIsShiftComplete(true);
     setIsEndSignatureOpen(false);
 
-    // Clear local state
+    // Completely clear any persisted state
     clearShiftState();
     resetBreakState();
 
-    toast.success("Shift ended and saved to history!");
+    toast.success("Shift ended & saved to history!");
   };
 
   return {
     handleStartShift,
-    handleEndShift,
+    confirmShiftStart,
     handleStartBreak,
     handleEndBreak,
-    confirmShiftStart,
-    confirmShiftEnd,
+    handleEndShift,
+    confirmShiftEnd
   };
 }
