@@ -1,8 +1,9 @@
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
-import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
+import { InvoiceSettingsType } from "@/services/invoiceLocalService";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 
 interface LineItem {

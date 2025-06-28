@@ -5,7 +5,7 @@ import { Mail, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { generateInvoicePDF } from "./invoice-utils";
-import { fetchInvoiceSettings } from "@/services/invoiceSettingsService";
+import { fetchInvoiceSettings } from "@/services/invoiceLocalService";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
@@ -59,14 +59,9 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       return;
     }
 
-    if (!user) {
-      toast.error("Please log in to send invoices");
-      return;
-    }
-
     setIsGenerating(true);
     try {
-      const senderInfo = await fetchInvoiceSettings(user.id);
+      const senderInfo = await fetchInvoiceSettings();
       if (!senderInfo) {
         toast.error("Please set up your company information in Invoice Settings first");
         return;

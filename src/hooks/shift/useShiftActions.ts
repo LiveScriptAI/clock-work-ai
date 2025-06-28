@@ -1,13 +1,12 @@
 
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   clearShiftState, 
   clearBreakState,
   resetBreakState,
   loadBreakState
 } from "@/services/storageService";
-import { saveBreakIntervalsToSupabase } from "@/services/breakDataService";
+import { save } from "@/services/localStorageService";
 
 export function useShiftActions(
   setIsStartSignatureOpen: (open: boolean) => void,
@@ -90,58 +89,51 @@ export function useShiftActions(
     // Generate shift ID for saving breaks
     const shiftId = startTime ? startTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
     
-    // Save break intervals to Supabase if user is authenticated
-    if (userId) {
-      try {
-        const breakState = loadBreakState();
-        if (breakState?.breakIntervals && breakState.breakIntervals.length > 0) {
-          // Filter completed intervals (those with both start and end)
-          const completedIntervals = breakState.breakIntervals
-            .filter(interval => interval.start && interval.end)
-            .map(interval => ({
-              start: interval.start,
-              end: interval.end!
-            }));
+    // Save break intervals locally
+    try {
+      const breakState = loadBreakState();
+      if (breakState?.breakIntervals && breakState.breakIntervals.length > 0) {
+        // Filter completed intervals (those with both start and end)
+        const completedIntervals = breakState.breakIntervals
+          .filter(interval => interval.start && interval.end)
+          .map(interval => ({
+            start: interval.start,
+            end: interval.end!
+          }));
 
-          if (completedIntervals.length > 0) {
-            console.log("ShiftActions - Saving break intervals to Supabase:", completedIntervals);
-            await saveBreakIntervalsToSupabase(shiftId, completedIntervals, userId);
-          }
+        if (completedIntervals.length > 0) {
+          console.log("ShiftActions - Saving break intervals locally:", completedIntervals);
+          save(`breakIntervals_${shiftId}`, completedIntervals);
         }
-      } catch (error) {
-        console.error("ShiftActions - Error saving break intervals to Supabase:", error);
-        toast.error("Failed to save break data");
       }
+    } catch (error) {
+      console.error("ShiftActions - Error saving break intervals locally:", error);
+      toast.error("Failed to save break data");
     }
 
-    // Save shift to Supabase if user is authenticated
-    if (userId && startTime) {
+    // Save shift locally
+    if (startTime) {
       try {
-        const { error } = await supabase
-          .from('shifts')
-          .insert({
-            user_id: userId,
-            start_time: startTime.toISOString(),
-            end_time: endTime.toISOString(),
-            break_duration: Math.round(totalBreakDuration / 60), // Convert to minutes
-            pay_rate: payRate,
-            rate_type: rateType,
-            employer_name: employerName,
-            manager_start_name: managerName,
-            manager_end_name: endManagerName,
-            manager_start_signature: startSignatureData,
-            manager_end_signature: endSignatureData
-          });
+        const shiftData = {
+          id: shiftId,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          break_duration: Math.round(totalBreakDuration / 60), // Convert to minutes
+          pay_rate: payRate,
+          rate_type: rateType,
+          employer_name: employerName,
+          manager_start_name: managerName,
+          manager_end_name: endManagerName,
+          manager_start_signature: startSignatureData,
+          manager_end_signature: endSignatureData,
+          created_at: new Date().toISOString()
+        };
 
-        if (error) {
-          console.error('Error saving shift:', error);
-          toast.error("Failed to save shift to database");
-        } else {
-          console.log('Shift saved successfully to database');
-        }
+        save(`shift_${shiftId}`, shiftData);
+        console.log('Shift saved successfully locally');
       } catch (error) {
-        console.error('Error saving shift:', error);
-        toast.error("Failed to save shift to database");
+        console.error('Error saving shift locally:', error);
+        toast.error("Failed to save shift locally");
       }
     }
 

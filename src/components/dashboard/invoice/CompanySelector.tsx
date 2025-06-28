@@ -14,8 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import {
   fetchInvoiceRecipients,
   fetchInvoiceRecipientById,
-  deleteInvoiceRecipient
-} from "@/services/invoiceRecipientsService";
+  deleteInvoiceRecipient,
+  InvoiceRecipient
+} from "@/services/recipientsLocalService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +35,7 @@ interface Company {
 }
 
 interface CompanySelectorProps {
-  onSelect: (company: any) => void;
+  onSelect: (company: InvoiceRecipient) => void;
 }
 
 const CompanySelector = ({ onSelect }: CompanySelectorProps) => {

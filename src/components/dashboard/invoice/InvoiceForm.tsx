@@ -16,7 +16,7 @@ import CompanySelector from "./CompanySelector";
 import MyCompanyForm from "./MyCompanyForm";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { InvoiceSettingsType, fetchInvoiceSettings } from "@/services/invoiceSettingsService";
+import { InvoiceSettingsType, fetchInvoiceSettings } from "@/services/invoiceLocalService";
 
 // Get access to any pending autofill from TimesheetLog
 declare global {
@@ -63,7 +63,7 @@ const InvoiceForm = () => {
         return;
       }
       try {
-        const data = await fetchInvoiceSettings(user.id);
+        const data = await fetchInvoiceSettings();
         if (data) {
           setSender(data);
         }
@@ -74,7 +74,7 @@ const InvoiceForm = () => {
       }
     };
     loadSenderInfo();
-  }, [user]);
+  }, []);
 
   // Handle company selection
   const handleCompanySelect = (companyData: any) => {

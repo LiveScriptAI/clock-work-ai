@@ -1,11 +1,10 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { InvoiceSettingsType } from "@/services/invoiceSettingsService";
+import { InvoiceSettingsType } from "@/services/invoiceLocalService";
 
 interface LineItem {
   id: string;
