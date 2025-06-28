@@ -5,7 +5,6 @@ import TimesheetLog from "@/components/dashboard/TimesheetLog";
 import BreaksSummary from "@/components/dashboard/BreaksSummary";
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
-import { useBreakTime } from "@/hooks/useBreakTime";
 interface DashboardContentProps {
   // Shift state
   startTime: Date | null;
