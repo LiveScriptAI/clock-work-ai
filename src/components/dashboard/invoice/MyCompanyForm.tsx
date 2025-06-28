@@ -1,4 +1,3 @@
-// src/components/dashboard/invoice/MyCompanyForm.tsx
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
@@ -7,8 +6,8 @@ import { save, load } from "@/services/localStorageService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
   Form,
   FormField,
   FormItem,
@@ -28,7 +27,7 @@ export type InvoiceSettingsType = {
   logo_url?: string;
 };
 
-const MyCompanyForm = () => {
+const MyCompanyForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [logoChanged, setLogoChanged] = useState(false);
@@ -46,39 +45,46 @@ const MyCompanyForm = () => {
     }
   });
 
-  // Load existing settings & logo from localStorage
+  // Load saved settings & logo
   useEffect(() => {
     setIsLoading(true);
     try {
-      const data = load<InvoiceSettingsType>('companySettings');
-      const logoData = load<string>('companyLogo');
+      const savedSettings = load<InvoiceSettingsType>("companySettings");
+      const savedLogo = load<string>("companyLogo");
 
-      if (data) {
-        form.reset({ ...data });
+      if (savedSettings) {
+        form.reset(savedSettings);
       }
-      if (logoData) {
-        setPreviewUrl(logoData);
-        form.setValue('logo_url', logoData);
+      if (savedLogo) {
+        setPreviewUrl(savedLogo);
+        form.setValue("logo_url", savedLogo);
       }
-    } catch (error) {
-      console.error("Failed to load company settings:", error);
+    } catch (err) {
+      console.error("Failed to load company settings:", err);
     } finally {
       setIsLoading(false);
     }
   }, [form]);
 
-  // Only update preview & form field — do NOT save yet
+  // Handle selecting a new logo file (preview only)
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate type & size
-    if (!['image/png','image/jpeg','image/jpg','image/svg+xml'].includes(file.type)) {
-      toast({ title: "Invalid file type", description: "PNG, JPEG or SVG only", variant: "destructive" });
+    if (!["image/png", "image/jpeg", "image/jpg", "image/svg+xml"].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please use PNG, JPEG, or SVG",
+        variant: "destructive"
+      });
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max size is 2MB", variant: "destructive" });
+      toast({
+        title: "File too large",
+        description: "Max size is 2MB",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -86,31 +92,39 @@ const MyCompanyForm = () => {
     reader.onload = () => {
       const base64 = reader.result as string;
       setPreviewUrl(base64);
-      form.setValue('logo_url', base64);
+      form.setValue("logo_url", base64);
       setLogoChanged(true);
     };
     reader.onerror = () => {
-      toast({ title: "Upload failed", description: "Couldn't read that file", variant: "destructive" });
+      toast({
+        title: "Upload failed",
+        description: "Could not read file",
+        variant: "destructive"
+      });
     };
     reader.readAsDataURL(file);
   };
 
+  // On Save click: persist both form fields and logo
   const onSubmit = async (data: InvoiceSettingsType) => {
     setIsLoading(true);
     try {
-      // 1) Save the form data
-      save('companySettings', data);
-
-      // 2) If the user selected a new logo, persist it too
+      save("companySettings", data);
       if (logoChanged && previewUrl) {
-        save('companyLogo', previewUrl);
+        save("companyLogo", previewUrl);
       }
-
-      toast({ title: "Saved", description: "Company details updated" });
+      toast({
+        title: "Success",
+        description: "Company information saved"
+      });
       setLogoChanged(false);
-    } catch (error) {
-      console.error("Error saving company settings:", error);
-      toast({ title: "Error", description: "Couldn't save settings", variant: "destructive" });
+    } catch (err) {
+      console.error("Error saving company settings:", err);
+      toast({
+        title: "Error",
+        description: "Could not save company settings",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -121,13 +135,17 @@ const MyCompanyForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
-            {/* Logo upload */}
+            {/* Logo Upload */}
             <div className="space-y-2">
               <Label htmlFor="logo">Company Logo</Label>
               <div className="flex flex-col items-center space-y-4">
                 {previewUrl && (
                   <div className="border rounded p-2 max-w-[200px]">
-                    <img src={previewUrl} alt="Company Logo" className="h-24 object-contain" />
+                    <img
+                      src={previewUrl}
+                      alt="Company Logo Preview"
+                      className="h-24 object-contain"
+                    />
                   </div>
                 )}
                 <Input
@@ -135,8 +153,8 @@ const MyCompanyForm = () => {
                   type="file"
                   accept="image/png, image/jpeg, image/jpg, image/svg+xml"
                   onChange={handleLogoSelect}
-                  className="cursor-pointer"
                   disabled={isLoading}
+                  className="cursor-pointer"
                 />
                 <p className="text-xs text-muted-foreground">
                   Supported formats: PNG, JPEG, SVG. Max size: 2MB
@@ -144,7 +162,7 @@ const MyCompanyForm = () => {
               </div>
             </div>
 
-            {/* Other form fields */}
+            {/* Business Name */}
             <FormField
               control={form.control}
               name="business_name"
@@ -160,17 +178,110 @@ const MyCompanyForm = () => {
               )}
             />
 
-            {/* address1, address2, city, county... */}
-            {/* (same as before) */}
-            {/* ... */}
-          </CardContent>
-        </Card>
+            {/* Address Line 1 */}
+            <FormField
+              control={form.control}
+              name="address1"
+              rules={{ required: "Address line 1 is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address Line 1 *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Street Address" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save My Company Details"}
-          </Button>
-        </div>
+            {/* Address Line 2 */}
+            <FormField
+              control={form.control}
+              name="address2"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address Line 2</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Apartment, Suite, etc. (optional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* City */}
+              <FormField
+                control={form.control}
+                name="city"
+                rules={{ required: "City is required" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* County/State */}
+              <FormField
+                control={form.control}
+                name="county"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>County/State</FormLabel>
+                    <FormControl>
+                      <Input placeholder="County or State (optional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Postcode/ZIP */}
+              <FormField
+                control={form.control}
+                name="postcode"
+                rules={{ required: "Postcode/ZIP is required" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postcode/ZIP *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Postcode or ZIP code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Country */}
+              <FormField
+                control={form.control}
+                name="country"
+                rules={{ required: "Country is required" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Country" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+
+          {/* Save button in footer */}
+          <CardFooter className="flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save My Company Details"}
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
     </Form>
   );
