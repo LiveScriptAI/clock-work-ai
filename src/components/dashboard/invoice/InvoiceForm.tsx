@@ -20,7 +20,7 @@ import { LineItem } from "./invoice-types";
 const InvoiceForm: React.FC = () => {
   const today = new Date();
 
-  // — Invoice form fields —
+  // Invoice form fields
   const [customer, setCustomer] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
@@ -33,7 +33,7 @@ const InvoiceForm: React.FC = () => {
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
 
-  // — “My Company” (sender) data —
+  // “My Company” (sender) data
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
   const [settingsVersion, setSettingsVersion] = useState(0);
 
@@ -57,7 +57,7 @@ const InvoiceForm: React.FC = () => {
     toast({ title: "My Company Updated", description: "‘From’ section refreshed." });
   };
 
-  // — CompanySelector (billing “To:” side) —
+  // CompanySelector (billing “To:” side)
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
     setCustomer(companyData.company_name || "");
@@ -66,7 +66,7 @@ const InvoiceForm: React.FC = () => {
     toast({ title: "Customer Loaded", description: `Now invoicing ${companyData.company_name}.` });
   };
 
-  // — Line‐item helpers —
+  // Line‐item helpers
   const addLineItem = () => {
     setLineItems(items => [
       ...items,
@@ -92,11 +92,11 @@ const InvoiceForm: React.FC = () => {
   const getShiftData = (): ShiftEntry =>
     convertInvoiceToShift(customer, invoiceDate, reference, lineItems, customerEmail);
 
-  // — Preview Modal —
+  // Preview Modal
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const handlePreview = () => setIsPreviewOpen(true);
 
-  // — Download PDF (unchanged) —
+  // Download PDF
   const handleDownloadPDF = async () => {
     if (!sender) {
       toast({
@@ -106,7 +106,6 @@ const InvoiceForm: React.FC = () => {
       });
       return;
     }
-
     const payload = {
       customer,
       customerEmail,
@@ -125,7 +124,6 @@ const InvoiceForm: React.FC = () => {
       vat: calculateVAT(),
       total: calculateTotal()
     };
-
     try {
       const blob = await generateInvoicePDF(payload, sender);
       const url = URL.createObjectURL(blob);
@@ -134,9 +132,8 @@ const InvoiceForm: React.FC = () => {
       a.download = `Invoice-${reference || Date.now()}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Downloaded PDF", description: "Attach it to your email manually." });
-    } catch (err) {
-      console.error(err);
+      toast({ title: "Downloaded PDF", description: "Attach it in your email app." });
+    } catch {
       toast({
         title: "Error Generating PDF",
         description: "Could not create invoice PDF.",
@@ -145,7 +142,7 @@ const InvoiceForm: React.FC = () => {
     }
   };
 
-  // — SHARE Invoice (Web Share API + fallback) —
+  // SHARE Invoice (Web Share API + mailto fallback + download)
   const handleShareInvoice = async () => {
     if (!sender) {
       toast({
@@ -156,52 +153,71 @@ const InvoiceForm: React.FC = () => {
       return;
     }
 
-    // Build payload same as download
-    const payload = {
-      customer,
-      customerEmail,
-      invoiceDate,
-      reference,
-      notes,
-      terms,
-      lineItems,
-      address1: sender.address1,
-      address2: sender.address2,
-      city: sender.city,
-      county: sender.county,
-      postcode: sender.postcode,
-      country: sender.country,
-      subtotal: calculateSubtotal(),
-      vat: calculateVAT(),
-      total: calculateTotal()
-    };
-
+    // 1) Generate PDF blob
+    let blob: Blob;
     try {
-      const blob = await generateInvoicePDF(payload, sender);
-      const fileName = `Invoice-${reference || Date.now()}.pdf`;
-      const file = new File([blob], fileName, { type: "application/pdf" });
+      blob = await generateInvoicePDF(
+        {
+          customer,
+          customerEmail,
+          invoiceDate,
+          reference,
+          notes,
+          terms,
+          lineItems,
+          address1: sender.address1,
+          address2: sender.address2,
+          city: sender.city,
+          county: sender.county,
+          postcode: sender.postcode,
+          country: sender.country,
+          subtotal: calculateSubtotal(),
+          vat: calculateVAT(),
+          total: calculateTotal()
+        },
+        sender
+      );
+    } catch {
+      toast({
+        title: "Error generating PDF",
+        description: "Couldn't build your invoice PDF.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      if (navigator.canShare?.({ files: [file] })) {
+    // 2) Try native share (mobile)
+    const fileName = `Invoice-${reference || Date.now()}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
         await navigator.share({
           files: [file],
           title: `Invoice ${reference}`,
           text: `Please find attached Invoice ${reference}.`
         });
         toast({ title: "Share Dialog Opened", description: "Choose Mail to send." });
-      } else {
-        // fallback
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast({ title: "Downloaded PDF", description: "Attach in your email app." });
+        return;
+      } catch {
+        // fall back if cancelled
       }
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Error Sharing Invoice", description: "Something went wrong.", variant: "destructive" });
     }
+
+    // 3) Desktop fallback: open mailto + download
+    const subject = encodeURIComponent(`Invoice ${reference}`);
+    const body = encodeURIComponent(
+      `Hi,\n\nPlease find the invoice "${reference}" attached. You’ll need to attach the downloaded PDF before sending.\n\nThanks!`
+    );
+    window.open(`mailto:${customerEmail}?subject=${subject}&body=${body}`, "_blank");
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({ title: "Mail client opened", description: "Attach the PDF in your email." });
   };
 
   return (
@@ -288,12 +304,8 @@ const InvoiceForm: React.FC = () => {
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end">
-          <Button variant="outline" onClick={handlePreview}>
-            Preview
-          </Button>
-          <Button variant="outline" onClick={handleDownloadPDF}>
-            Download PDF
-          </Button>
+          <Button variant="outline" onClick={handlePreview}>Preview</Button>
+          <Button variant="outline" onClick={handleDownloadPDF}>Download PDF</Button>
           <Button onClick={handleShareInvoice}>Share Invoice</Button>
         </CardFooter>
       </Card>
