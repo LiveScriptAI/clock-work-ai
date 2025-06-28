@@ -142,7 +142,7 @@ const InvoiceForm: React.FC = () => {
     }
   };
 
-  // SHARE Invoice (Web Share API + mailto fallback + download)
+  // SHARE Invoice (open mail and download PDF in background)
   const handleShareInvoice = async () => {
     if (!sender) {
       toast({
@@ -153,10 +153,25 @@ const InvoiceForm: React.FC = () => {
       return;
     }
 
-    // 1) Generate PDF blob
-    let blob: Blob;
+    // Friendly email template
+    const subject = encodeURIComponent(`Invoice #${reference} from ${sender.business_name}`);
+    const body = encodeURIComponent(
+`Hello ${customer},
+
+Thank you for your business! Please find your invoice #${reference} dated ${invoiceDate.toLocaleDateString('en-GB')} attached.
+
+If you have any questions, just reply to this email.
+
+Best regards,
+${sender.business_name}`
+    );
+
+    // 1) Open mail client immediately
+    window.open(`mailto:${customerEmail}?subject=${subject}&body=${body}`, "_blank");
+
+    // 2) Generate & download PDF in background
     try {
-      blob = await generateInvoicePDF(
+      const blob = await generateInvoicePDF(
         {
           customer,
           customerEmail,
@@ -177,47 +192,21 @@ const InvoiceForm: React.FC = () => {
         },
         sender
       );
-    } catch {
+      const fileName = `Invoice-${reference || Date.now()}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
       toast({
-        title: "Error generating PDF",
-        description: "Couldn't build your invoice PDF.",
+        title: "Oops!",
+        description: "Couldn’t generate the invoice PDF.",
         variant: "destructive"
       });
-      return;
     }
-
-    // 2) Try native share (mobile)
-    const fileName = `Invoice-${reference || Date.now()}.pdf`;
-    const file = new File([blob], fileName, { type: "application/pdf" });
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: `Invoice ${reference}`,
-          text: `Please find attached Invoice ${reference}.`
-        });
-        toast({ title: "Share Dialog Opened", description: "Choose Mail to send." });
-        return;
-      } catch {
-        // fall back if cancelled
-      }
-    }
-
-    // 3) Desktop fallback: open mailto + download
-    const subject = encodeURIComponent(`Invoice ${reference}`);
-    const body = encodeURIComponent(
-      `Hi,\n\nPlease find the invoice "${reference}" attached. You’ll need to attach the downloaded PDF before sending.\n\nThanks!`
-    );
-    window.open(`mailto:${customerEmail}?subject=${subject}&body=${body}`, "_blank");
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    toast({ title: "Mail client opened", description: "Attach the PDF in your email." });
   };
 
   return (
