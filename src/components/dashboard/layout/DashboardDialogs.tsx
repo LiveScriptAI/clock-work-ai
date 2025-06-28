@@ -1,6 +1,6 @@
 import React from "react";
-+import StartShiftDialog from "../StartShiftDialog";
-+import EndShiftDialog   from "../EndShiftDialog";
+import StartShiftDialog from "../StartShiftDialog";
+import EndShiftDialog   from "../EndShiftDialog";
 import ValidationAlert  from "./ValidationAlert";
 
 interface DashboardDialogsProps {
