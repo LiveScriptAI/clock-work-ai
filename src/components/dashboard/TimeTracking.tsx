@@ -1,7 +1,10 @@
+// src/components/dashboard/TimeTracking.tsx
+
 import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { format, differenceInSeconds } from "date-fns";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
 
 type TimeTrackingProps = {
   startTime: Date | null;
@@ -24,22 +27,6 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   handleStartShift,
   handleEndShift
 }) => {
-  // Compute net worked seconds (no breaks)
-  const workedSeconds = startTime && endTime
-    ? differenceInSeconds(endTime, startTime)
-    : 0;
-
-  const formatDuration = (secs: number) => {
-    const h = Math.floor(secs / 3600)
-      .toString()
-      .padStart(2, "0");
-    const m = Math.floor((secs % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (secs % 60).toString().padStart(2, "0");
-    return `${h}:${m}:${s}`;
-  };
-
   return (
     <Card className="mb-6 bg-slate-50 rounded-xl">
       <CardHeader>
@@ -69,33 +56,29 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
                   <span className="font-medium">Approved by:</span>{" "}
                   {endManagerName}
                 </p>
-                <p className="text-sm text-red-600 mt-1">
-                  <span className="font-medium">Total time:</span>{" "}
-                  {formatDuration(workedSeconds)}
-                </p>
               </div>
             )}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:hover:bg-gray-500"
             onClick={handleStartShift}
             disabled={isShiftActive || isShiftComplete}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded"
           >
             {isShiftActive ? "Shift Started" : "Start Shift"}
-          </button>
+          </Button>
 
-          {/* Break buttons removed */}
-
-          <button
+          <Button
+            size="lg"
+            className="bg-red-600 hover:bg-red-700"
             onClick={handleEndShift}
             disabled={!isShiftActive || isShiftComplete}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded"
           >
             End Shift
-          </button>
+          </Button>
         </div>
       </CardContent>
     </Card>
