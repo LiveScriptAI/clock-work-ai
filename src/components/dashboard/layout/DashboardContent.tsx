@@ -1,8 +1,9 @@
+// src/components/dashboard/layout/DashboardContent.tsx
+
 import React from "react";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
-// import BreaksSummary from "@/components/dashboard/BreaksSummary";  ← remove this
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
 
@@ -16,6 +17,7 @@ interface DashboardContentProps {
   employerName: string;
   rateType: string;
   payRate: number;
+
   handleStartShift: () => void;
   handleEndShift: () => void;
   formatCountdown: (seconds: number) => string;
@@ -58,16 +60,14 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       {/* Daily Summary */}
       <div className="grid grid-cols-1 mb-6 rounded-xl">
         <DailySummary
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-          getBreakDuration={() => "0 min"}
-          calculateEarnings={calculateEarnings}
+          employerName={employerName}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
-          employerName={employerName}
+          formatDuration={formatDuration}
+          calculateTimeWorked={calculateTimeWorked}
+          calculateEarnings={calculateEarnings}
           rateType={rateType}
           payRate={payRate}
-          breakIntervals={[]}
         />
       </div>
 
@@ -77,7 +77,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       </div>
 
       {/* Invoice Form */}
-      <InvoiceForm />
+      <div className="mt-6">
+        <InvoiceForm />
+      </div>
 
       {/* Customer Tabs */}
       <div className="mt-6">
