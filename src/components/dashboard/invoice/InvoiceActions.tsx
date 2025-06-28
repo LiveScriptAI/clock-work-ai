@@ -52,14 +52,14 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   const handleShareInvoice = async () => {
     setIsGenerating(true);
     try {
-      // Load your saved company (sender) info
+      // Load “My Company” info
       const senderInfo = await fetchInvoiceSettings();
       if (!senderInfo) {
         toast.error("Please set up your company details in the My Company tab first");
         return;
       }
 
-      // Build the invoice payload
+      // Build invoice payload
       const invoiceData = {
         customer,
         customerEmail: clientEmail,
@@ -79,21 +79,21 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         country
       };
 
-      // Generate the PDF blob
+      // Generate PDF blob
       const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
       const fileName = `Invoice-${reference || shift.id}.pdf`;
       const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
 
-      // Use the Web Share API if available
+      // Web Share API
       if (navigator.canShare?.({ files: [pdfFile] })) {
         await navigator.share({
           files: [pdfFile],
           title: `Invoice ${reference}`,
           text: `Please find attached Invoice ${reference}.`
         });
-        toast.success("Share dialog opened — choose your Mail app to send.");
+        toast.success("Share dialog opened — choose your Mail app.");
       } else {
-        // Fallback: download the PDF for manual attachment
+        // Fallback: download for manual attach
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement("a");
         a.href = url;
@@ -110,7 +110,6 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
     }
   };
 
-  // If no client email, disable the share button and show an alert
   if (!clientEmail) {
     return (
       <div className="space-y-2">
