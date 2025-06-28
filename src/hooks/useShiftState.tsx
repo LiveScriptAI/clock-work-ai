@@ -1,6 +1,8 @@
+// src/hooks/useShiftState.ts
 
 import { useState } from "react";
-import { useShiftPersistence } from "./shift/useShiftPersistence";
+// ↓ comment this out
+// import { useShiftPersistence } from "./shift/useShiftPersistence";
 import { useShiftValidation } from "./shift/useShiftValidation";
 import { useShiftActions } from "./shift/useShiftActions";
 
@@ -14,52 +16,52 @@ export function useShiftState() {
   const [isEndSignatureOpen, setIsEndSignatureOpen] = useState(false);
   const [isShiftComplete, setIsShiftComplete] = useState(false);
   
-  // Manager and signature data
-  const [managerName, setManagerName] = useState("");
+  // Manager and signature
+  const [managerName, setManagerName]       = useState("");
   const [endManagerName, setEndManagerName] = useState("");
-  const [startSignatureData, setStartSignatureData] = useState<string | null>(null);
-  const [endSignatureData, setEndSignatureData] = useState<string | null>(null);
+  const [startSignatureData, setStartSignatureData] = useState<string|null>(null);
+  const [endSignatureData,   setEndSignatureData]   = useState<string|null>(null);
   
-  // Time tracking states
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [endTime, setEndTime] = useState<Date | null>(null);
-  const [breakStart, setBreakStart] = useState<Date | null>(null);
-  const [totalBreakDuration, setTotalBreakDuration] = useState(0); // in seconds
+  // Timing
+  const [startTime, setStartTime]                 = useState<Date|null>(null);
+  const [endTime,   setEndTime]                   = useState<Date|null>(null);
+  const [breakStart, setBreakStart]               = useState<Date|null>(null);
+  const [totalBreakDuration, setTotalBreakDuration] = useState(0);
   
-  // Form state variables
+  // Billing fields
   const [employerName, setEmployerName] = useState("");
-  const [payRate, setPayRate] = useState(15); // Default rate
-  const [rateType, setRateType] = useState<RateType>("Per Hour");
-  
-  // Use our validation hook
+  const [payRate,       setPayRate]     = useState(15);
+  const [rateType,      setRateType]    = useState<RateType>("Per Hour");
+
+  // Validation
   const validation = useShiftValidation();
   
-  // Use our persistence hook
-  useShiftPersistence(
-    isShiftActive,
-    isBreakActive,
-    startTime,
-    breakStart,
-    totalBreakDuration,
-    managerName,
-    employerName,
-    payRate,
-    rateType,
-    startSignatureData,
-    setIsShiftActive,
-    setManagerName,
-    setEmployerName,
-    setPayRate,
-    setRateType,
-    setStartSignatureData,
-    validation.setIsStartSignatureEmpty,
-    setStartTime,
-    setIsBreakActive,
-    setTotalBreakDuration,
-    setBreakStart
-  );
+  // ── PERSISTENCE DISABLED ──
+//  useShiftPersistence(
+//    isShiftActive,
+//    isBreakActive,
+//    startTime,
+//    breakStart,
+//    totalBreakDuration,
+//    managerName,
+//    employerName,
+//    payRate,
+//    rateType,
+//    startSignatureData,
+//    setIsShiftActive,
+//    setManagerName,
+//    setEmployerName,
+//    setPayRate,
+//    setRateType,
+//    setStartSignatureData,
+//    validation.setIsStartSignatureEmpty,
+//    setStartTime,
+//    setIsBreakActive,
+//    setTotalBreakDuration,
+//    setBreakStart
+//  );
   
-  // Use our actions hook
+  // Actions
   const actions = useShiftActions(
     setIsStartSignatureOpen,
     setIsEndSignatureOpen,
@@ -87,13 +89,10 @@ export function useShiftState() {
     endSignatureData
   );
 
-  // Break toggle handler that uses the actions
+  // Break toggle
   const handleBreakToggle = () => {
-    if (isBreakActive) {
-      actions.handleEndBreak();
-    } else {
-      actions.handleStartBreak();
-    }
+    if (isBreakActive) actions.handleEndBreak();
+    else             actions.handleStartBreak();
   };
 
   return {
@@ -115,17 +114,17 @@ export function useShiftState() {
     startSignatureData,
     endSignatureData,
     isStartSignatureEmpty: validation.isStartSignatureEmpty,
-    isEndSignatureEmpty: validation.isEndSignatureEmpty,
-    showValidationAlert: validation.showValidationAlert,
-    validationType: validation.validationType,
-    
+    isEndSignatureEmpty:   validation.isEndSignatureEmpty,
+    showValidationAlert:   validation.showValidationAlert,
+    validationType:        validation.validationType,
+
     // Setters
     setIsShiftActive,
     setManagerName,
     setEndManagerName,
     setIsStartSignatureEmpty: validation.setIsStartSignatureEmpty,
-    setIsEndSignatureEmpty: validation.setIsEndSignatureEmpty,
-    setShowValidationAlert: validation.setShowValidationAlert,
+    setIsEndSignatureEmpty:   validation.setIsEndSignatureEmpty,
+    setShowValidationAlert:   validation.setShowValidationAlert,
     setEmployerName,
     setPayRate,
     setRateType,
@@ -136,12 +135,12 @@ export function useShiftState() {
     setIsBreakActive,
     setIsStartSignatureOpen,
     setIsEndSignatureOpen,
-    
+
     // Actions
-    handleStartShift: actions.handleStartShift,
-    handleEndShift: actions.handleEndShift,
+    handleStartShift:  actions.handleStartShift,
+    handleEndShift:    actions.handleEndShift,
     handleBreakToggle,
     confirmShiftStart: actions.confirmShiftStart,
-    confirmShiftEnd: actions.confirmShiftEnd,
+    confirmShiftEnd:   actions.confirmShiftEnd,
   };
 }

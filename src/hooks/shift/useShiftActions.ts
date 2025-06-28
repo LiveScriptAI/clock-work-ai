@@ -1,3 +1,5 @@
+// src/hooks/shift/useShiftActions.ts
+
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
 import { clearShiftState, clearBreakState } from "@/services/storageService";
@@ -47,7 +49,6 @@ export function useShiftActions(
     setIsShiftActive(true);
     setStartTime(new Date());
     setIsShiftComplete(false);
-    // wipe any leftover end/break
     setEndTime(null);
     setTotalBreakDuration(0);
     setBreakStart(null);
@@ -58,6 +59,7 @@ export function useShiftActions(
   // --- End shift ---
   const handleEndShift = () => setIsEndSignatureOpen(true);
   const confirmShiftEnd = () => {
+    console.log("💥 confirmShiftEnd() fired");
     if (isEndSignatureEmpty || !endManagerName.trim()) {
       setValidationType("end");
       setShowValidationAlert(true);
@@ -111,17 +113,17 @@ export function useShiftActions(
       toast.error("Could not save shift");
     }
 
-    // --- remove the “ongoing” shift so persistence won’t reload it ---
+    // remove the “ongoing” shift so persistence won’t reload it
     try {
       window.localStorage.removeItem("currentShift");
-    } catch (e) {
-      console.warn("Could not remove currentShift:", e);
+    } catch {
+      /* ignore */
     }
 
     // completely clear any in-progress state
-    save("shifts", []);        // drop any stored ongoing shift
-    save("breaks", []);        // drop break intervals
-    clearShiftState();         // your existing cleanup
+    save("shifts", []);
+    save("breaks", []);
+    clearShiftState();
     clearBreakState();
 
     // reset UI

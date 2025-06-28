@@ -1,7 +1,8 @@
+// src/hooks/shift/useShiftPersistence.ts
 
 import { useEffect } from "react";
-import { saveShiftState, loadShiftState } from "@/services/storageService";
-import { save, load } from "@/services/localStorageService";
+import { loadShiftState, clearShiftState, clearBreakState } from "@/services/storageService";
+import { load, save } from "@/services/localStorageService";
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
 
@@ -16,133 +17,65 @@ export function useShiftPersistence(
   payRate: number,
   rateType: string,
   startSignatureData: string | null,
-  setIsShiftActive: (value: boolean) => void,
-  setManagerName: (value: string) => void,
-  setEmployerName: (value: string) => void,
-  setPayRate: (value: number) => void,
-  setRateType: (value: any) => void,
-  setStartSignatureData: (value: string | null) => void,
-  setIsStartSignatureEmpty: (value: boolean) => void,
-  setStartTime: (value: Date | null) => void,
-  setIsBreakActive: (value: boolean) => void,
-  setTotalBreakDuration: (value: number) => void,
-  setBreakStart: (value: Date | null) => void
+  setIsShiftActive: (v: boolean) => void,
+  setManagerName: (v: string) => void,
+  setEmployerName: (v: string) => void,
+  setPayRate: (v: number) => void,
+  setRateType: (v: any) => void,
+  setStartSignatureData: (v: string | null) => void,
+  setIsStartSignatureEmpty: (v: boolean) => void,
+  setStartTime: (v: Date | null) => void,
+  setIsBreakActive: (v: boolean) => void,
+  setTotalBreakDuration: (v: number) => void,
+  setBreakStart: (v: Date | null) => void
 ) {
-  // Load saved state on component mount
+  // On mount: restore any in-progress shift
   useEffect(() => {
-    // Try to load from both old and new storage methods
-    const savedState = loadShiftState();
-    const currentShift = load<any>('currentShift');
-    
-    if (currentShift && currentShift.isActive) {
-      // Restore from localStorage currentShift
+    const saved = loadShiftState();
+    console.log("⏳ useShiftPersistence: loadShiftState →", saved);
+
+    if (saved?.isShiftActive) {
       setIsShiftActive(true);
-      setManagerName(currentShift.managerName || '');
-      setEmployerName(currentShift.employerName || '');
-      setPayRate(currentShift.payRate || 15);
-      setRateType(currentShift.rateType || 'Per Hour');
-      setStartSignatureData(currentShift.startSignatureData || null);
-      setIsStartSignatureEmpty(false);
+      setManagerName(saved.managerName);
+      setEmployerName(saved.employerName);
+      setPayRate(saved.payRate);
+      setRateType(saved.rateType);
+      setStartSignatureData(saved.startSignatureData);
+      setStartSignatureEmpty(false);
 
-      if (currentShift.startTime) {
-        const parsedStartTime = new Date(currentShift.startTime);
-        setStartTime(parsedStartTime);
+      if (saved.startTime) {
+        setStartTime(new Date(saved.startTime));
       }
-
-      // Restore break state with proper break intervals handling
-      if (currentShift.breaks && Array.isArray(currentShift.breaks)) {
-        const totalDuration = currentShift.breaks.reduce((sum: number, brk: any) => {
-          return sum + (brk.duration || 0);
-        }, 0);
-        setTotalBreakDuration(totalDuration);
+      if (saved.isBreakActive && saved.breakStart) {
+        setIsBreakActive(true);
+        setBreakStart(new Date(saved.breakStart));
       }
-
-      setIsBreakActive(currentShift.isBreakActive || false);
-      if (currentShift.isBreakActive && currentShift.breakStart) {
-        setBreakStart(new Date(currentShift.breakStart));
-      }
-
-      toast.info("Restored active shift from previous session");
-    } else if (savedState && savedState.isShiftActive) {
-      // Fallback to old storage method
-      const now = new Date();
-
-      setIsShiftActive(true);
-      setManagerName(savedState.managerName);
-      setEmployerName(savedState.employerName);
-      setPayRate(savedState.payRate);
-      setRateType(savedState.rateType);
-      setStartSignatureData(savedState.startSignatureData);
-      setIsStartSignatureEmpty(false);
-
-      // Restore timestamps
-      if (savedState.startTime) {
-        const parsedStartTime = new Date(savedState.startTime);
-        setStartTime(parsedStartTime);
-      }
-
-      // Restore break state
-      setIsBreakActive(savedState.isBreakActive);
-      setTotalBreakDuration(savedState.totalBreakDuration);
-
-      if (savedState.isBreakActive && savedState.breakStart) {
-        const parsedBreakStart = new Date(savedState.breakStart);
-        setBreakStart(parsedBreakStart);
-        
-        // Calculate elapsed break time since app was closed
-        if (parsedBreakStart) {
-          const elapsedBreakSeconds = differenceInSeconds(now, parsedBreakStart);
-          const updatedBreakDuration = savedState.totalBreakDuration + elapsedBreakSeconds;
-          setTotalBreakDuration(updatedBreakDuration);
-          // Reset break start time to now
-          setBreakStart(now);
-        }
-      }
+      setTotalBreakDuration(saved.totalBreakDuration);
 
       toast.info("Restored active shift from previous session");
     }
   }, []);
 
-  // Save state whenever relevant values change
+  // Persist whenever shift is active
   useEffect(() => {
-    if (isShiftActive) {
-      // Get existing breaks from storage
-      const currentShift = load<any>('currentShift') || {};
-      const existingBreaks = currentShift.breaks || [];
+    if (!isShiftActive) return;
 
-      // Save to both storage methods for compatibility
-      saveShiftState({
-        isShiftActive,
-        isBreakActive,
-        startTime: startTime ? startTime.toISOString() : null,
-        breakStart: breakStart ? breakStart.toISOString() : null,
-        totalBreakDuration,
-        managerName,
-        employerName,
-        payRate,
-        rateType,
-        startSignatureData
-      });
-
-      // Also save to new localStorage method with breaks array
-      const currentShiftData = {
-        isActive: isShiftActive,
-        startTime: startTime ? startTime.toISOString() : null,
-        managerName,
-        employerName,
-        payRate,
-        rateType,
-        startSignatureData,
-        isBreakActive,
-        breakStart: breakStart ? breakStart.toISOString() : null,
-        totalBreakDuration,
-        breaks: existingBreaks
-      };
-      
-      save('currentShift', currentShiftData);
-    }
+    const shiftState = {
+      isShiftActive,
+      isBreakActive,
+      startTime: startTime?.toISOString() || null,
+      breakStart: breakStart?.toISOString() || null,
+      totalBreakDuration,
+      managerName,
+      employerName,
+      payRate,
+      rateType,
+      startSignatureData
+    };
+    console.log("💾 useShiftPersistence: saving state →", shiftState);
+    save("currentShift", shiftState);
   }, [
-    isShiftActive, 
+    isShiftActive,
     isBreakActive,
     startTime,
     breakStart,
