@@ -1,12 +1,12 @@
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
-import { clearShiftState, clearBreakState } from "@/services/storageService";
 import { load, save } from "@/services/localStorageService";
-import { ShiftEntry } from "@/components/dashboard/timesheet/types";
+import { clearShiftState, clearBreakState } from "@/services/storageService";
 import { ShiftActions } from "./shiftTypes";
 
 /**
- * Handles starting & ending a shift, persisting it into localStorage.
+ * Manages start/end shift, persisting completed shifts in localStorage
+ * and fully clearing the “ongoing” state so the buttons reset.
  */
 export function useShiftActions(
   setIsStartSignatureOpen: (v: boolean) => void,
@@ -34,11 +34,9 @@ export function useShiftActions(
   startSignatureData: string | null,
   endSignatureData: string | null
 ): ShiftActions {
-  // 1) Starting a shift
-  const handleStartShift = () => {
-    setIsStartSignatureOpen(true);
-  };
 
+  // 1) Start shift
+  const handleStartShift = () => setIsStartSignatureOpen(true);
   const confirmShiftStart = () => {
     if (isStartSignatureEmpty || !managerName.trim()) {
       setValidationType("start");
@@ -49,7 +47,7 @@ export function useShiftActions(
     setIsShiftActive(true);
     setStartTime(new Date());
     setIsShiftComplete(false);
-    // Clear any leftover end/break state
+    // clear any leftover end/break
     setEndTime(null);
     setTotalBreakDuration(0);
     setBreakStart(null);
@@ -57,11 +55,8 @@ export function useShiftActions(
     toast.success("Shift started");
   };
 
-  // 2) Ending a shift
-  const handleEndShift = () => {
-    setIsEndSignatureOpen(true);
-  };
-
+  // 2) End shift
+  const handleEndShift = () => setIsEndSignatureOpen(true);
   const confirmShiftEnd = () => {
     if (isEndSignatureEmpty || !endManagerName.trim()) {
       setValidationType("end");
@@ -69,7 +64,7 @@ export function useShiftActions(
       return;
     }
 
-    // Close out any ongoing break
+    // finish any running break
     let finalBreak = totalBreakDuration;
     if (isBreakActive && breakStart) {
       finalBreak += differenceInSeconds(new Date(), breakStart);
@@ -80,14 +75,15 @@ export function useShiftActions(
     const end = new Date();
     setEndTime(end);
 
-    // Build the shift record
-    const durationSeconds = startTime
+    // compute worked time & earnings
+    const rawSeconds = startTime
       ? differenceInSeconds(end, startTime) - finalBreak
       : 0;
-    const hoursWorked = parseFloat((durationSeconds / 3600).toFixed(2));
+    const hoursWorked = parseFloat((rawSeconds / 3600).toFixed(2));
     const earnings = parseFloat((hoursWorked * payRate).toFixed(2));
 
-    const record: Omit<ShiftEntry, "date"> & { date: string } = {
+    // build the shift record
+    const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       date: (startTime || end).toISOString(),
       employer: employerName,
@@ -105,21 +101,24 @@ export function useShiftActions(
       signatureEnd: endSignatureData
     };
 
-    // Append to localStorage
+    // append to history
     try {
-      const existing: any[] = load<any[]>("shiftsHistory") || [];
+      const existing = load<any[]>("shiftsHistory") || [];
       save("shiftsHistory", [...existing, record]);
       toast.success("Shift ended & saved locally");
-    } catch (err) {
-      console.error("Local save failed:", err);
-      toast.error("Failed to save shift locally");
+    } catch (e) {
+      console.error("Error saving shift history:", e);
+      toast.error("Could not save shift");
     }
 
-    // Clear in-progress state
-    clearShiftState();
+    // FULLY clear the in-progress state so UI resets—even after reload
+    // This ensures useShiftState / useTimesheetLog won’t re-detect an active shift
+    save("shifts", []);        // clear any stored “ongoing” shift
+    save("breaks", []);        // clear any break intervals
+    clearShiftState();         // your existing cleanup
     clearBreakState();
 
-    // Update UI
+    // update UI
     setIsEndSignatureOpen(false);
     setIsShiftActive(false);
     setIsShiftComplete(true);
