@@ -100,7 +100,6 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
         startTime={startTime}
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}
-        getBreakDuration={() => "0 min"} // No breaks for now
         setEndSignatureData={setEndSignatureData}
       />
 
