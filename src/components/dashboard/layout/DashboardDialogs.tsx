@@ -1,120 +1,116 @@
+
 import React from "react";
-import StartShiftDialog from "../StartShiftDialog";
-import EndShiftDialog   from "../EndShiftDialog";
-import ValidationAlert  from "./ValidationAlert";
+import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
+import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
+import ValidationAlert from "@/components/dashboard/ValidationAlert";
 
 interface DashboardDialogsProps {
-  // Start‐shift dialog state + handlers
+  // Shift state
   isStartSignatureOpen: boolean;
-  setIsStartSignatureOpen: (open: boolean) => void;
-  managerName: string;
-  setManagerName: (name: string) => void;
-  isStartSignatureEmpty: boolean;
-  setIsStartSignatureEmpty: (empty: boolean) => void;
-  confirmShiftStart: () => void;
-  employerName: string;
-  setEmployerName: (name: string) => void;
-  payRate: number;
-  setPayRate: (rate: number) => void;
-  rateType: string;
-  setRateType: (type: string) => void;
-  setStartSignatureData: (data: string | null) => void;
-
-  // End‐shift dialog state + real “finish shift” handler
   isEndSignatureOpen: boolean;
-  setIsEndSignatureOpen: (open: boolean) => void;
+  managerName: string;
   endManagerName: string;
-  setEndManagerName: (name: string) => void;
-  isEndSignatureEmpty: boolean;
-  setIsEndSignatureEmpty: (empty: boolean) => void;
-  handleConfirmShiftEnd: () => void;  // ← this actually ends and clears the shift
-
-  // Utilities for the dialog display
+  employerName: string;
+  payRate: number;
+  rateType: string;
   startTime: Date | null;
+  isStartSignatureEmpty: boolean;
+  isEndSignatureEmpty: boolean;
+  showValidationAlert: boolean;
+  validationType: 'start' | 'end';
+  
+  // Functions
+  setIsStartSignatureOpen: (value: boolean) => void;
+  setIsEndSignatureOpen: (value: boolean) => void;
+  setManagerName: (value: string) => void;
+  setEndManagerName: (value: string) => void;
+  setIsStartSignatureEmpty: (value: boolean) => void;
+  setIsEndSignatureEmpty: (value: boolean) => void;
+  setShowValidationAlert: (value: boolean) => void;
+  confirmShiftStart: () => void;
+  handleConfirmShiftEnd: () => void;
+  setEmployerName: (value: string) => void;
+  setPayRate: (value: number) => void;
+  setRateType: (value: string) => void;
+  setStartSignatureData: (value: string | null) => void;
+  setEndSignatureData: (value: string | null) => void;
+  
+  // Utility functions
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
-
-  // Validation alert
-  showValidationAlert: boolean;
-  setShowValidationAlert: (show: boolean) => void;
-  validationType: "start" | "end";
 }
 
 const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
-  // Start‐shift props
   isStartSignatureOpen,
-  setIsStartSignatureOpen,
+  isEndSignatureOpen,
   managerName,
-  setManagerName,
-  isStartSignatureEmpty,
-  setIsStartSignatureEmpty,
-  confirmShiftStart,
+  endManagerName,
   employerName,
-  setEmployerName,
   payRate,
-  setPayRate,
   rateType,
+  startTime,
+  isStartSignatureEmpty,
+  isEndSignatureEmpty,
+  showValidationAlert,
+  validationType,
+  setIsStartSignatureOpen,
+  setIsEndSignatureOpen,
+  setManagerName,
+  setEndManagerName,
+  setIsStartSignatureEmpty,
+  setIsEndSignatureEmpty,
+  setShowValidationAlert,
+  confirmShiftStart,
+  handleConfirmShiftEnd,
+  setEmployerName,
+  setPayRate,
   setRateType,
   setStartSignatureData,
-
-  // End‐shift props
-  isEndSignatureOpen,
-  setIsEndSignatureOpen,
-  endManagerName,
-  setEndManagerName,
-  isEndSignatureEmpty,
-  setIsEndSignatureEmpty,
-  handleConfirmShiftEnd,
-
-  // Utilities
-  startTime,
+  setEndSignatureData,
   formatDuration,
   calculateTimeWorked,
+}) => {
+  return (
+    <>
+      <StartShiftDialog 
+        isOpen={isStartSignatureOpen}
+        onOpenChange={setIsStartSignatureOpen}
+        managerName={managerName}
+        setManagerName={setManagerName}
+        isSignatureEmpty={isStartSignatureEmpty}
+        setIsSignatureEmpty={setIsStartSignatureEmpty}
+        confirmShiftStart={confirmShiftStart}
+        employerName={employerName}
+        setEmployerName={setEmployerName}
+        payRate={payRate}
+        setPayRate={setPayRate}
+        rateType={rateType}
+        setRateType={setRateType}
+        setStartSignatureData={setStartSignatureData}
+      />
 
-  // Validation alert
-  showValidationAlert,
-  setShowValidationAlert,
-  validationType,
-}) => (
-  <>
-    <StartShiftDialog
-      isOpen={isStartSignatureOpen}
-      onOpenChange={setIsStartSignatureOpen}
-      managerName={managerName}
-      setManagerName={setManagerName}
-      isSignatureEmpty={isStartSignatureEmpty}
-      setIsSignatureEmpty={setIsStartSignatureEmpty}
-      confirmShiftStart={confirmShiftStart}
-      employerName={employerName}
-      setEmployerName={setEmployerName}
-      payRate={payRate}
-      setPayRate={setPayRate}
-      rateType={rateType}
-      setRateType={setRateType}
-      setStartSignatureData={setStartSignatureData}
-    />
+      <EndShiftDialog 
+        isOpen={isEndSignatureOpen}
+        onOpenChange={setIsEndSignatureOpen}
+        endManagerName={endManagerName}
+        setEndManagerName={setEndManagerName}
+        isSignatureEmpty={isEndSignatureEmpty}
+        setIsSignatureEmpty={setIsEndSignatureEmpty}
+        confirmShiftEnd={handleConfirmShiftEnd}
+        startTime={startTime}
+        formatDuration={formatDuration}
+        calculateTimeWorked={calculateTimeWorked}
+        getBreakDuration={() => "0 min"} // No breaks for now
+        setEndSignatureData={setEndSignatureData}
+      />
 
-    <EndShiftDialog
-      isOpen={isEndSignatureOpen}
-      onOpenChange={setIsEndSignatureOpen}
-      endManagerName={endManagerName}
-      setEndManagerName={setEndManagerName}
-      isSignatureEmpty={isEndSignatureEmpty}
-      setIsSignatureEmpty={setIsEndSignatureEmpty}
-      confirmShiftEnd={handleConfirmShiftEnd}   // ← hand it your real end‐shift function
-      startTime={startTime}
-      formatDuration={formatDuration}
-      calculateTimeWorked={calculateTimeWorked}
-      getBreakDuration={() => "0 min"}         // or wire your real break durations here
-      setEndSignatureData={setEndSignatureData}
-    />
-
-    <ValidationAlert
-      showValidationAlert={showValidationAlert}
-      setShowValidationAlert={setShowValidationAlert}
-      validationType={validationType}
-    />
-  </>
-);
+      <ValidationAlert 
+        showValidationAlert={showValidationAlert}
+        setShowValidationAlert={setShowValidationAlert}
+        validationType={validationType}
+      />
+    </>
+  );
+};
 
 export default DashboardDialogs;
