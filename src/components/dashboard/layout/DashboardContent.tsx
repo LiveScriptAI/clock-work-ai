@@ -2,7 +2,7 @@ import React from "react";
 import TimeTracking from "@/components/dashboard/TimeTracking";
 import DailySummary from "@/components/dashboard/DailySummary";
 import TimesheetLog from "@/components/dashboard/TimesheetLog";
-import BreaksSummary from "@/components/dashboard/BreaksSummary";
+// import BreaksSummary from "@/components/dashboard/BreaksSummary";  ← remove this
 import InvoiceForm from "@/components/dashboard/invoice/InvoiceForm";
 import CustomerTabs from "@/components/dashboard/CustomerTabs";
 
@@ -43,7 +43,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 }) => {
   return (
     <>
-      {/* Time Tracking Component */}
+      {/* Time Tracking */}
       <TimeTracking
         startTime={startTime}
         endTime={endTime}
@@ -55,36 +55,31 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         handleEndShift={handleEndShift}
       />
 
+      {/* Daily Summary */}
       <div className="grid grid-cols-1 mb-6 rounded-xl">
-        {/* Daily Summary Component */}
         <DailySummary
           formatDuration={formatDuration}
           calculateTimeWorked={calculateTimeWorked}
-          getBreakDuration={() => "0 min"}      // Hard-coded
+          getBreakDuration={() => "0 min"}
           calculateEarnings={calculateEarnings}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
           employerName={employerName}
           rateType={rateType}
           payRate={payRate}
-          breakIntervals={[]}                   // Empty array
+          breakIntervals={[]}
         />
       </div>
 
-      {/* Timesheet Log Component */}
+      {/* Timesheet Log */}
       <div className="mt-6 rounded-xl">
         <TimesheetLog importBreaksToExport={false} />
       </div>
 
-      {/* Breaks Summary Component */}
-      <div className="mt-6">
-        <BreaksSummary />
-      </div>
-
-      {/* Invoice Form Component */}
+      {/* Invoice Form */}
       <InvoiceForm />
 
-      {/* Customer Tabs Component */}
+      {/* Customer Tabs */}
       <div className="mt-6">
         <CustomerTabs />
       </div>
