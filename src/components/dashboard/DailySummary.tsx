@@ -1,123 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { User, ChevronDown, ChevronRight } from "lucide-react";
-import { format, differenceInSeconds } from "date-fns";
-type DailySummaryProps = {
-  formatDuration: (seconds: number) => string;
-  calculateTimeWorked: () => number;
-  getBreakDuration: () => string;
-  calculateEarnings: () => string;
+import { formatDistanceStrict, differenceInSeconds } from "date-fns";
+
+interface DailySummaryProps {
+  employerName: string;
+  startTime: Date | null;
+  endTime: Date | null;
   isShiftActive: boolean;
   isShiftComplete: boolean;
-  isBreakActive: boolean;
-  employerName?: string;
-  rateType?: string;
-  payRate?: number;
-  breakIntervals?: {
-    start: Date;
-    end: Date | null;
-  }[];
-};
+  payRate: number;
+  rateType: string;
+  formatDuration: (seconds: number) => string;
+  calculateTimeWorked: () => number;
+  calculateEarnings: () => string;
+}
+
 const DailySummary: React.FC<DailySummaryProps> = ({
-  formatDuration,
-  calculateTimeWorked,
-  getBreakDuration,
-  calculateEarnings,
+  employerName,
+  startTime,
+  endTime,
   isShiftActive,
   isShiftComplete,
-  isBreakActive,
-  employerName = "",
-  rateType = "Per Hour",
-  payRate = 15,
-  breakIntervals = []
+  payRate,
+  rateType,
+  formatDuration,
+  calculateTimeWorked,
+  calculateEarnings,
 }) => {
-  // State to store and refresh values
-  const [timeWorked, setTimeWorked] = useState(calculateTimeWorked());
-  const [earnings, setEarnings] = useState(calculateEarnings());
-  const [breaksOpen, setBreaksOpen] = useState(false);
+  // If shift hasn't started yet, show nothing (or you could choose to hide the card entirely)
+  if (!startTime) {
+    return null;
+  }
 
-  // Update values every second to ensure they're always accurate
-  useEffect(() => {
-    // Initial update
-    setTimeWorked(calculateTimeWorked());
-    setEarnings(calculateEarnings());
+  // Calculate worked seconds so far (or final if ended)
+  const workedSeconds = calculateTimeWorked();
 
-    // Set interval to update values if shift is active
-    const intervalId = setInterval(() => {
-      if (isShiftActive || isBreakActive) {
-        setTimeWorked(calculateTimeWorked());
-        setEarnings(calculateEarnings());
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [isShiftActive, isBreakActive, calculateTimeWorked, calculateEarnings]);
-
-  // Helper function to format duration in HH:mm:ss
-  const formatBreakDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor(seconds % 3600 / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-  return <Card>
+  return (
+    <Card className="mb-6 bg-white rounded-xl">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Daily Summary</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {(isShiftActive || isShiftComplete) && employerName && <div className="flex justify-between items-center">
-              <span className="text-gray-600 flex items-center">
-                <User className="h-4 w-4 mr-1" />
-                Employer:
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Employer:</p>
+            <p>{employerName}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-muted-foreground">Hours Worked:</p>
+            <p>{formatDuration(workedSeconds)}</p>
+          </div>
+
+          <div>
+            <p className="text-sm text-muted-foreground">Estimated Earnings:</p>
+            <p>
+              {calculateEarnings()}{" "}
+              <span className="text-xs text-muted-foreground">
+                (Per {rateType})
               </span>
-              <span className="font-medium">{employerName}</span>
-            </div>}
-          
-          <div className="flex justify-between">
-            <span className="text-gray-600">Hours Worked:</span>
-            <span className="font-medium">{formatDuration(timeWorked)}</span>
+            </p>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Estimated Earnings:</span>
-            <span className="font-medium">
-              £{earnings}
-              <span className="text-xs text-gray-500 ml-1">({rateType})</span>
-            </span>
+
+          <div>
+            <p className="text-sm text-muted-foreground">Shift Status:</p>
+            <p className={isShiftComplete ? "text-gray-500" : "text-green-600"}>
+              {isShiftComplete ? "Completed" : isShiftActive ? "Active" : "Not started"}
+            </p>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Shift Status:</span>
-            <span className={`font-medium ${isShiftActive ? 'text-green-600' : isShiftComplete ? 'text-red-600' : 'text-gray-600'}`}>
-              {isShiftActive ? isBreakActive ? 'On Break' : 'Active' : isShiftComplete ? 'Completed' : 'Not Started'}
-            </span>
-          </div>
-          
-          {(isShiftActive || isShiftComplete) && <Collapsible open={breaksOpen} onOpenChange={setBreaksOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
-                <span>Breaks</span>
-                {breaksOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2">
-                {breakIntervals && breakIntervals.length > 0 ? <div className="space-y-3 pt-2">
-                    {breakIntervals.map((interval, i) => <div key={i} className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                        <div className="flex justify-between">
-                          <span>Start:</span>
-                          <span>{format(interval.start, 'HH:mm:ss')}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>End:</span>
-                          <span>{interval.end ? format(interval.end, 'HH:mm:ss') : 'Ongoing'}</span>
-                        </div>
-                        <div className="flex justify-between font-medium">
-                          <span>Duration:</span>
-                          <span>{formatBreakDuration(differenceInSeconds(interval.end ?? new Date(), interval.start))}</span>
-                        </div>
-                      </div>)}
-                  </div> : <p className="text-sm italic text-gray-500 pt-2">No breaks taken</p>}
-              </CollapsibleContent>
-            </Collapsible>}
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
+
 export default DailySummary;
