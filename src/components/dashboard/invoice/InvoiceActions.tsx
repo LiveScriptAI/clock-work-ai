@@ -7,6 +7,8 @@ import { generateInvoicePDF } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceLocalService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
+console.log("💡 InvoiceActions.tsx loaded");
+
 
 interface InvoiceActionsProps {
   shift: ShiftEntry;
