@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from '@/hooks/useAuth';
 import { load } from "@/services/localStorageService";
 
 type HeaderProps = {
@@ -17,22 +16,27 @@ const Header: React.FC<HeaderProps> = ({
   sheetOpen
 }) => {
   const isMobile = useIsMobile();
-  const { user, handleSignOut } = useAuth();
   const [logo, setLogo] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('Clock Work Pal User');
 
-  // Load logo from localStorage when component mounts
+  // Load logo and user name from localStorage when component mounts
   useEffect(() => {
-    const loadLogo = () => {
+    const loadUserData = () => {
       try {
         const logoData = load<string>('companyLogo');
         if (logoData) {
           setLogo(logoData);
         }
+        
+        const savedUserName = load<string>('userName');
+        if (savedUserName) {
+          setUserName(savedUserName);
+        }
       } catch (error) {
-        console.error("Failed to load logo:", error);
+        console.error("Failed to load user data:", error);
       }
     };
-    loadLogo();
+    loadUserData();
   }, []);
 
   return (
@@ -56,16 +60,10 @@ const Header: React.FC<HeaderProps> = ({
                 )}
                 <SheetTitle className="text-left">
                   <span className="text-base font-medium text-gray-900">
-                    Welcome, {user?.user_metadata?.full_name || user?.email}
+                    Welcome, {userName}
                   </span>
                 </SheetTitle>
               </SheetHeader>
-              
-              <div className="mt-auto pt-6 border-t border-gray-200">
-                <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              </div>
             </SheetContent>
           </Sheet>
           
@@ -77,20 +75,13 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
             <span className="text-lg font-semibold text-gray-900 hidden sm:block">
-              Welcome, {user?.user_metadata?.full_name || user?.email}
+              Welcome, {userName}
             </span>
           </div>
           
-          {/* Right side actions */}
+          {/* Right side - removed sign out button */}
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSignOut} 
-              className="hidden md:flex px-4 py-2 text-sm font-medium"
-            >
-              Sign Out
-            </Button>
+            {/* No sign out button needed for native container */}
           </div>
         </div>
       </div>

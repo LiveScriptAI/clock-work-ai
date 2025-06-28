@@ -6,7 +6,7 @@ import {
   resetBreakState,
   loadBreakState
 } from "@/services/storageService";
-import { save } from "@/services/localStorageService";
+import { save, load } from "@/services/localStorageService";
 
 export function useShiftActions(
   setIsStartSignatureOpen: (open: boolean) => void,
@@ -59,6 +59,18 @@ export function useShiftActions(
     setStartTime(new Date());
     setIsStartSignatureOpen(false);
     
+    // Persist shift start to localStorage
+    const shiftStartData = {
+      startTime: new Date().toISOString(),
+      managerName,
+      employerName,
+      payRate,
+      rateType,
+      startSignatureData,
+      isActive: true
+    };
+    save('currentShift', shiftStartData);
+    
     toast.success("Shift started successfully!");
   };
 
@@ -104,6 +116,16 @@ export function useShiftActions(
         if (completedIntervals.length > 0) {
           console.log("ShiftActions - Saving break intervals locally:", completedIntervals);
           save(`breakIntervals_${shiftId}`, completedIntervals);
+          
+          // Also save to breaks array for persistence
+          const existingBreaks = load<any[]>('breaks') || [];
+          const newBreak = {
+            shiftId,
+            intervals: completedIntervals,
+            date: new Date().toISOString()
+          };
+          existingBreaks.push(newBreak);
+          save('breaks', existingBreaks);
         }
       }
     } catch (error) {
@@ -111,7 +133,7 @@ export function useShiftActions(
       toast.error("Failed to save break data");
     }
 
-    // Save shift locally
+    // Save completed shift locally
     if (startTime) {
       try {
         const shiftData = {
@@ -126,10 +148,18 @@ export function useShiftActions(
           manager_end_name: endManagerName,
           manager_start_signature: startSignatureData,
           manager_end_signature: endSignatureData,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          completed: true
         };
 
+        // Save individual shift
         save(`shift_${shiftId}`, shiftData);
+        
+        // Add to shifts array for persistence
+        const existingShifts = load<any[]>('shifts') || [];
+        existingShifts.push(shiftData);
+        save('shifts', existingShifts);
+        
         console.log('Shift saved successfully locally');
       } catch (error) {
         console.error('Error saving shift locally:', error);
@@ -140,6 +170,7 @@ export function useShiftActions(
     // Clear local storage
     clearShiftState();
     resetBreakState();
+    save('currentShift', null); // Clear current active shift
     
     toast.success("Shift ended successfully!");
   };
