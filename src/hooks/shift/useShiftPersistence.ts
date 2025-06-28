@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { saveShiftState, loadShiftState } from "@/services/storageService";
-import { load } from "@/services/localStorageService";
+import { save, load } from "@/services/localStorageService";
 import { toast } from "sonner";
 import { differenceInSeconds } from "date-fns";
 

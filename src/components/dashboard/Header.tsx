@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
           
-          {/* Right side - removed sign out button */}
+          {/* Right side - no sign out button needed for native container */}
           <div className="flex items-center gap-3">
             {/* No sign out button needed for native container */}
           </div>
