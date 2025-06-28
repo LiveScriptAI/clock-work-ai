@@ -9,7 +9,7 @@ const BREAK_STATE_KEY  = "clockwork_break_state";
 export const clearShiftState = (): void => {
   try {
     localStorage.removeItem(ACTIVE_SHIFT_KEY);
-    localStorage.removeItem("currentShift");   // ← also clear the “currentShift” key
+    localStorage.removeItem(CURRENT_SHIFT_KEY); // also clear the “currentShift” key
   } catch (error) {
     console.error("Error clearing shift state:", error);
   }
