@@ -1,19 +1,16 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mail, AlertCircle } from "lucide-react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { generateInvoicePDF } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceLocalService";
-import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
 
 interface InvoiceActionsProps {
   shift: ShiftEntry;
   clientEmail?: string;
-  // Add address field props
   customer: string;
   invoiceDate: Date;
   reference: string;
@@ -31,8 +28,8 @@ interface InvoiceActionsProps {
   country: string;
 }
 
-const InvoiceActions: React.FC<InvoiceActionsProps> = ({ 
-  shift, 
+const InvoiceActions: React.FC<InvoiceActionsProps> = ({
+  shift,
   clientEmail,
   customer,
   invoiceDate,
@@ -51,23 +48,18 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   country
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { user } = useAuth();
 
-  const handleEmailInvoice = async () => {
-    if (!clientEmail) {
-      toast.error("Client email is required to send invoice");
-      return;
-    }
-
+  const handleShareInvoice = async () => {
     setIsGenerating(true);
     try {
+      // Load your saved company (sender) info
       const senderInfo = await fetchInvoiceSettings();
       if (!senderInfo) {
-        toast.error("Please set up your company information in Invoice Settings first");
+        toast.error("Please set up your company details in the My Company tab first");
         return;
       }
 
-      // Create invoice data with all the address fields (same as Download PDF logic)
+      // Build the invoice payload
       const invoiceData = {
         customer,
         customerEmail: clientEmail,
@@ -86,54 +78,51 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         postcode,
         country
       };
-      
-      const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
-      
-      // Download the PDF
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice-${reference || shift.id}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
 
-      // Open email client with pre-filled content using the actual client email
-      const subject = encodeURIComponent(`Invoice #${reference || shift.id}`);
-      const body = encodeURIComponent(
-        `Hi,\n\nPlease find attached Invoice #${reference || shift.id} for work performed on ${invoiceDate.toLocaleDateString()}.\n\nTotal amount: £${total}\n\nPlease attach the downloaded PDF file to this email before sending.\n\nThanks!`
-      );
-      
-      // Use the actual client email in the mailto link
-      window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
-      
-      toast.success("Invoice downloaded and email client opened. Please attach the PDF to your email.");
-      
+      // Generate the PDF blob
+      const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
+      const fileName = `Invoice-${reference || shift.id}.pdf`;
+      const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+      // Use the Web Share API if available
+      if (navigator.canShare?.({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: `Invoice ${reference}`,
+          text: `Please find attached Invoice ${reference}.`
+        });
+        toast.success("Share dialog opened — choose your Mail app to send.");
+      } else {
+        // Fallback: download the PDF for manual attachment
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Downloaded PDF — please attach it in your email app.");
+      }
     } catch (error) {
-      console.error("Error processing invoice:", error);
-      toast.error("Failed to process invoice");
+      console.error("Error sharing invoice:", error);
+      toast.error("Failed to share invoice");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  // If no client email, disable the share button and show an alert
   if (!clientEmail) {
     return (
       <div className="space-y-2">
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            disabled={true}
-            size="sm"
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
+          <Button disabled size="sm" variant="outline" className="w-full sm:w-auto">
             <Mail className="w-4 h-4 mr-2" />
-            Email Invoice
+            Share Invoice
           </Button>
         </div>
         <Alert>
-          <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Add a client email address to enable email functionality
+            Enter a client email address to enable sharing
           </AlertDescription>
         </Alert>
       </div>
@@ -142,15 +131,15 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row gap-2">
-      <Button 
-        onClick={handleEmailInvoice}
+      <Button
+        onClick={handleShareInvoice}
         disabled={isGenerating}
         size="sm"
         variant="outline"
         className="w-full sm:w-auto"
       >
         <Mail className="w-4 h-4 mr-2" />
-        {isGenerating ? "Processing..." : "Email Invoice"}
+        {isGenerating ? "Processing..." : "Share Invoice"}
       </Button>
     </div>
   );
