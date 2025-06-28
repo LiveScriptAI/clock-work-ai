@@ -4,9 +4,9 @@ import { useShiftState } from "@/hooks/useShiftState";
 import { useAuth } from "@/hooks/useAuth";
 
 // Import layout and content components
-import DashboardLayout   from "../../components/dashboard/layout/DashboardLayout";
-import DashboardContent  from "../../components/dashboard/layout/DashboardContent";
-import DashboardDialogs  from "../../components/dashboard/layout/DashboardDialogs";
+import DashboardLayout   from "../components/dashboard/layout/DashboardLayout";
+import DashboardContent  from "../components/dashboard/layout/DashboardContent";
+import DashboardDialogs  from "../components/dashboard/layout/DashboardDialogs";
 
 // Import utility functions
 import { 
