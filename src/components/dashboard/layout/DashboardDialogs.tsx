@@ -1,10 +1,10 @@
 import React from "react";
 import StartShiftDialog from "./StartShiftDialog";
-import EndShiftDialog from "./EndShiftDialog";
-import ValidationAlert from "./ValidationAlert";
+import EndShiftDialog   from "./EndShiftDialog";
+import ValidationAlert  from "./ValidationAlert";
 
 interface DashboardDialogsProps {
-  // Start-Shift dialog
+  // Start‐shift dialog state + handlers
   isStartSignatureOpen: boolean;
   setIsStartSignatureOpen: (open: boolean) => void;
   managerName: string;
@@ -20,16 +20,16 @@ interface DashboardDialogsProps {
   setRateType: (type: string) => void;
   setStartSignatureData: (data: string | null) => void;
 
-  // End-Shift dialog
+  // End‐shift dialog state + real “finish shift” handler
   isEndSignatureOpen: boolean;
   setIsEndSignatureOpen: (open: boolean) => void;
   endManagerName: string;
   setEndManagerName: (name: string) => void;
   isEndSignatureEmpty: boolean;
   setIsEndSignatureEmpty: (empty: boolean) => void;
-  handleConfirmShiftEnd: () => void;
+  handleConfirmShiftEnd: () => void;  // ← this actually ends and clears the shift
 
-  // Utilities for summary display in the dialog
+  // Utilities for the dialog display
   startTime: Date | null;
   formatDuration: (seconds: number) => string;
   calculateTimeWorked: () => number;
@@ -41,7 +41,7 @@ interface DashboardDialogsProps {
 }
 
 const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
-  // Start-Shift props
+  // Start‐shift props
   isStartSignatureOpen,
   setIsStartSignatureOpen,
   managerName,
@@ -57,7 +57,7 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
   setRateType,
   setStartSignatureData,
 
-  // End-Shift props
+  // End‐shift props
   isEndSignatureOpen,
   setIsEndSignatureOpen,
   endManagerName,
@@ -66,7 +66,7 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
   setIsEndSignatureEmpty,
   handleConfirmShiftEnd,
 
-  // Utility props
+  // Utilities
   startTime,
   formatDuration,
   calculateTimeWorked,
@@ -101,11 +101,11 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
       setEndManagerName={setEndManagerName}
       isSignatureEmpty={isEndSignatureEmpty}
       setIsSignatureEmpty={setIsEndSignatureEmpty}
-      confirmShiftEnd={handleConfirmShiftEnd}      {/* ← use the real “end” callback */}
+      confirmShiftEnd={handleConfirmShiftEnd}   // ← hand it your real end‐shift function
       startTime={startTime}
       formatDuration={formatDuration}
       calculateTimeWorked={calculateTimeWorked}
-      getBreakDuration={() => "0 min"}              {/* or your real break calcs */}
+      getBreakDuration={() => "0 min"}         // or wire your real break durations here
       setEndSignatureData={setEndSignatureData}
     />
 
