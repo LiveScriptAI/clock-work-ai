@@ -57,6 +57,40 @@ const InvoiceForm: React.FC = () => {
     toast({ title: "My Company Updated", description: "‘From’ section refreshed." });
   };
 
+  // Expose pending autofill for “Add to Invoice”
+  useEffect(() => {
+    window._pendingAutofill = (shiftData: ShiftEntry) => {
+      // Prevent duplicates
+      const exists = lineItems.some(item =>
+        item.description.includes(shiftData.employer) &&
+        item.date.toDateString() === shiftData.date.toDateString() &&
+        Math.abs(item.quantity - shiftData.hoursWorked) < 0.01 &&
+        item.unitPrice === shiftData.payRate
+      );
+      if (exists) {
+        toast({ title: "Already Added", description: "This shift is already on the invoice", variant: "destructive" });
+        return;
+      }
+
+      // Create new line item
+      const newItem: LineItem = {
+        id: `item-${Date.now()}-${shiftData.id}`,
+        date: shiftData.date,
+        description: `${shiftData.employer} - Work on ${shiftData.date.toLocaleDateString("en-GB")}`,
+        rateType: shiftData.payType || "Per Hour",
+        quantity: shiftData.hoursWorked,
+        unitPrice: shiftData.payRate
+      };
+
+      setLineItems(items => [...items, newItem]);
+      toast({ title: "Success", description: "Shift added to invoice" });
+    };
+
+    return () => {
+      delete window._pendingAutofill;
+    };
+  }, [lineItems]);
+
   // CompanySelector (billing “To:” side)
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
@@ -88,7 +122,7 @@ const InvoiceForm: React.FC = () => {
   const calculateTotal = () =>
     (parseFloat(calculateSubtotal()) + parseFloat(calculateVAT())).toFixed(2);
 
-  // Convert invoice data into a ShiftEntry (for any timesheet sync)
+  // Convert invoice data into a ShiftEntry (for timesheet sync)
   const getShiftData = (): ShiftEntry =>
     convertInvoiceToShift(customer, invoiceDate, reference, lineItems, customerEmail);
 
@@ -142,7 +176,7 @@ const InvoiceForm: React.FC = () => {
     }
   };
 
-  // SHARE Invoice (open mail and download PDF in background)
+  // SHARE Invoice (open mail immediately + download PDF in background)
   const handleShareInvoice = async () => {
     if (!sender) {
       toast({
@@ -158,7 +192,7 @@ const InvoiceForm: React.FC = () => {
     const body = encodeURIComponent(
 `Hello ${customer},
 
-Thank you for your business! Please find your invoice #${reference} dated ${invoiceDate.toLocaleDateString('en-GB')} attached.
+Thank you for your business! Please find your invoice #${reference} dated ${invoiceDate.toLocaleDateString("en-GB")} attached.
 
 If you have any questions, just reply to this email.
 
@@ -166,10 +200,10 @@ Best regards,
 ${sender.business_name}`
     );
 
-    // 1) Open mail client immediately
+    // 1) Open mail client right away
     window.open(`mailto:${customerEmail}?subject=${subject}&body=${body}`, "_blank");
 
-    // 2) Generate & download PDF in background
+    // 2) Generate & download PDF in the background
     try {
       const blob = await generateInvoicePDF(
         {
