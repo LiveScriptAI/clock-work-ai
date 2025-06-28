@@ -1,8 +1,8 @@
 
 import React from "react";
-import StartShiftDialog from "@/components/dashboard/StartShiftDialog";
-import EndShiftDialog from "@/components/dashboard/EndShiftDialog";
-import ValidationAlert from "@/components/dashboard/ValidationAlert";
+import StartShiftDialog from "../StartShiftDialog";
+import EndShiftDialog   from "../EndShiftDialog";
+import ValidationAlert  from "../ValidationAlert";
 
 interface DashboardDialogsProps {
   // Shift state
