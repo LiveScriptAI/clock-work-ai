@@ -294,7 +294,7 @@ const CustomerTabs = () => {
                 <FormField
                   control={form.control}
                   name="postcode"
-                  render=={({ field }) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Postcode/ZIP</FormLabel>
                       <FormControl>
