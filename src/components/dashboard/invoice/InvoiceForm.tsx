@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { load } from "@/services/localStorageService";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import InvoiceHeader from "./InvoiceHeader";
 import LineItemsTable from "./LineItemsTable";
@@ -23,12 +26,14 @@ const InvoiceForm: React.FC = () => {
   // Invoice form fields
   const [customer, setCustomer] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [contactName, setContactName] = useState("");
   const [invoiceDate, setInvoiceDate] = useState<Date>(today);
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(
     "Payment due within 30 days. Late payments are subject to a 2% monthly fee."
   );
+  const [isVatRegistered, setIsVatRegistered] = useState(true);
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
@@ -50,12 +55,6 @@ const InvoiceForm: React.FC = () => {
   useEffect(() => {
     loadCompanySettings();
   }, [loadCompanySettings, settingsVersion]);
-
-  // Called when company settings are updated
-  const handleSettingsSaved = () => {
-    setSettingsVersion(v => v + 1);
-    toast({ title: "My Company Updated", description: "'From' section refreshed." });
-  };
 
   // Expose pending autofill for "Add to Invoice"
   useEffect(() => {
@@ -94,9 +93,20 @@ const InvoiceForm: React.FC = () => {
   // CompanySelector (billing "To:" side)
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
+    
     setCustomer(companyData.company_name || "");
     setCustomerEmail(companyData.email || "");
+    setContactName(companyData.contact_name || "");
     setReference(r => r || `Invoice for ${companyData.company_name}`);
+    
+    // Load customer's saved notes and terms if available
+    if (companyData.notes) {
+      setNotes(companyData.notes);
+    }
+    if (companyData.terms_conditions) {
+      setTerms(companyData.terms_conditions);
+    }
+    
     toast({ title: "Customer Loaded", description: `Now invoicing ${companyData.company_name}.` });
   };
 
@@ -116,11 +126,20 @@ const InvoiceForm: React.FC = () => {
       items.map(i => (i.id === id ? { ...i, [field]: value } : i))
     );
   };
+  
   const calculateSubtotal = () =>
     lineItems.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0).toFixed(2);
-  const calculateVAT = () => (parseFloat(calculateSubtotal()) * 0.2).toFixed(2);
-  const calculateTotal = () =>
-    (parseFloat(calculateSubtotal()) + parseFloat(calculateVAT())).toFixed(2);
+  
+  const calculateVAT = () => {
+    if (!isVatRegistered) return "0.00";
+    return (parseFloat(calculateSubtotal()) * 0.2).toFixed(2);
+  };
+  
+  const calculateTotal = () => {
+    const subtotal = parseFloat(calculateSubtotal());
+    const vat = parseFloat(calculateVAT());
+    return (subtotal + vat).toFixed(2);
+  };
 
   // Convert invoice data into a ShiftEntry (for timesheet sync)
   const getShiftData = (): ShiftEntry =>
@@ -143,6 +162,7 @@ const InvoiceForm: React.FC = () => {
     const payload = {
       customer,
       customerEmail,
+      contactName,
       invoiceDate,
       reference,
       notes,
@@ -156,7 +176,8 @@ const InvoiceForm: React.FC = () => {
       country: sender.country,
       subtotal: calculateSubtotal(),
       vat: calculateVAT(),
-      total: calculateTotal()
+      total: calculateTotal(),
+      isVatRegistered
     };
     try {
       const blob = await generateInvoicePDF(payload, sender);
@@ -209,6 +230,7 @@ ${sender.business_name}`
         {
           customer,
           customerEmail,
+          contactName,
           invoiceDate,
           reference,
           notes,
@@ -222,7 +244,8 @@ ${sender.business_name}`
           country: sender.country,
           subtotal: calculateSubtotal(),
           vat: calculateVAT(),
-          total: calculateTotal()
+          total: calculateTotal(),
+          isVatRegistered
         },
         sender
       );
@@ -237,7 +260,7 @@ ${sender.business_name}`
       console.error("Error generating PDF:", err);
       toast({
         title: "Oops!",
-        description: "Couldn’t generate the invoice PDF.",
+        description: "Couldn't generate the invoice PDF.",
         variant: "destructive"
       });
     }
@@ -268,6 +291,23 @@ ${sender.business_name}`
             </Card>
           )}
 
+          {/* VAT Settings */}
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="vat-registered"
+                  checked={isVatRegistered}
+                  onCheckedChange={setIsVatRegistered}
+                />
+                <Label htmlFor="vat-registered">Charge VAT (20%)</Label>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Toggle off if you're not VAT registered
+              </p>
+            </CardContent>
+          </Card>
+
           {/* TABS */}
           <Tabs defaultValue="load-company" className="my-6">
             <TabsList>
@@ -288,6 +328,8 @@ ${sender.business_name}`
             setCustomer={setCustomer}
             customerEmail={customerEmail}
             setCustomerEmail={setCustomerEmail}
+            contactName={contactName}
+            setContactName={setContactName}
             invoiceDate={invoiceDate}
             setInvoiceDate={setInvoiceDate}
             reference={reference}
@@ -323,6 +365,7 @@ ${sender.business_name}`
             subtotal={calculateSubtotal()}
             vat={calculateVAT()}
             total={calculateTotal()}
+            isVatRegistered={isVatRegistered}
           />
         </CardContent>
 
@@ -338,6 +381,7 @@ ${sender.business_name}`
         onOpenChange={setIsPreviewOpen}
         customer={customer}
         customerEmail={customerEmail}
+        contactName={contactName}
         invoiceDate={invoiceDate}
         reference={reference}
         lineItems={lineItems}
@@ -353,6 +397,7 @@ ${sender.business_name}`
         postcode={sender?.postcode}
         country={sender?.country}
         sender={sender}
+        isVatRegistered={isVatRegistered}
       />
     </div>
   );

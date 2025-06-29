@@ -11,6 +11,7 @@ export interface LineItem {
 export interface InvoiceFormData {
   customer: string;
   customerEmail: string;
+  contactName: string;
   invoiceDate: Date;
   reference: string;
   notes: string;
@@ -22,4 +23,5 @@ export interface InvoiceFormData {
   county: string;
   postcode: string;
   country: string;
+  isVatRegistered: boolean;
 }

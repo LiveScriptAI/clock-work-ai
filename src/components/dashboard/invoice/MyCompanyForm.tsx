@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
@@ -105,7 +106,7 @@ const MyCompanyForm: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // On Save click: persist both form fields and logo
+  // On Save click: persist both form fields and logo with immediate refresh
   const onSubmit = async (data: InvoiceSettingsType) => {
     setIsLoading(true);
     try {
@@ -113,9 +114,15 @@ const MyCompanyForm: React.FC = () => {
       if (logoChanged && previewUrl) {
         save("companyLogo", previewUrl);
       }
+      
+      // Trigger custom event for other components to refresh immediately
+      window.dispatchEvent(new CustomEvent('companySettingsUpdated', { 
+        detail: data 
+      }));
+      
       toast({
         title: "Success",
-        description: "Company information saved"
+        description: "Company information saved and updated across the app"
       });
       setLogoChanged(false);
     } catch (err) {

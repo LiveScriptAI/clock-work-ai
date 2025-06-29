@@ -1,4 +1,3 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -17,7 +16,8 @@ interface LineItem {
 
 interface InvoiceData {
   customer: string;
-  customerEmail?: string; // Add customerEmail field
+  customerEmail?: string;
+  contactName?: string;
   invoiceDate: Date;
   reference: string;
   lineItems: LineItem[];
@@ -26,20 +26,20 @@ interface InvoiceData {
   subtotal: string;
   vat: string;
   total: string;
-  // Add granular address fields
   address1: string;
   address2: string;
   city: string;
   county: string;
   postcode: string;
   country: string;
+  isVatRegistered: boolean;
 }
 
 // Function to load an image from URL and return it as a data URL
 const loadImage = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'Anonymous'; // This helps with CORS issues
+    img.crossOrigin = 'Anonymous';
     
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -65,7 +65,7 @@ const loadImage = (url: string): Promise<string> => {
 };
 
 // Convert ShiftEntry to InvoiceData
-export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = ''): InvoiceData => {
+export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '', contactName: string = ''): InvoiceData => {
   const lineItem: LineItem = {
     id: shift.id,
     date: shift.date,
@@ -81,7 +81,8 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
 
   return {
     customer: shift.employer,
-    customerEmail: clientEmail, // Use the actual client email
+    customerEmail: clientEmail,
+    contactName: contactName,
     invoiceDate: shift.date,
     reference: shift.id,
     lineItems: [lineItem],
@@ -95,7 +96,8 @@ export const convertShiftToInvoice = (shift: ShiftEntry, clientEmail: string = '
     city: "",
     county: "",
     postcode: "",
-    country: ""
+    country: "",
+    isVatRegistered: true
   };
 };
 
@@ -104,13 +106,11 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
   try {
     console.log('Generating PDF with invoice data:', {
       lineItems: invoice.lineItems.length,
-      customerEmail: invoice.customerEmail
+      customerEmail: invoice.customerEmail,
+      isVatRegistered: invoice.isVatRegistered
     });
 
-    // Initialize new PDF document
     const doc = new jsPDF();
-    
-    // Starting Y position for content after logo (if any)
     let yPos = 20;
     
     // Add logo if available
@@ -124,14 +124,14 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       }
     }
     
-    // Add title and invoice number with better spacing
+    // Add title and invoice number
     doc.setFontSize(20);
     doc.text("INVOICE", 14, yPos);
     
     doc.setFontSize(10);
     doc.text(`Reference: ${invoice.reference || "N/A"}`, 14, yPos + 8);
     
-    // Add date with better alignment
+    // Add date
     const formattedDate = invoice.invoiceDate.toLocaleDateString();
     doc.text(`Date: ${formattedDate}`, 170, yPos, { align: "right" });
     
@@ -140,15 +140,13 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     dueDate.setDate(dueDate.getDate() + 30);
     doc.text(`Due: ${dueDate.toLocaleDateString()}`, 170, yPos + 8, { align: "right" });
     
-    // Increase spacing before From/To sections
     yPos += 25;
     
-    // From section with sender information
+    // From section
     doc.setFontSize(11);
     doc.text("From:", 14, yPos);
     doc.setFontSize(10);
     
-    // Use sender information with proper line spacing
     let senderY = yPos + 8;
     const lineHeight = 5;
     
@@ -163,7 +161,6 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       senderY += lineHeight;
     }
     
-    // City, county and postcode
     const cityCountyPostcode = [
       sender.city,
       sender.county,
@@ -175,12 +172,11 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       senderY += lineHeight;
     }
     
-    // Country
     if (sender.country) {
       doc.text(sender.country, 14, senderY);
     }
     
-    // To section with better positioning and complete address
+    // To section
     doc.setFontSize(11);
     doc.text("To:", 110, yPos);
     doc.setFontSize(10);
@@ -189,7 +185,13 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text(invoice.customer || "Client Name", 110, toY);
     toY += lineHeight;
     
-    // Add complete address fields with proper validation
+    // Add contact name if available
+    if (invoice.contactName && invoice.contactName.trim()) {
+      doc.text(`Contact: ${invoice.contactName}`, 110, toY);
+      toY += lineHeight;
+    }
+    
+    // Add address fields
     if (invoice.address1 && invoice.address1.trim()) {
       doc.text(invoice.address1, 110, toY);
       toY += lineHeight;
@@ -200,7 +202,6 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       toY += lineHeight;
     }
     
-    // City, County, Postcode combined - only add if at least one field has content
     const cityCountyPostcode2 = [
       invoice.city,
       invoice.county,
@@ -212,22 +213,19 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       toY += lineHeight;
     }
     
-    // Country - only add if it has content
     if (invoice.country && invoice.country.trim()) {
       doc.text(invoice.country, 110, toY);
       toY += lineHeight;
     }
     
-    // Use actual customer email if provided, otherwise display "No email provided"
     const customerEmail = invoice.customerEmail && invoice.customerEmail.trim() 
       ? invoice.customerEmail 
       : "No email provided";
     doc.text(customerEmail, 110, toY);
     
-    // Calculate the maximum Y position from both From and To sections
-    const maxFromToY = yPos + 70; // Increased to accommodate more address lines
+    const maxFromToY = yPos + 70;
     
-    // Line items table - ensure it starts well below the address sections
+    // Line items table
     const tableData = invoice.lineItems.map(item => [
       item.date ? item.date.toLocaleDateString() : "N/A",
       item.description || "N/A",
@@ -237,7 +235,6 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       `£${(item.quantity * item.unitPrice).toFixed(2)}`
     ]);
     
-    // Add extra spacing before table to prevent overlap
     const tableStartY = maxFromToY + 15;
     
     autoTable(doc, {
@@ -257,16 +254,9 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
       margin: { left: 14, right: 14 }
     });
     
-    // Get the y position after the table
     let finalY = (doc as any).lastAutoTable.finalY + 15;
     
-    // Check if we need a new page for totals
-    if (finalY > 220) {
-      doc.addPage();
-      finalY = 20;
-    }
-    
-    // Totals section with better spacing
+    // Totals section (right side)
     const totalsX = 140;
     const totalsValueX = 170;
     
@@ -274,43 +264,76 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text("Subtotal:", totalsX, finalY);
     doc.text(`£${invoice.subtotal}`, totalsValueX, finalY, { align: "right" });
     
-    doc.text("VAT (20%):", totalsX, finalY + 7);
-    doc.text(`£${invoice.vat}`, totalsValueX, finalY + 7, { align: "right" });
+    // Only show VAT if registered
+    if (invoice.isVatRegistered) {
+      doc.text("VAT (20%):", totalsX, finalY + 7);
+      doc.text(`£${invoice.vat}`, totalsValueX, finalY + 7, { align: "right" });
+      finalY += 7;
+    }
     
     doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
-    doc.text("Total:", totalsX, finalY + 16);
-    doc.text(`£${invoice.total}`, totalsValueX, finalY + 16, { align: "right" });
+    doc.text("Total:", totalsX, finalY + 9);
+    doc.text(`£${invoice.total}`, totalsValueX, finalY + 9, { align: "right" });
     doc.setFont(undefined, 'normal');
     
-    // Notes and Terms with better spacing
-    let notesY = finalY + 35;
+    // Calculate space for Terms & Conditions on first page
+    let termsY = finalY + 25;
+    const pageHeight = doc.internal.pageSize.height;
+    const termsHeight = 40; // Estimate height needed for terms
     
-    // Check if we need a new page for notes
-    if (notesY > 200) {
-      doc.addPage();
-      notesY = 20;
+    // Keep Terms & Conditions on first page if possible
+    if (termsY + termsHeight > pageHeight - 20) {
+      // If not enough space, place terms below totals but compact
+      termsY = finalY + 20;
     }
     
-    if (invoice.notes) {
-      doc.setFontSize(11);
+    // Terms and Conditions (left side, aligned with left margin)
+    if (invoice.terms && termsY + 30 < pageHeight) {
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text("Notes:", 14, notesY);
+      doc.text("Terms & Conditions:", 14, termsY);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      doc.text(invoice.notes, 14, notesY + 7, { maxWidth: 80 });
+      doc.setFontSize(8);
+      
+      // Split terms into lines that fit within page width
+      const termsLines = doc.splitTextToSize(invoice.terms, 180);
+      let currentTermsY = termsY + 6;
+      
+      // Only show as many lines as fit on the page
+      const maxLines = Math.floor((pageHeight - currentTermsY - 10) / 4);
+      const displayLines = termsLines.slice(0, maxLines);
+      
+      displayLines.forEach((line: string) => {
+        if (currentTermsY < pageHeight - 10) {
+          doc.text(line, 14, currentTermsY);
+          currentTermsY += 4;
+        }
+      });
     }
     
-    if (invoice.terms) {
-      doc.setFontSize(11);
+    // Notes (right side, if space available)
+    if (invoice.notes && termsY + 30 < pageHeight) {
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text("Terms & Conditions:", 110, notesY);
+      doc.text("Notes:", 110, termsY);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      doc.text(invoice.terms, 110, notesY + 7, { maxWidth: 80 });
+      doc.setFontSize(8);
+      
+      const notesLines = doc.splitTextToSize(invoice.notes, 80);
+      let currentNotesY = termsY + 6;
+      
+      const maxLines = Math.floor((pageHeight - currentNotesY - 10) / 4);
+      const displayLines = notesLines.slice(0, maxLines);
+      
+      displayLines.forEach((line: string) => {
+        if (currentNotesY < pageHeight - 10) {
+          doc.text(line, 110, currentNotesY);
+          currentNotesY += 4;
+        }
+      });
     }
     
-    // Return PDF as Blob instead of saving
     return doc.output('blob');
   } catch (error) {
     console.error("PDF generation failed:", error);
@@ -318,22 +341,22 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
   }
 };
 
-// Function to send an invoice with granular address fields
+// Function to send an invoice
 export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
   console.log('Sending invoice with data:', {
     customer: invoice.customer,
     customerEmail: invoice.customerEmail,
+    contactName: invoice.contactName,
     lineItems: invoice.lineItems?.length
   });
 
-  // Use the actual customer email if provided
   const email = invoice.customerEmail && invoice.customerEmail.trim() 
     ? invoice.customerEmail 
     : "customer@email.com";
   
-  // Log the full invoice data being sent (in a real implementation, this would go to an API)
   console.log("Sending invoice with address details:", {
     customer: invoice.customer,
+    contactName: invoice.contactName,
     email,
     address1: invoice.address1,
     address2: invoice.address2,
@@ -346,6 +369,5 @@ export const sendInvoice = (invoice: Partial<InvoiceData>): void => {
     }))
   });
   
-  // Show success toast with the customer email
   toast.success(`Invoice sent successfully to ${email}`);
 };

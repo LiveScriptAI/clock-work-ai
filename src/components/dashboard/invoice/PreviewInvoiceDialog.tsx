@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,6 +21,7 @@ interface PreviewInvoiceDialogProps {
   onOpenChange: (open: boolean) => void;
   customer: string;
   customerEmail: string;
+  contactName: string;
   invoiceDate: Date;
   reference: string;
   lineItems: LineItem[];
@@ -28,15 +30,14 @@ interface PreviewInvoiceDialogProps {
   subtotal: string;
   vat: string;
   total: string;
-  // Address fields
   address1: string;
   address2: string;
   city: string;
   county: string;
   postcode: string;
   country: string;
-  // Sender information
   sender: InvoiceSettingsType | null;
+  isVatRegistered: boolean;
 }
 
 const PreviewInvoiceDialog = ({
@@ -44,6 +45,7 @@ const PreviewInvoiceDialog = ({
   onOpenChange,
   customer,
   customerEmail,
+  contactName,
   invoiceDate,
   reference,
   lineItems,
@@ -52,15 +54,14 @@ const PreviewInvoiceDialog = ({
   subtotal,
   vat,
   total,
-  // Address fields
   address1,
   address2,
   city,
   county,
   postcode,
   country,
-  // Sender information
   sender,
+  isVatRegistered,
 }: PreviewInvoiceDialogProps) => {
   const isMobile = useIsMobile();
   
@@ -122,7 +123,7 @@ const PreviewInvoiceDialog = ({
               <div>
                 <h4 className="font-semibold mb-2">To</h4>
                 <p>{customer || "Client Name"}</p>
-                {/* Display formatted address using the props */}
+                {contactName && <p>Contact: {contactName}</p>}
                 {address1 && <p>{address1}</p>}
                 {address2 && <p>{address2}</p>}
                 <p>
@@ -177,10 +178,12 @@ const PreviewInvoiceDialog = ({
                   <span className="text-muted-foreground">Subtotal:</span>
                   <span>£{subtotal}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">VAT (20%):</span>
-                  <span>£{vat}</span>
-                </div>
+                {isVatRegistered && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">VAT (20%):</span>
+                    <span>£{vat}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total:</span>
                   <span>£{total}</span>

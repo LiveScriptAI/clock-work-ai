@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,6 +38,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const CustomerTabs = () => {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
@@ -71,8 +72,9 @@ const CustomerTabs = () => {
     }
   }, [form]);
 
-  // Handle form submission
+  // Handle form submission with immediate state refresh
   const onSubmit = async (data: FormValues) => {
+    setIsLoading(true);
     try {
       // Save to localStorage as general customer info
       save('customerInfo', data);
@@ -99,7 +101,7 @@ const CustomerTabs = () => {
       // Save individual customer record
       save(`customer_${customerId}`, customerRecord);
       
-      // Add to customers list for invoice dropdown
+      // Add to customers list for invoice dropdown with immediate refresh
       const customersList = load<any[]>('invoiceRecipients') || [];
       const existingIndex = customersList.findIndex(c => c.id === customerId);
       
@@ -111,13 +113,16 @@ const CustomerTabs = () => {
       
       save('invoiceRecipients', customersList);
       
+      // Trigger custom event for other components to refresh
+      window.dispatchEvent(new CustomEvent('customerDataUpdated', { 
+        detail: customerRecord 
+      }));
+      
       toast({
         title: "Success",
-        description: "Customer information saved locally"
+        description: "Customer information saved and available in invoice dropdown"
       });
       
-      // Optionally reset form after successful save
-      // form.reset();
     } catch (error) {
       console.error("Error saving customer data:", error);
       toast({
@@ -125,6 +130,8 @@ const CustomerTabs = () => {
         description: "Failed to save customer information",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -360,8 +367,8 @@ const CustomerTabs = () => {
               </div>
             </TabsContent>
             
-            <Button type="submit" className="mt-4">
-              Save Customer
+            <Button type="submit" disabled={isLoading} className="mt-4">
+              {isLoading ? "Saving..." : "Save Customer"}
             </Button>
           </form>
         </Form>
