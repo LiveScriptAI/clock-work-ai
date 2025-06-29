@@ -139,6 +139,11 @@ export function useShiftActions(
       // Continue anyway since we've already saved the data
     }
 
+    // Dispatch custom event to notify timesheet log to refresh
+    window.dispatchEvent(new CustomEvent('shiftCompleted', { 
+      detail: { shift: record } 
+    }));
+
     toast.success("Shift ended & saved to history!");
   };
 

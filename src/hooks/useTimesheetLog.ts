@@ -129,12 +129,6 @@ export function useTimesheetLog() {
     [isDateRangeActive, dateRange, periodFilteredShifts, shifts]
   );
 
-  // Fetch shifts data on component mount
-  useEffect(() => {
-    console.log("useTimesheetLog: Component mounted, loading shifts...");
-    loadShifts();
-  }, []);
-
   const loadShifts = async () => {
     console.log("loadShifts: Starting to fetch shifts...");
     setIsLoading(true);
@@ -159,6 +153,26 @@ export function useTimesheetLog() {
       setIsLoading(false);
     }
   };
+
+  // Fetch shifts data on component mount
+  useEffect(() => {
+    console.log("useTimesheetLog: Component mounted, loading shifts...");
+    loadShifts();
+  }, []);
+
+  // Listen for shift completion events to auto-refresh
+  useEffect(() => {
+    const handleShiftCompleted = (event: CustomEvent) => {
+      console.log("Shift completed event received, refreshing timesheet...");
+      loadShifts();
+    };
+
+    window.addEventListener('shiftCompleted', handleShiftCompleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('shiftCompleted', handleShiftCompleted as EventListener);
+    };
+  }, []);
 
   // Handle deleting a shift
   const handleDeleteShift = async (shiftId: string) => {
