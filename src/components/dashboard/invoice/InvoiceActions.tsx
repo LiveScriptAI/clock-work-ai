@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
@@ -26,6 +27,7 @@ interface InvoiceActionsProps {
   county: string;
   postcode: string;
   country: string;
+  isVatRegistered?: boolean;
 }
 
 const InvoiceActions: React.FC<InvoiceActionsProps> = ({
@@ -45,14 +47,15 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   city,
   county,
   postcode,
-  country
+  country,
+  isVatRegistered = true
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleShareInvoice = async () => {
     setIsGenerating(true);
     try {
-      // Load “My Company” info
+      // Load "My Company" info
       const senderInfo = await fetchInvoiceSettings();
       if (!senderInfo) {
         toast.error("Please set up your company details in the My Company tab first");
@@ -63,6 +66,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       const invoiceData = {
         customer,
         customerEmail: clientEmail,
+        contactName: "", // Will be populated from customer data if available
         invoiceDate,
         reference,
         lineItems,
@@ -76,7 +80,8 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         city,
         county,
         postcode,
-        country
+        country,
+        isVatRegistered
       };
 
       // Generate PDF blob
