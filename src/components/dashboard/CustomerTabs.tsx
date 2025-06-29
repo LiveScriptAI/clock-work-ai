@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -55,7 +56,7 @@ const defaultFormValues: FormValues = {
 const CustomerTabs = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { addCustomer, updateCustomer, customers } = useData();
+  const { addCustomer, updateCustomer, customers, refreshCustomers } = useData();
 
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
@@ -111,6 +112,12 @@ const CustomerTabs = () => {
         // Add new customer
         addCustomer(customerRecord);
       }
+      
+      // Dispatch custom event for cross-component updates
+      window.dispatchEvent(new CustomEvent('customerDataUpdated'));
+      
+      // Refresh customers to ensure immediate updates
+      refreshCustomers();
       
       // Clear the form fields immediately after successful save
       form.reset(defaultFormValues);

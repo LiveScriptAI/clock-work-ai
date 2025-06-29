@@ -17,7 +17,11 @@ export const formatHoursAndMinutes = (hours: number): string => {
   if (isNaN(hours) || hours < 0) return "0h 0m";
   
   const wholeHours = Math.floor(hours);
-  const minutes = Math.floor((hours - wholeHours) * 60);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  
+  if (minutes === 0) {
+    return `${wholeHours}h`;
+  }
   
   return `${wholeHours}h ${minutes}m`;
 };
