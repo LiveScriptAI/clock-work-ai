@@ -27,6 +27,7 @@ import {
 interface InvoiceRecipient {
   id: string;
   company_name: string;
+  contact_name: string;
   email: string;
   address1: string;
   address2?: string;
@@ -34,6 +35,8 @@ interface InvoiceRecipient {
   county?: string;
   postcode: string;
   country: string;
+  phone_number?: string;
+  vat_number?: string;
   notes?: string;
   terms_conditions?: string;
 }
@@ -55,10 +58,11 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
     
     const selectedCustomer = customers.find(c => c.id === companyId);
     if (selectedCustomer) {
-      // Convert to InvoiceRecipient format
+      // Convert to InvoiceRecipient format with all fields properly mapped
       const invoiceRecipient: InvoiceRecipient = {
         id: selectedCustomer.id,
         company_name: selectedCustomer.company_name,
+        contact_name: selectedCustomer.contact_name,
         email: selectedCustomer.email,
         address1: selectedCustomer.address1,
         address2: selectedCustomer.address2,
@@ -66,6 +70,8 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
         county: selectedCustomer.county,
         postcode: selectedCustomer.postcode,
         country: selectedCustomer.country,
+        phone_number: selectedCustomer.phone_number,
+        vat_number: selectedCustomer.vat_number,
         notes: selectedCustomer.notes,
         terms_conditions: selectedCustomer.terms_conditions
       };

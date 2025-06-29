@@ -45,6 +45,18 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
   setInvoiceDate,
   reference,
   setReference,
+  address1,
+  setAddress1,
+  address2,
+  setAddress2,
+  city,
+  setCity,
+  county,
+  setCounty,
+  postcode,
+  setPostcode,
+  country,
+  setCountry,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -81,6 +93,68 @@ const InvoiceHeader: React.FC<InvoiceHeaderProps> = ({
             value={customerEmail}
             onChange={(e) => setCustomerEmail(e.target.value)}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address1">Address Line 1</Label>
+          <Input
+            id="address1"
+            placeholder="Street address"
+            value={address1}
+            onChange={(e) => setAddress1(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address2">Address Line 2</Label>
+          <Input
+            id="address2"
+            placeholder="Apartment, suite, etc."
+            value={address2}
+            onChange={(e) => setAddress2(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input
+              id="city"
+              placeholder="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="county">County/State</Label>
+            <Input
+              id="county"
+              placeholder="County"
+              value={county}
+              onChange={(e) => setCounty(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="postcode">Postcode/ZIP</Label>
+            <Input
+              id="postcode"
+              placeholder="Postcode"
+              value={postcode}
+              onChange={(e) => setPostcode(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="country">Country</Label>
+            <Input
+              id="country"
+              placeholder="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

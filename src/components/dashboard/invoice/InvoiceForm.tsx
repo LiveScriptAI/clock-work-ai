@@ -38,6 +38,14 @@ const InvoiceForm: React.FC = () => {
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
 
+  // Customer address fields
+  const [customerAddress1, setCustomerAddress1] = useState("");
+  const [customerAddress2, setCustomerAddress2] = useState("");
+  const [customerCity, setCustomerCity] = useState("");
+  const [customerCounty, setCustomerCounty] = useState("");
+  const [customerPostcode, setCustomerPostcode] = useState("");
+  const [customerCountry, setCustomerCountry] = useState("");
+
   // "My Company" (sender) data
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
   const [settingsVersion, setSettingsVersion] = useState(0);
@@ -94,9 +102,18 @@ const InvoiceForm: React.FC = () => {
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
     
+    console.log("Selected company data:", companyData);
+    
+    // Set all customer fields
     setCustomer(companyData.company_name || "");
     setCustomerEmail(companyData.email || "");
     setContactName(companyData.contact_name || "");
+    setCustomerAddress1(companyData.address1 || "");
+    setCustomerAddress2(companyData.address2 || "");
+    setCustomerCity(companyData.city || "");
+    setCustomerCounty(companyData.county || "");
+    setCustomerPostcode(companyData.postcode || "");
+    setCustomerCountry(companyData.country || "");
     setReference(r => r || `Invoice for ${companyData.company_name}`);
     
     // Load customer's saved notes and terms if available
@@ -168,12 +185,12 @@ const InvoiceForm: React.FC = () => {
       notes,
       terms,
       lineItems,
-      address1: sender.address1,
-      address2: sender.address2,
-      city: sender.city,
-      county: sender.county,
-      postcode: sender.postcode,
-      country: sender.country,
+      address1: customerAddress1,
+      address2: customerAddress2,
+      city: customerCity,
+      county: customerCounty,
+      postcode: customerPostcode,
+      country: customerCountry,
       subtotal: calculateSubtotal(),
       vat: calculateVAT(),
       total: calculateTotal(),
@@ -236,12 +253,12 @@ ${sender.business_name}`
           notes,
           terms,
           lineItems,
-          address1: sender.address1,
-          address2: sender.address2,
-          city: sender.city,
-          county: sender.county,
-          postcode: sender.postcode,
-          country: sender.country,
+          address1: customerAddress1,
+          address2: customerAddress2,
+          city: customerCity,
+          county: customerCounty,
+          postcode: customerPostcode,
+          country: customerCountry,
           subtotal: calculateSubtotal(),
           vat: calculateVAT(),
           total: calculateTotal(),
@@ -334,18 +351,18 @@ ${sender.business_name}`
             setInvoiceDate={setInvoiceDate}
             reference={reference}
             setReference={setReference}
-            address1={sender?.address1 || ""}
-            setAddress1={() => {}}
-            address2={sender?.address2 || ""}
-            setAddress2={() => {}}
-            city={sender?.city || ""}
-            setCity={() => {}}
-            county={sender?.county || ""}
-            setCounty={() => {}}
-            postcode={sender?.postcode || ""}
-            setPostcode={() => {}}
-            country={sender?.country || ""}
-            setCountry={() => {}}
+            address1={customerAddress1}
+            setAddress1={setCustomerAddress1}
+            address2={customerAddress2}
+            setAddress2={setCustomerAddress2}
+            city={customerCity}
+            setCity={setCustomerCity}
+            county={customerCounty}
+            setCounty={setCustomerCounty}
+            postcode={customerPostcode}
+            setPostcode={setCustomerPostcode}
+            country={customerCountry}
+            setCountry={setCustomerCountry}
           />
 
           {/* LINE ITEMS */}
@@ -390,12 +407,12 @@ ${sender.business_name}`
         subtotal={calculateSubtotal()}
         vat={calculateVAT()}
         total={calculateTotal()}
-        address1={sender?.address1}
-        address2={sender?.address2}
-        city={sender?.city}
-        county={sender?.county}
-        postcode={sender?.postcode}
-        country={sender?.country}
+        address1={customerAddress1}
+        address2={customerAddress2}
+        city={customerCity}
+        county={customerCounty}
+        postcode={customerPostcode}
+        country={customerCountry}
         sender={sender}
         isVatRegistered={isVatRegistered}
       />
