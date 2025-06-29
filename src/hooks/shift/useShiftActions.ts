@@ -78,7 +78,7 @@ export function useShiftActions(
     setIsEndSignatureOpen(true);
   };
 
-  const confirmShiftEnd = async () => {
+  const confirmShiftEnd = () => {
     console.log("Confirming shift end - validation check");
     
     if (isEndSignatureEmpty || !endManagerName.trim()) {
@@ -131,9 +131,9 @@ export function useShiftActions(
     setIsShiftComplete(true);
     setIsEndSignatureOpen(false);
 
-    // Clear shift state with mock userId
+    // Clear shift state (no parameters needed)
     try {
-      await clearShiftState("mock-user-id");
+      clearShiftState();
     } catch (error) {
       console.log("Error clearing shift state:", error);
       // Continue anyway since we've already saved the data

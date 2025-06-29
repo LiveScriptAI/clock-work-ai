@@ -43,8 +43,8 @@ const DashboardPage = () => {
     calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
 
   // Create a wrapper function to call confirmShiftEnd
-  const handleConfirmShiftEnd = async () => {
-    await confirmShiftEnd();
+  const handleConfirmShiftEnd = () => {
+    confirmShiftEnd();
   };
 
   // Type-safe handler for rate type changes
