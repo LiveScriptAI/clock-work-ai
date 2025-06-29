@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { save, load } from "@/services/localStorageService";
-import { useData } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +55,6 @@ const defaultFormValues: FormValues = {
 const CustomerTabs = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { addCustomer, updateCustomer, customers, refreshCustomers } = useData();
 
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
@@ -83,7 +81,7 @@ const CustomerTabs = () => {
       // Save to localStorage as general customer info
       save('customerInfo', data);
       
-      // Create customer record for invoice loading
+      // Also save as a specific customer record for invoice loading
       const customerId = data.email || `customer_${Date.now()}`;
       const customerRecord = {
         id: customerId,
@@ -102,22 +100,25 @@ const CustomerTabs = () => {
         notes: data.notes || ""
       };
       
-      // Check if customer already exists
-      const existingCustomer = customers.find(c => c.id === customerId);
+      // Save individual customer record
+      save(`customer_${customerId}`, customerRecord);
       
-      if (existingCustomer) {
-        // Update existing customer
-        updateCustomer(customerId, customerRecord);
+      // Add to customers list for invoice dropdown with immediate refresh
+      const customersList = load<any[]>('invoiceRecipients') || [];
+      const existingIndex = customersList.findIndex(c => c.id === customerId);
+      
+      if (existingIndex >= 0) {
+        customersList[existingIndex] = customerRecord;
       } else {
-        // Add new customer
-        addCustomer(customerRecord);
+        customersList.push(customerRecord);
       }
       
-      // Dispatch custom event for cross-component updates
-      window.dispatchEvent(new CustomEvent('customerDataUpdated'));
+      save('invoiceRecipients', customersList);
       
-      // Refresh customers to ensure immediate updates
-      refreshCustomers();
+      // Trigger custom event for other components to refresh
+      window.dispatchEvent(new CustomEvent('customerDataUpdated', { 
+        detail: customerRecord 
+      }));
       
       // Clear the form fields immediately after successful save
       form.reset(defaultFormValues);

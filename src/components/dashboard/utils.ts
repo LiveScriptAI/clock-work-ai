@@ -1,6 +1,5 @@
 
 import { differenceInSeconds, differenceInMinutes, differenceInHours } from "date-fns";
-import { calculateEarningsFromSeconds } from "@/utils/earningsCalculator";
 
 // Format duration for display (hours and minutes)
 export const formatDuration = (seconds: number): string => {
@@ -17,11 +16,7 @@ export const formatHoursAndMinutes = (hours: number): string => {
   if (isNaN(hours) || hours < 0) return "0h 0m";
   
   const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  
-  if (minutes === 0) {
-    return `${wholeHours}h`;
-  }
+  const minutes = Math.floor((hours - wholeHours) * 60);
   
   return `${wholeHours}h ${minutes}m`;
 };
@@ -51,7 +46,7 @@ export const calculateTimeWorked = (
   return Math.max(0, totalSeconds - totalBreakDuration);
 };
 
-// Calculate earnings based on time worked and rate type - using unified calculator
+// Calculate earnings based on time worked and rate type
 export const calculateEarnings = (
   timeWorkedInSeconds: number,
   payRate: number = 15,
@@ -59,29 +54,32 @@ export const calculateEarnings = (
 ): string => {
   if (isNaN(timeWorkedInSeconds) || timeWorkedInSeconds < 0) return "0.00";
   
+  const hours = timeWorkedInSeconds / 3600;
+  
+  // Default to hourly rate if no rate is provided
+  const rate = payRate || 15;
+
   // Convert different rate types to hourly equivalent for calculation
-  let hourlyRate = payRate;
+  let earnings = 0;
   switch (rateType) {
     case "Per Day":
       // Assuming 8-hour workday
-      hourlyRate = payRate / 8;
+      earnings = hours * (rate / 8);
       break;
     case "Per Week":
       // Assuming 40-hour workweek
-      hourlyRate = payRate / 40;
+      earnings = hours * (rate / 40);
       break;
     case "Per Month":
       // Assuming 160-hour work month (40 hours × 4 weeks)
-      hourlyRate = payRate / 160;
+      earnings = hours * (rate / 160);
       break;
     case "Per Hour":
     default:
-      hourlyRate = payRate;
+      earnings = hours * rate;
       break;
   }
   
-  // Use the unified earnings calculator
-  const earnings = calculateEarningsFromSeconds(timeWorkedInSeconds, hourlyRate);
   return earnings.toFixed(2);
 };
 

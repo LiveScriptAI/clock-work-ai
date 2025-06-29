@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,27 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Plus } from "lucide-react";
 import { ShiftEntry } from "./types";
+import { formatHoursAndMinutes } from "@/components/dashboard/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { calculateEarnings, formatHours, formatEarnings } from "@/utils/earningsCalculator";
-
 interface ShiftCardProps {
   shift: ShiftEntry;
   onDelete: (shiftId: string) => Promise<void>;
 }
-
 const ShiftCard: React.FC<ShiftCardProps> = ({
   shift,
   onDelete
 }) => {
   const [isDeleting, setIsDeleting] = React.useState(false);
-  
   const handleDelete = async () => {
     setIsDeleting(true);
     await onDelete(shift.id);
     setIsDeleting(false);
   };
-  
   const handleAddToInvoice = () => {
     try {
       if (window._pendingAutofill) {
@@ -52,17 +47,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
       });
     }
   };
-
-  // Use unified earnings calculation
-  const { hoursWorked, earnings } = calculateEarnings(
-    shift.startTime,
-    shift.endTime,
-    shift.breakDuration || 0,
-    shift.payRate
-  );
-
-  return (
-    <Card key={shift.id} className="p-4 border border-gray-200">
+  return <Card key={shift.id} className="p-4 border border-gray-200">
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-start">
           <div>
@@ -85,11 +70,11 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           </div>
           <div>
             <p className="text-muted-foreground">Hours Worked:</p>
-            <p>{formatHours(hoursWorked)}</p>
+            <p>{formatHoursAndMinutes(shift.hoursWorked)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Earnings:</p>
-            <p>{formatEarnings(earnings)}</p>
+            <p>£{shift.earnings.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Rate:</p>
@@ -146,8 +131,6 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           </AlertDialog>
         </div>
       </div>
-    </Card>
-  );
+    </Card>;
 };
-
 export default ShiftCard;

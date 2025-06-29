@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { calculateEarnings, formatHours, formatEarnings } from "@/utils/earningsCalculator";
+import { formatDistanceStrict, differenceInSeconds } from "date-fns";
 
 interface DailySummaryProps {
   employerName: string;
@@ -11,7 +10,9 @@ interface DailySummaryProps {
   isShiftComplete: boolean;
   payRate: number;
   rateType: string;
-  totalBreakDuration: number;
+  formatDuration: (seconds: number) => string;
+  calculateTimeWorked: () => number;
+  calculateEarnings: () => string;
 }
 
 const DailySummary: React.FC<DailySummaryProps> = ({
@@ -22,21 +23,17 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   isShiftComplete,
   payRate,
   rateType,
-  totalBreakDuration = 0,
+  formatDuration,
+  calculateTimeWorked,
+  calculateEarnings,
 }) => {
-  // If shift hasn't started yet, show nothing
+  // If shift hasn't started yet, show nothing (or you could choose to hide the card entirely)
   if (!startTime) {
     return null;
   }
 
-  // Calculate worked time and earnings using the unified utility
-  const currentEndTime = endTime || new Date();
-  const { hoursWorked, earnings } = calculateEarnings(
-    startTime,
-    currentEndTime,
-    totalBreakDuration,
-    payRate
-  );
+  // Calculate worked seconds so far (or final if ended)
+  const workedSeconds = calculateTimeWorked();
 
   return (
     <Card className="mb-6 bg-white rounded-xl">
@@ -53,15 +50,15 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 
           <div>
             <p className="text-sm text-muted-foreground">Hours Worked:</p>
-            <p>{formatHours(hoursWorked)}</p>
+            <p>{formatDuration(workedSeconds)}</p>
           </div>
 
           <div>
             <p className="text-sm text-muted-foreground">Estimated Earnings:</p>
             <p>
-              {formatEarnings(earnings)}{" "}
+              {calculateEarnings()}{" "}
               <span className="text-xs text-muted-foreground">
-                ({rateType})
+                (Per {rateType})
               </span>
             </p>
           </div>
