@@ -108,6 +108,7 @@ const PreviewInvoiceDialog = ({
                 {sender ? (
                   <>
                     <p>{sender.business_name}</p>
+                    {sender.contact_name && <p>{sender.contact_name}</p>}
                     <p>{sender.address1}</p>
                     {sender.address2 && <p>{sender.address2}</p>}
                     <p>
@@ -123,7 +124,7 @@ const PreviewInvoiceDialog = ({
               <div>
                 <h4 className="font-semibold mb-2">To</h4>
                 <p>{customer || "Client Name"}</p>
-                {contactName && <p>Contact: {contactName}</p>}
+                {contactName && <p>{contactName}</p>}
                 {address1 && <p>{address1}</p>}
                 {address2 && <p>{address2}</p>}
                 <p>

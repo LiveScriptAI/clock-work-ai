@@ -297,6 +297,7 @@ ${sender.business_name}`
               <CardContent className="pt-4">
                 <h3 className="text-sm font-semibold mb-2">From</h3>
                 <p>{sender.business_name}</p>
+                {sender.contact_name && <p>{sender.contact_name}</p>}
                 <p>{sender.address1}</p>
                 {sender.address2 && <p>{sender.address2}</p>}
                 <p>

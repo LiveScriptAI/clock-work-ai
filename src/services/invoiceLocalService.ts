@@ -4,6 +4,7 @@ import { load, save } from '@/services/localStorageService';
 export interface InvoiceSettingsType {
   id?: string;
   business_name: string;
+  contact_name: string;
   address1: string;
   address2?: string;
   city: string;

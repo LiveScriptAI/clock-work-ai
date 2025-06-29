@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +18,7 @@ import {
 
 export type InvoiceSettingsType = {
   business_name: string;
+  contact_name: string;
   address1: string;
   address2?: string;
   city: string;
@@ -36,6 +36,7 @@ const MyCompanyForm: React.FC = () => {
   const form = useForm<InvoiceSettingsType>({
     defaultValues: {
       business_name: "",
+      contact_name: "",
       address1: "",
       address2: "",
       city: "",
@@ -179,6 +180,22 @@ const MyCompanyForm: React.FC = () => {
                   <FormLabel>Business Name *</FormLabel>
                   <FormControl>
                     <Input placeholder="Your Business Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Contact Name */}
+            <FormField
+              control={form.control}
+              name="contact_name"
+              rules={{ required: "Contact name is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Full Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
