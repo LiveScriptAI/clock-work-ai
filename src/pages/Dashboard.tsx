@@ -42,7 +42,7 @@ const DashboardPage = () => {
   const calculateEarnings = () => 
     calculateEarningsUtil(calculateTimeWorked(), payRate, rateType);
 
-  // Create a wrapper function to call confirmShiftEnd with the user ID
+  // Create a wrapper function to call confirmShiftEnd
   const handleConfirmShiftEnd = () => {
     confirmShiftEnd();
   };

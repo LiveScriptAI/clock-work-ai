@@ -32,7 +32,7 @@ const ExportActions: React.FC<ExportActionsProps> = ({
     console.log("handleExportCSV: Starting CSV export");
     setIsExporting('csv');
     setTimeout(() => {
-      downloadCSV(filteredShifts, importBreaksToExport);
+      downloadCSV(filteredShifts);
       setIsExporting(null);
       console.log("handleExportCSV: CSV export completed");
     }, 500);
@@ -42,7 +42,7 @@ const ExportActions: React.FC<ExportActionsProps> = ({
     console.log("handleExportPDF: Starting PDF export");
     setIsExporting('pdf');
     setTimeout(() => {
-      downloadPDF(filteredShifts, importBreaksToExport);
+      downloadPDF(filteredShifts);
       setIsExporting(null);
       console.log("handleExportPDF: PDF export completed");
     }, 500);

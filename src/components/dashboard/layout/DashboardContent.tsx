@@ -1,3 +1,4 @@
+
 // src/components/dashboard/layout/DashboardContent.tsx
 
 import React from "react";
@@ -61,6 +62,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       <div className="grid grid-cols-1 mb-6 rounded-xl">
         <DailySummary
           employerName={employerName}
+          startTime={startTime}
+          endTime={endTime}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
           formatDuration={formatDuration}

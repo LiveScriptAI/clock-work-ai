@@ -70,6 +70,9 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
   formatDuration,
   calculateTimeWorked,
 }) => {
+  // Simple break duration function - returns "0 minutes" since breaks are not implemented
+  const getBreakDuration = () => "0 minutes";
+
   return (
     <>
       <StartShiftDialog 
@@ -100,6 +103,7 @@ const DashboardDialogs: React.FC<DashboardDialogsProps> = ({
         startTime={startTime}
         formatDuration={formatDuration}
         calculateTimeWorked={calculateTimeWorked}
+        getBreakDuration={getBreakDuration}
         setEndSignatureData={setEndSignatureData}
       />
 

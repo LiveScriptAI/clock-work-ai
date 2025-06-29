@@ -1,3 +1,4 @@
+
 import { ShiftEntry } from "./types";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -34,7 +35,7 @@ export function downloadCSV(shifts: ShiftEntry[]): void {
     formatDate(s.startTime),
     formatDate(s.endTime),
     `${s.hoursWorked.toFixed(2)}h`,
-    `£${s.payRate} ${s.rateType}`,
+    `£${s.payRate} ${s.payType}`,
     `£${s.earnings.toFixed(2)}`,
     s.status,
   ]);
@@ -89,7 +90,7 @@ export function downloadPDF(shifts: ShiftEntry[]): void {
     format(s.startTime, "HH:mm"),
     format(s.endTime, "HH:mm"),
     s.hoursWorked.toFixed(2),
-    `£${s.payRate}/${s.rateType}`,
+    `£${s.payRate}/${s.payType}`,
     `£${s.earnings.toFixed(2)}`,
     s.status,
   ]);
