@@ -28,5 +28,5 @@ export interface ShiftActions {
   handleStartShift: () => void;
   handleEndShift: () => void;
   confirmShiftStart: () => void;
-  confirmShiftEnd: (userId: string | undefined) => Promise<void>;
+  confirmShiftEnd: () => void;
 }
