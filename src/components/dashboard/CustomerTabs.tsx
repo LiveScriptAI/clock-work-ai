@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { save, load } from "@/services/localStorageService";
+import { useCustomers } from "@/contexts/CustomerContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,6 +55,7 @@ const defaultFormValues: FormValues = {
 
 const CustomerTabs = () => {
   const { toast } = useToast();
+  const { addCustomer } = useCustomers();
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize react-hook-form with zod validation
@@ -62,29 +64,37 @@ const CustomerTabs = () => {
     defaultValues: defaultFormValues
   });
 
-  // Load existing customer data from localStorage on component mount
+  // Load draft data from user-scoped storage on component mount
   useEffect(() => {
     try {
-      const savedData = load<FormValues>('customerInfo');
-      if (savedData) {
-        form.reset(savedData);
+      const draftData = load<FormValues>('customerFormDraft');
+      if (draftData) {
+        form.reset(draftData);
       }
     } catch (error) {
-      console.error("Failed to load customer data:", error);
+      console.error("Failed to load customer form draft:", error);
     }
   }, [form]);
+
+  // Save draft data whenever form changes
+  const watchedValues = form.watch();
+  useEffect(() => {
+    // Only save draft if there's actual content
+    const hasContent = Object.values(watchedValues).some(value => 
+      typeof value === 'string' && value.trim().length > 0
+    );
+    
+    if (hasContent) {
+      save('customerFormDraft', watchedValues);
+    }
+  }, [watchedValues]);
 
   // Handle form submission with immediate state refresh
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      // Save to localStorage as general customer info
-      save('customerInfo', data);
-      
-      // Also save as a specific customer record for invoice loading
-      const customerId = data.email || `customer_${Date.now()}`;
-      const customerRecord = {
-        id: customerId,
+      // Add customer through context (handles all storage)
+      const newCustomer = addCustomer({
         company_name: data.businessName,
         contact_name: data.contactName,
         email: data.email,
@@ -98,34 +108,17 @@ const CustomerTabs = () => {
         vat_number: data.vatNumber || "",
         terms_conditions: data.termsAndConditions || "",
         notes: data.notes || ""
-      };
+      });
       
-      // Save individual customer record
-      save(`customer_${customerId}`, customerRecord);
-      
-      // Add to customers list for invoice dropdown with immediate refresh
-      const customersList = load<any[]>('invoiceRecipients') || [];
-      const existingIndex = customersList.findIndex(c => c.id === customerId);
-      
-      if (existingIndex >= 0) {
-        customersList[existingIndex] = customerRecord;
-      } else {
-        customersList.push(customerRecord);
-      }
-      
-      save('invoiceRecipients', customersList);
-      
-      // Trigger custom event for other components to refresh
-      window.dispatchEvent(new CustomEvent('customerDataUpdated', { 
-        detail: customerRecord 
-      }));
-      
-      // Clear the form fields immediately after successful save
+      // Clear the form immediately
       form.reset(defaultFormValues);
+      
+      // Clear the draft storage
+      save('customerFormDraft', defaultFormValues);
       
       toast({
         title: "Success",
-        description: "Customer information saved and form cleared"
+        description: `Customer "${newCustomer.company_name}" saved successfully and is now available in invoice forms`
       });
       
     } catch (error) {
@@ -301,7 +294,7 @@ const CustomerTabs = () => {
                 <FormField
                   control={form.control}
                   name="postcode"
-                  render={({ field }) => (
+                  render=={({ field }) => (
                     <FormItem>
                       <FormLabel>Postcode/ZIP</FormLabel>
                       <FormControl>

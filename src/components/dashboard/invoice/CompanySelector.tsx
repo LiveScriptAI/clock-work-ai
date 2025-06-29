@@ -11,12 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import {
-  fetchInvoiceRecipients,
-  fetchInvoiceRecipientById,
-  deleteInvoiceRecipient,
-  InvoiceRecipient
-} from "@/services/recipientsLocalService";
+import { useCustomers } from "@/contexts/CustomerContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +24,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface Company {
+interface InvoiceRecipient {
   id: string;
   company_name: string;
+  email: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  county?: string;
+  postcode: string;
+  country: string;
+  notes?: string;
+  terms_conditions?: string;
 }
 
 interface CompanySelectorProps {
@@ -39,50 +43,33 @@ interface CompanySelectorProps {
 }
 
 const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { customers, deleteCustomer } = useCustomers();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const fetchCompanies = async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchInvoiceRecipients();
-      setCompanies(data || []);
-    } catch (error) {
-      console.error("Error fetching companies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load companies",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const handleCompanySelect = async (companyId: string) => {
+  const handleCompanySelect = (companyId: string) => {
     if (!companyId) return;
     
     setSelectedCompanyId(companyId);
     
-    try {
-      const data = await fetchInvoiceRecipientById(companyId);
-      if (data) {
-        onSelect(data);
-      }
-    } catch (error) {
-      console.error("Error fetching company details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load company details",
-        variant: "destructive",
-      });
+    const selectedCustomer = customers.find(c => c.id === companyId);
+    if (selectedCustomer) {
+      // Convert to InvoiceRecipient format
+      const invoiceRecipient: InvoiceRecipient = {
+        id: selectedCustomer.id,
+        company_name: selectedCustomer.company_name,
+        email: selectedCustomer.email,
+        address1: selectedCustomer.address1,
+        address2: selectedCustomer.address2,
+        city: selectedCustomer.city,
+        county: selectedCustomer.county,
+        postcode: selectedCustomer.postcode,
+        country: selectedCustomer.country,
+        notes: selectedCustomer.notes,
+        terms_conditions: selectedCustomer.terms_conditions
+      };
+      onSelect(invoiceRecipient);
     }
   };
 
@@ -90,24 +77,21 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
     if (!selectedCompanyId) return;
     
     try {
-      await deleteInvoiceRecipient(selectedCompanyId);
+      deleteCustomer(selectedCompanyId);
       
       toast({
         title: "Success",
-        description: "Company deleted successfully",
+        description: "Customer deleted successfully",
       });
       
-      // Reset selection and refresh the list
+      // Reset selection and close dialog
       setSelectedCompanyId(null);
-      fetchCompanies();
-      
-      // Close the dialog
       setIsDeleteDialogOpen(false);
     } catch (error) {
-      console.error("Error deleting company:", error);
+      console.error("Error deleting customer:", error);
       toast({
         title: "Error",
-        description: "Failed to delete company",
+        description: "Failed to delete customer",
         variant: "destructive",
       });
     }
@@ -115,20 +99,19 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
 
   return (
     <div className="mb-6 space-y-2">
-      <Label htmlFor="company-selector">Load Company</Label>
+      <Label htmlFor="company-selector">Load Customer</Label>
       <div className="flex items-center">
         <Select 
           onValueChange={handleCompanySelect} 
-          disabled={isLoading}
           value={selectedCompanyId || undefined}
         >
           <SelectTrigger className="w-full" id="company-selector">
-            <SelectValue placeholder="Select a company" />
+            <SelectValue placeholder="Select a customer" />
           </SelectTrigger>
           <SelectContent>
-            {companies.map((company) => (
-              <SelectItem key={company.id} value={company.id}>
-                {company.company_name}
+            {customers.map((customer) => (
+              <SelectItem key={customer.id} value={customer.id}>
+                {customer.company_name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -143,14 +126,14 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
               className="ml-2 hidden md:flex"
             >
               <Trash className="h-4 w-4" />
-              <span className="sr-only">Delete company</span>
+              <span className="sr-only">Delete customer</span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete company?</AlertDialogTitle>
+              <AlertDialogTitle>Delete customer?</AlertDialogTitle>
               <AlertDialogDescription>
-                Permanently delete this contact and all its details? This cannot be undone.
+                Permanently delete this customer and all their details? This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -159,7 +142,7 @@ const CompanySelector = ({ onSelect }: CompanySelectorProps) => {
                 onClick={handleDeleteCompany}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete Company
+                Delete Customer
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
