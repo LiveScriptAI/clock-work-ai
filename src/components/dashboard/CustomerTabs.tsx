@@ -36,6 +36,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const defaultFormValues: FormValues = {
+  businessName: "",
+  contactName: "",
+  email: "",
+  address1: "",
+  address2: "",
+  city: "",
+  county: "",
+  postcode: "",
+  country: "",
+  phoneNumber: "",
+  vatNumber: "",
+  termsAndConditions: "",
+  notes: ""
+};
+
 const CustomerTabs = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,21 +59,7 @@ const CustomerTabs = () => {
   // Initialize react-hook-form with zod validation
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      businessName: "",
-      contactName: "",
-      email: "",
-      address1: "",
-      address2: "",
-      city: "",
-      county: "",
-      postcode: "",
-      country: "",
-      phoneNumber: "",
-      vatNumber: "",
-      termsAndConditions: "",
-      notes: ""
-    }
+    defaultValues: defaultFormValues
   });
 
   // Load existing customer data from localStorage on component mount
@@ -118,9 +120,12 @@ const CustomerTabs = () => {
         detail: customerRecord 
       }));
       
+      // Clear the form fields immediately after successful save
+      form.reset(defaultFormValues);
+      
       toast({
         title: "Success",
-        description: "Customer information saved and available in invoice dropdown"
+        description: "Customer information saved and form cleared"
       });
       
     } catch (error) {
