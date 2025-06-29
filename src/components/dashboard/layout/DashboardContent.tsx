@@ -66,11 +66,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           endTime={endTime}
           isShiftActive={isShiftActive}
           isShiftComplete={isShiftComplete}
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-          calculateEarnings={calculateEarnings}
           rateType={rateType}
           payRate={payRate}
+          totalBreakDuration={0}
         />
       </div>
 
