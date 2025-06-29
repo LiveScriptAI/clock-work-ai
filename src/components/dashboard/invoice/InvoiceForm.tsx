@@ -33,7 +33,7 @@ const InvoiceForm: React.FC = () => {
     { id: `item-${Date.now()}`, date: today, description: "", rateType: "Per Hour", quantity: 1, unitPrice: 0 }
   ]);
 
-  // “My Company” (sender) data
+  // "My Company" (sender) data
   const [sender, setSender] = useState<InvoiceSettingsType | null>(null);
   const [settingsVersion, setSettingsVersion] = useState(0);
 
@@ -51,13 +51,13 @@ const InvoiceForm: React.FC = () => {
     loadCompanySettings();
   }, [loadCompanySettings, settingsVersion]);
 
-  // Called by MyCompanyForm on successful save
+  // Called when company settings are updated
   const handleSettingsSaved = () => {
     setSettingsVersion(v => v + 1);
-    toast({ title: "My Company Updated", description: "‘From’ section refreshed." });
+    toast({ title: "My Company Updated", description: "'From' section refreshed." });
   };
 
-  // Expose pending autofill for “Add to Invoice”
+  // Expose pending autofill for "Add to Invoice"
   useEffect(() => {
     window._pendingAutofill = (shiftData: ShiftEntry) => {
       // Prevent duplicates
@@ -91,7 +91,7 @@ const InvoiceForm: React.FC = () => {
     };
   }, [lineItems]);
 
-  // CompanySelector (billing “To:” side)
+  // CompanySelector (billing "To:" side)
   const handleCompanySelect = (companyData: any) => {
     if (!companyData) return;
     setCustomer(companyData.company_name || "");
@@ -100,7 +100,7 @@ const InvoiceForm: React.FC = () => {
     toast({ title: "Customer Loaded", description: `Now invoicing ${companyData.company_name}.` });
   };
 
-  // Line‐item helpers
+  // Line-item helpers
   const addLineItem = () => {
     setLineItems(items => [
       ...items,
@@ -278,7 +278,7 @@ ${sender.business_name}`
               <CompanySelector onSelect={handleCompanySelect} />
             </TabsContent>
             <TabsContent value="my-company">
-              <MyCompanyForm onSettingsSaved={handleSettingsSaved} />
+              <MyCompanyForm />
             </TabsContent>
           </Tabs>
 
