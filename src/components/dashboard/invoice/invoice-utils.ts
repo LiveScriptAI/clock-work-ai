@@ -1,3 +1,4 @@
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -38,27 +39,44 @@ interface InvoiceData {
 // Function to load an image from URL and return it as a data URL
 const loadImage = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
+    // Handle base64 images directly
+    if (url.startsWith('data:')) {
+      resolve(url);
+      return;
+    }
+
     const img = new Image();
     img.crossOrigin = 'Anonymous';
     
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'));
-        return;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (error) {
+        console.warn('Could not process image:', error);
+        reject(error);
       }
-      
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
     };
     
-    img.onerror = () => {
+    img.onerror = (error) => {
+      console.warn('Could not load image:', error);
       reject(new Error('Could not load image'));
     };
+    
+    // Add timeout for mobile devices
+    setTimeout(() => {
+      reject(new Error('Image load timeout'));
+    }, 5000);
     
     img.src = url;
   });
@@ -107,20 +125,25 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     console.log('Generating PDF with invoice data:', {
       lineItems: invoice.lineItems.length,
       customerEmail: invoice.customerEmail,
-      isVatRegistered: invoice.isVatRegistered
+      isVatRegistered: invoice.isVatRegistered,
+      senderInfo: {
+        business_name: sender.business_name,
+        contact_name: sender.contact_name,
+        hasLogo: !!sender.logo_url
+      }
     });
 
     const doc = new jsPDF();
     let yPos = 20;
     
-    // Add logo if available
+    // Add logo if available (with better mobile handling)
     if (sender.logo_url) {
       try {
         const logoDataUrl = await loadImage(sender.logo_url);
         doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 20, undefined, 'FAST');
         yPos = 40;
       } catch (err) {
-        console.error('Error adding logo to PDF:', err);
+        console.warn('Skipping logo due to error:', err);
       }
     }
     
@@ -152,6 +175,12 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     
     doc.text(sender.business_name, 14, senderY);
     senderY += lineHeight;
+    
+    // Add contact name
+    if (sender.contact_name) {
+      doc.text(sender.contact_name, 14, senderY);
+      senderY += lineHeight;
+    }
     
     doc.text(sender.address1, 14, senderY);
     senderY += lineHeight;
@@ -185,9 +214,9 @@ export const generateInvoicePDF = async (invoice: InvoiceData, sender: InvoiceSe
     doc.text(invoice.customer || "Client Name", 110, toY);
     toY += lineHeight;
     
-    // Add contact name if available
+    // Add contact name if available (without "Contact:" prefix)
     if (invoice.contactName && invoice.contactName.trim()) {
-      doc.text(`Contact: ${invoice.contactName}`, 110, toY);
+      doc.text(invoice.contactName, 110, toY);
       toY += lineHeight;
     }
     
