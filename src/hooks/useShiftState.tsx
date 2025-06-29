@@ -59,7 +59,7 @@ export function useShiftState() {
     setBreakStart
   );
   
-  // Use our actions hook
+  // Use our actions hook with all required parameters
   const actions = useShiftActions(
     setIsStartSignatureOpen,
     setIsEndSignatureOpen,
@@ -74,12 +74,6 @@ export function useShiftState() {
     setStartTime,
     setIsShiftComplete,
     setEndTime,
-    setTotalBreakDuration,
-    setBreakStart,
-    setIsBreakActive,
-    isBreakActive,
-    breakStart,
-    totalBreakDuration,
     startTime,
     payRate,
     rateType,
@@ -87,12 +81,29 @@ export function useShiftState() {
     endSignatureData
   );
 
-  // Break toggle handler that uses the actions
+  // Simple break handlers (no complex break logic)
+  const handleStartBreak = () => {
+    setIsBreakActive(true);
+    setBreakStart(new Date());
+    console.log("Break started");
+  };
+
+  const handleEndBreak = () => {
+    if (breakStart) {
+      const now = new Date();
+      const breakDuration = Math.floor((now.getTime() - breakStart.getTime()) / 1000);
+      setTotalBreakDuration(prev => prev + breakDuration);
+    }
+    setIsBreakActive(false);
+    setBreakStart(null);
+    console.log("Break ended");
+  };
+
   const handleBreakToggle = () => {
     if (isBreakActive) {
-      actions.handleEndBreak();
+      handleEndBreak();
     } else {
-      actions.handleStartBreak();
+      handleStartBreak();
     }
   };
 

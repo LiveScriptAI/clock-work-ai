@@ -31,6 +31,10 @@ const DashboardPage = () => {
     setEmployerName, setPayRate, setRateType, setStartSignatureData, setEndSignatureData
   } = shiftState;
 
+  console.log("Dashboard render - isShiftActive:", isShiftActive);
+  console.log("Dashboard render - startTime:", startTime);
+  console.log("Dashboard render - user:", user);
+
   // Utility wrapper functions that use component state
   const calculateTimeWorked = () => 
     calculateTimeWorkedUtil(startTime, endTime, 0); // No break duration
@@ -40,7 +44,7 @@ const DashboardPage = () => {
 
   // Create a wrapper function to call confirmShiftEnd with the user ID
   const handleConfirmShiftEnd = () => {
-    confirmShiftEnd(user?.id);
+    confirmShiftEnd();
   };
 
   // Type-safe handler for rate type changes
@@ -55,6 +59,8 @@ const DashboardPage = () => {
       setRateType(value);
     }
   };
+
+  console.log("About to render DashboardLayout");
 
   return (
     <DashboardLayout
