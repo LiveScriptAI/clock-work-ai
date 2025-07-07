@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
 import { save, load } from "@/services/localStorageService";
 import { Camera, Upload } from "lucide-react";
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,22 +110,44 @@ const MyCompanyForm: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // Handle camera capture
-  const handleCameraCapture = () => {
-    if (fileInputRef.current) {
-      // Set capture attribute specifically for camera on mobile devices
-      fileInputRef.current.setAttribute('capture', 'camera');
-      fileInputRef.current.setAttribute('accept', 'image/*');
-      fileInputRef.current.click();
+  // Handle camera capture using Capacitor
+  const handleCameraCapture = async () => {
+    try {
+      setIsLoading(true);
+      
+      const photo = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      const base64Image = photo.dataUrl;
+      if (base64Image) {
+        setPreviewUrl(base64Image);
+        form.setValue("logo_url", base64Image);
+        setLogoChanged(true);
+        
+        toast({
+          title: "Success",
+          description: "Photo captured successfully"
+        });
+      }
+    } catch (error) {
+      console.error("Camera error:", error);
+      toast({
+        title: "Camera Error",
+        description: "Could not access camera. Please check permissions or try uploading a file instead.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Handle file upload from device
   const handleFileUpload = () => {
     if (fileInputRef.current) {
-      // Remove capture attribute for file selection from gallery
-      fileInputRef.current.removeAttribute('capture');
-      fileInputRef.current.setAttribute('accept', 'image/png,image/jpeg,image/jpg,image/svg+xml');
       fileInputRef.current.click();
     }
   };
@@ -230,7 +253,7 @@ const MyCompanyForm: React.FC = () => {
 
               {/* Privacy Notice */}
               <p className="text-xs text-gray-500 text-center">
-                Note: You may be asked to allow camera access when using this feature. 
+                Note: On iOS, camera access is required. You'll be prompted to allow access when you tap 'Take Photo.'
                 The image will remain private unless included on invoices.
               </p>
             </div>
