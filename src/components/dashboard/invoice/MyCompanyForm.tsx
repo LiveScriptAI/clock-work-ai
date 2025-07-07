@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
 import { save, load } from "@/services/localStorageService";
-import { Camera, Upload } from "lucide-react";
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera as CameraIcon, Upload } from "lucide-react";
+import { Camera, CameraResultType, CameraSource } from '@/services/cameraService';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,7 +115,7 @@ const MyCompanyForm: React.FC = () => {
     try {
       setIsLoading(true);
       
-      const photo = await CapacitorCamera.getPhoto({
+      const photo = await Camera.getPhoto({
         quality: 90,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
@@ -226,7 +226,7 @@ const MyCompanyForm: React.FC = () => {
                   disabled={isLoading}
                   className="flex items-center gap-2"
                 >
-                  <Camera size={16} />
+                  <CameraIcon size={16} />
                   Take Photo
                 </Button>
                 <Button
