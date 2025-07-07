@@ -45,7 +45,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   calculateEarnings
 }) => {
   return (
-    <>
+    <div className="space-y-4">
       {/* Time Tracking */}
       <TimeTracking
         startTime={startTime}
@@ -59,36 +59,28 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       />
 
       {/* Daily Summary */}
-      <div className="grid grid-cols-1 mb-6 rounded-xl">
-        <DailySummary
-          employerName={employerName}
-          startTime={startTime}
-          endTime={endTime}
-          isShiftActive={isShiftActive}
-          isShiftComplete={isShiftComplete}
-          formatDuration={formatDuration}
-          calculateTimeWorked={calculateTimeWorked}
-          calculateEarnings={calculateEarnings}
-          rateType={rateType}
-          payRate={payRate}
-        />
-      </div>
+      <DailySummary
+        employerName={employerName}
+        startTime={startTime}
+        endTime={endTime}
+        isShiftActive={isShiftActive}
+        isShiftComplete={isShiftComplete}
+        formatDuration={formatDuration}
+        calculateTimeWorked={calculateTimeWorked}
+        calculateEarnings={calculateEarnings}
+        rateType={rateType}
+        payRate={payRate}
+      />
 
       {/* Timesheet Log */}
-      <div className="mt-6 rounded-xl">
-        <TimesheetLog importBreaksToExport={false} />
-      </div>
+      <TimesheetLog importBreaksToExport={false} />
 
       {/* Invoice Form */}
-      <div className="mt-6">
-        <InvoiceForm />
-      </div>
+      <InvoiceForm />
 
       {/* Customer Tabs */}
-      <div className="mt-6">
-        <CustomerTabs />
-      </div>
-    </>
+      <CustomerTabs />
+    </div>
   );
 };
 

@@ -284,35 +284,37 @@ ${sender.business_name}`
   };
 
   return (
-    <div className="my-8" id="invoice-form">
-      <Card className="rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create Invoice</CardTitle>
+    <div id="invoice-form">
+      <Card className="w-full rounded-2xl">
+        <CardHeader className="p-4">
+          <CardTitle className="text-2xl font-bold text-center">Create Invoice</CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="p-4 space-y-4">
           {/* FROM (My Company) */}
           {sender && (
-            <Card className="mb-4">
-              <CardContent className="pt-4">
-                <h3 className="text-sm font-semibold mb-2">From</h3>
-                <p>{sender.business_name}</p>
-                {sender.contact_name && <p>{sender.contact_name}</p>}
-                <p>{sender.address1}</p>
-                {sender.address2 && <p>{sender.address2}</p>}
-                <p>
-                  {sender.city}
-                  {sender.county ? `, ${sender.county}` : ""} {sender.postcode}
-                </p>
-                <p>{sender.country}</p>
+            <Card className="w-full rounded-2xl">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-semibold mb-2 text-center">From</h3>
+                <div className="text-center space-y-1">
+                  <p>{sender.business_name}</p>
+                  {sender.contact_name && <p>{sender.contact_name}</p>}
+                  <p>{sender.address1}</p>
+                  {sender.address2 && <p>{sender.address2}</p>}
+                  <p>
+                    {sender.city}
+                    {sender.county ? `, ${sender.county}` : ""} {sender.postcode}
+                  </p>
+                  <p>{sender.country}</p>
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* VAT Settings */}
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center space-x-2">
+          <Card className="w-full rounded-2xl">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-center space-x-2">
                 <Switch
                   id="vat-registered"
                   checked={isVatRegistered}
@@ -320,22 +322,22 @@ ${sender.business_name}`
                 />
                 <Label htmlFor="vat-registered">Charge VAT (20%)</Label>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 text-center">
                 Toggle off if you're not VAT registered
               </p>
             </CardContent>
           </Card>
 
           {/* TABS */}
-          <Tabs defaultValue="load-company" className="my-6">
-            <TabsList>
+          <Tabs defaultValue="load-company" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="load-company">Load Company</TabsTrigger>
               <TabsTrigger value="my-company">My Company</TabsTrigger>
             </TabsList>
-            <TabsContent value="load-company">
+            <TabsContent value="load-company" className="mt-4">
               <CompanySelector onSelect={handleCompanySelect} />
             </TabsContent>
-            <TabsContent value="my-company">
+            <TabsContent value="my-company" className="mt-4">
               <MyCompanyForm />
             </TabsContent>
           </Tabs>
@@ -387,10 +389,10 @@ ${sender.business_name}`
           />
         </CardContent>
 
-        <CardFooter className="flex flex-wrap gap-3 justify-end">
-          <Button variant="outline" onClick={handlePreview}>Preview</Button>
-          <Button variant="outline" onClick={handleDownloadPDF}>Download PDF</Button>
-          <Button onClick={handleShareInvoice}>Share Invoice</Button>
+        <CardFooter className="p-4 flex flex-col gap-4">
+          <Button variant="outline" onClick={handlePreview} className="w-full">Preview</Button>
+          <Button variant="outline" onClick={handleDownloadPDF} className="w-full">Download PDF</Button>
+          <Button onClick={handleShareInvoice} className="w-full my-4">Share Invoice</Button>
         </CardFooter>
       </Card>
 

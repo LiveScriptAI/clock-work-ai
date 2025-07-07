@@ -15,8 +15,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <Header setSheetOpen={setSheetOpen} sheetOpen={sheetOpen} />
 
       {/* Main Content */}
-      <main className="flex-1 px-6 py-8 bg-[#0e6797]">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 p-4 bg-[#0e6797]">
+        <div className="w-full space-y-4">
           {children}
         </div>
       </main>

@@ -28,16 +28,16 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   handleEndShift
 }) => {
   return (
-    <Card className="mb-6 bg-slate-50 rounded-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          <Clock className="mr-2 h-5 w-5" />
+    <Card className="w-full bg-slate-50 rounded-2xl">
+      <CardHeader className="p-4">
+        <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+          <Clock className="h-5 w-5" />
           Time Tracking
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 space-y-4">
         {startTime && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+          <div className="p-4 bg-green-50 border border-green-200 rounded-2xl">
             <p className="text-sm text-green-800">
               <span className="font-medium">Clocked in at:</span>{" "}
               {format(startTime, "h:mm a 'on' MMMM d, yyyy")}
@@ -61,10 +61,10 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <Button
             size="lg"
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:hover:bg-gray-500"
+            className="w-full my-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:hover:bg-gray-500"
             onClick={handleStartShift}
             disabled={isShiftActive || isShiftComplete}
           >
@@ -73,7 +73,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
 
           <Button
             size="lg"
-            className="bg-red-600 hover:bg-red-700"
+            className="w-full my-4 bg-red-600 hover:bg-red-700"
             onClick={handleEndShift}
             disabled={!isShiftActive || isShiftComplete}
           >

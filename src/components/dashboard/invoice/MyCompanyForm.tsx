@@ -185,14 +185,14 @@ const MyCompanyForm: React.FC = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardContent className="pt-6 space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Card className="w-full rounded-2xl">
+          <CardContent className="p-4 space-y-4">
             {/* Company Logo Section */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Company Logo</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-lg font-semibold text-center">Company Logo</h3>
+                <p className="text-sm text-muted-foreground text-center">
                   Upload your company logo for use on invoices and summaries.
                 </p>
               </div>
@@ -200,7 +200,7 @@ const MyCompanyForm: React.FC = () => {
               {/* Logo Preview */}
               <div className="flex justify-center">
                 {previewUrl ? (
-                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-2xl p-2 flex items-center justify-center bg-gray-50">
                     <img
                       src={previewUrl}
                       alt="Company Logo Preview"
@@ -208,7 +208,7 @@ const MyCompanyForm: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50">
                     <div className="text-center text-gray-500">
                       <div className="text-xs">No logo uploaded yet</div>
                     </div>
@@ -217,14 +217,14 @@ const MyCompanyForm: React.FC = () => {
               </div>
 
               {/* Upload Buttons */}
-              <div className="flex gap-3 justify-center">
+              <div className="flex flex-col gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => handleCameraCapture()}
                   disabled={isLoading}
-                  className="flex items-center gap-2"
+                  className="w-full flex items-center gap-2"
                 >
                   <CameraIcon size={16} />
                   Take Photo
@@ -235,7 +235,7 @@ const MyCompanyForm: React.FC = () => {
                   size="sm"
                   onClick={() => handleFileUpload()}
                   disabled={isLoading}
-                  className="flex items-center gap-2"
+                  className="w-full flex items-center gap-2"
                 >
                   <Upload size={16} />
                   Upload from Device
@@ -321,7 +321,7 @@ const MyCompanyForm: React.FC = () => {
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* City */}
               <FormField
                 control={form.control}
@@ -331,7 +331,7 @@ const MyCompanyForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>City *</FormLabel>
                     <FormControl>
-                      <Input placeholder="City" {...field} />
+                      <Input placeholder="City" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -345,15 +345,12 @@ const MyCompanyForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>County/State</FormLabel>
                     <FormControl>
-                      <Input placeholder="County or State (optional)" {...field} />
+                      <Input placeholder="County or State (optional)" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Postcode/ZIP */}
               <FormField
                 control={form.control}
@@ -363,7 +360,7 @@ const MyCompanyForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Postcode/ZIP *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Postcode or ZIP code" {...field} />
+                      <Input placeholder="Postcode or ZIP code" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -378,7 +375,7 @@ const MyCompanyForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Country *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Country" {...field} />
+                      <Input placeholder="Country" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -388,8 +385,8 @@ const MyCompanyForm: React.FC = () => {
           </CardContent>
 
           {/* Save button in footer */}
-          <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
+          <CardFooter className="p-4">
+            <Button type="submit" disabled={isLoading} className="w-full my-4">
               {isLoading ? "Saving..." : "Save My Company Details"}
             </Button>
           </CardFooter>

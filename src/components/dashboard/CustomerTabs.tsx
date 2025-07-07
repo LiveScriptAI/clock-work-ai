@@ -134,26 +134,26 @@ const CustomerTabs = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 bg-white shadow-sm rounded-xl">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold">Customer Information</h2>
-        <p className="text-sm text-muted-foreground">
+    <div className="w-full p-4 bg-white shadow-sm rounded-2xl">
+      <div className="space-y-2 mb-4">
+        <h2 className="text-2xl font-bold text-center">Customer Information</h2>
+        <p className="text-sm text-muted-foreground text-center">
           Enter customer details to be used in your invoices
         </p>
       </div>
 
       <Tabs defaultValue="customer-details" className="w-full">
-        <TabsList className="grid grid-cols-2">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="customer-details">Customer Details</TabsTrigger>
           <TabsTrigger value="notes">T&C/Notes</TabsTrigger>
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             
             {/* Customer Details Tab */}
             <TabsContent value="customer-details" className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {/* Business Name */}
                 <FormField
                   control={form.control}
@@ -162,7 +162,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Business Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter business name" {...field} />
+                        <Input placeholder="Enter business name" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,7 +177,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Contact Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter contact name" {...field} />
+                        <Input placeholder="Enter contact name" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -192,7 +192,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter email address" type="email" {...field} />
+                        <Input placeholder="Enter email address" type="email" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -207,7 +207,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter phone number" {...field} />
+                        <Input placeholder="Enter phone number" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -222,7 +222,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>VAT Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter VAT number" {...field} />
+                        <Input placeholder="Enter VAT number" className="w-full" {...field} />
                       </FormControl>
                       <FormDescription>Optional</FormDescription>
                       <FormMessage />
@@ -238,7 +238,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Address Line 1</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter address line 1" {...field} />
+                        <Input placeholder="Enter address line 1" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -253,7 +253,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Address Line 2</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter address line 2" {...field} />
+                        <Input placeholder="Enter address line 2" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -268,7 +268,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>City</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter city" {...field} />
+                        <Input placeholder="Enter city" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -283,7 +283,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>County/State</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter county or state" {...field} />
+                        <Input placeholder="Enter county or state" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -298,7 +298,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Postcode/ZIP</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter postcode or ZIP code" {...field} />
+                        <Input placeholder="Enter postcode or ZIP code" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -313,7 +313,7 @@ const CustomerTabs = () => {
                     <FormItem>
                       <FormLabel>Country</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter country" {...field} />
+                        <Input placeholder="Enter country" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -324,7 +324,7 @@ const CustomerTabs = () => {
             
             {/* T&C/Notes Tab */}
             <TabsContent value="notes" className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {/* Terms and Conditions */}
                 <FormField
                   control={form.control}
@@ -335,7 +335,7 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Textarea
                           placeholder="Enter terms and conditions"
-                          className="min-h-[120px]"
+                          className="min-h-[120px] w-full"
                           {...field}
                         />
                       </FormControl>
@@ -354,7 +354,7 @@ const CustomerTabs = () => {
                       <FormControl>
                         <Textarea
                           placeholder="Enter additional notes about this customer"
-                          className="min-h-[120px]"
+                          className="min-h-[120px] w-full"
                           {...field}
                         />
                       </FormControl>
@@ -365,7 +365,7 @@ const CustomerTabs = () => {
               </div>
             </TabsContent>
             
-            <Button type="submit" disabled={isLoading} className="mt-4">
+            <Button type="submit" disabled={isLoading} className="w-full my-4">
               {isLoading ? "Saving..." : "Save Customer"}
             </Button>
           </form>

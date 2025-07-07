@@ -30,18 +30,18 @@ const TimesheetLog: React.FC<TimesheetLogProps> = ({
     handleApplyFilter,
     handleResetFilter
   } = useTimesheetLog();
-  return <Card>
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <CardTitle className="text-2xl font-bold">Timesheet Log</CardTitle>
+  return <Card className="w-full rounded-2xl">
+      <CardHeader className="p-4 flex flex-col items-center gap-4">
+        <CardTitle className="text-2xl font-bold text-center">Timesheet Log</CardTitle>
         
         <ExportActions filteredShifts={filteredShifts} isLoading={isLoading} isExporting={isExporting} setIsExporting={setIsExporting} importBreaksToExport={importBreaksToExport} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 space-y-4">
         {/* Date Range Picker */}
         <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} onApplyFilter={handleApplyFilter} onResetFilter={handleResetFilter} isLoading={isLoading} />
         
-        <Tabs defaultValue="day" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 max-w-[300px] mb-4">
+        <Tabs defaultValue="day" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="day" disabled={isLoading}>Day</TabsTrigger>
             <TabsTrigger value="week" disabled={isLoading}>Week</TabsTrigger>
             <TabsTrigger value="month" disabled={isLoading}>Month</TabsTrigger>

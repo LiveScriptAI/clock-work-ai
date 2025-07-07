@@ -36,13 +36,13 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   const workedSeconds = calculateTimeWorked();
 
   return (
-    <Card className="mb-6 bg-white rounded-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Daily Summary</CardTitle>
+    <Card className="w-full bg-white rounded-2xl">
+      <CardHeader className="p-4">
+        <CardTitle className="text-2xl font-bold text-center">Daily Summary</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="p-4 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Employer:</p>
             <p>{employerName}</p>
