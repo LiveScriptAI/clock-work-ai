@@ -25,7 +25,7 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   handleStartShift,
   handleEndShift
 }) => {
-  return <Card className="w-full bg-slate-50 rounded-2xl mx-0 my-[12px] px-0 py-0">
+  return <Card className="w-full bg-slate-50 rounded-2xl mx-0 px-0 py-0 my-[6px]">
       <CardHeader className="p-4">
         <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
           <Clock className="h-5 w-5" />
