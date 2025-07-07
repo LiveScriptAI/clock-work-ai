@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
 import { save, load } from "@/services/localStorageService";
+import { Camera, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ const MyCompanyForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [logoChanged, setLogoChanged] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<InvoiceSettingsType>({
     defaultValues: {
@@ -107,6 +109,24 @@ const MyCompanyForm: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // Handle camera capture
+  const handleCameraCapture = () => {
+    if (fileInputRef.current) {
+      // Set capture attribute for camera on mobile devices
+      fileInputRef.current.setAttribute('capture', 'environment');
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handle file upload from device
+  const handleFileUpload = () => {
+    if (fileInputRef.current) {
+      // Remove capture attribute for file selection
+      fileInputRef.current.removeAttribute('capture');
+      fileInputRef.current.click();
+    }
+  };
+
   // On Save click: persist both form fields and logo with immediate refresh
   const onSubmit = async (data: InvoiceSettingsType) => {
     setIsLoading(true);
@@ -143,31 +163,74 @@ const MyCompanyForm: React.FC = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
-            {/* Logo Upload */}
-            <div className="space-y-2">
-              <Label htmlFor="logo">Company Logo</Label>
-              <div className="flex flex-col items-center space-y-4">
-                {previewUrl && (
-                  <div className="border rounded p-2 max-w-[200px]">
+            {/* Company Logo Section */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Company Logo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload your company logo for use on invoices and summaries.
+                </p>
+              </div>
+
+              {/* Logo Preview */}
+              <div className="flex justify-center">
+                {previewUrl ? (
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg p-2 flex items-center justify-center bg-gray-50">
                     <img
                       src={previewUrl}
                       alt="Company Logo Preview"
-                      className="h-24 object-contain"
+                      className="max-w-full max-h-full object-contain"
                     />
                   </div>
+                ) : (
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                    <div className="text-center text-gray-500">
+                      <div className="text-xs">No logo uploaded yet</div>
+                    </div>
+                  </div>
                 )}
-                <Input
-                  id="logo"
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/svg+xml"
-                  onChange={handleLogoSelect}
-                  disabled={isLoading}
-                  className="cursor-pointer"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Supported formats: PNG, JPEG, SVG. Max size: 2MB
-                </p>
               </div>
+
+              {/* Upload Buttons */}
+              <div className="flex gap-3 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCameraCapture()}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <Camera size={16} />
+                  Take Photo
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleFileUpload()}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <Upload size={16} />
+                  Upload from Device
+                </Button>
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                onChange={handleLogoSelect}
+                className="hidden"
+              />
+
+              {/* Privacy Notice */}
+              <p className="text-xs text-gray-500 text-center">
+                Note: You may be asked to allow camera access when using this feature. 
+                The image will remain private unless included on invoices.
+              </p>
             </div>
 
             {/* Business Name */}
