@@ -112,8 +112,9 @@ const MyCompanyForm: React.FC = () => {
   // Handle camera capture
   const handleCameraCapture = () => {
     if (fileInputRef.current) {
-      // Set capture attribute for camera on mobile devices
-      fileInputRef.current.setAttribute('capture', 'environment');
+      // Set capture attribute specifically for camera on mobile devices
+      fileInputRef.current.setAttribute('capture', 'camera');
+      fileInputRef.current.setAttribute('accept', 'image/*');
       fileInputRef.current.click();
     }
   };
@@ -121,8 +122,9 @@ const MyCompanyForm: React.FC = () => {
   // Handle file upload from device
   const handleFileUpload = () => {
     if (fileInputRef.current) {
-      // Remove capture attribute for file selection
+      // Remove capture attribute for file selection from gallery
       fileInputRef.current.removeAttribute('capture');
+      fileInputRef.current.setAttribute('accept', 'image/png,image/jpeg,image/jpg,image/svg+xml');
       fileInputRef.current.click();
     }
   };
