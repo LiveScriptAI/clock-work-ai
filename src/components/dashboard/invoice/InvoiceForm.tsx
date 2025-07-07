@@ -314,17 +314,26 @@ ${sender.business_name}`
           {/* VAT Settings */}
           <Card className="w-full rounded-2xl">
             <CardContent className="p-4">
-              <div className="flex items-center justify-center space-x-2">
-                <Switch
-                  id="vat-registered"
-                  checked={isVatRegistered}
-                  onCheckedChange={setIsVatRegistered}
-                />
-                <Label htmlFor="vat-registered">Charge VAT (20%)</Label>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label htmlFor="vat-registered" className="text-base font-medium">
+                    VAT Registration
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {isVatRegistered ? "VAT enabled (20%)" : "VAT disabled"}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    {isVatRegistered ? "On" : "Off"}
+                  </span>
+                  <Switch
+                    id="vat-registered"
+                    checked={isVatRegistered}
+                    onCheckedChange={setIsVatRegistered}
+                  />
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 text-center">
-                Toggle off if you're not VAT registered
-              </p>
             </CardContent>
           </Card>
 
@@ -389,10 +398,18 @@ ${sender.business_name}`
           />
         </CardContent>
 
-        <CardFooter className="p-4 flex flex-col gap-4">
-          <Button variant="outline" onClick={handlePreview} className="w-full">Preview</Button>
-          <Button variant="outline" onClick={handleDownloadPDF} className="w-full">Download PDF</Button>
-          <Button onClick={handleShareInvoice} className="w-full my-4">Share Invoice</Button>
+        <CardFooter className="p-4">
+          <div className="w-full sticky bottom-4 bg-background/95 backdrop-blur-sm rounded-2xl p-4 space-y-3 border border-border/50">
+            <Button variant="outline" onClick={handlePreview} className="w-full">
+              Preview Invoice
+            </Button>
+            <Button variant="outline" onClick={handleDownloadPDF} className="w-full">
+              Download PDF
+            </Button>
+            <Button onClick={handleShareInvoice} className="w-full">
+              Share Invoice
+            </Button>
+          </div>
         </CardFooter>
       </Card>
 

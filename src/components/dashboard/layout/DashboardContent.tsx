@@ -2,6 +2,7 @@
 // src/components/dashboard/layout/DashboardContent.tsx
 
 import React from "react";
+import SectionWrapper from "../../../components/transitions/SectionWrapper";
 import TimeTracking   from "../TimeTracking";
 import DailySummary  from "../DailySummary";
 import TimesheetLog  from "../TimesheetLog";
@@ -47,39 +48,49 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   return (
     <div className="space-y-4">
       {/* Time Tracking */}
-      <TimeTracking
-        startTime={startTime}
-        endTime={endTime}
-        isShiftActive={isShiftActive}
-        isShiftComplete={isShiftComplete}
-        managerName={managerName}
-        endManagerName={endManagerName}
-        handleStartShift={handleStartShift}
-        handleEndShift={handleEndShift}
-      />
+      <SectionWrapper delay={0}>
+        <TimeTracking
+          startTime={startTime}
+          endTime={endTime}
+          isShiftActive={isShiftActive}
+          isShiftComplete={isShiftComplete}
+          managerName={managerName}
+          endManagerName={endManagerName}
+          handleStartShift={handleStartShift}
+          handleEndShift={handleEndShift}
+        />
+      </SectionWrapper>
 
       {/* Daily Summary */}
-      <DailySummary
-        employerName={employerName}
-        startTime={startTime}
-        endTime={endTime}
-        isShiftActive={isShiftActive}
-        isShiftComplete={isShiftComplete}
-        formatDuration={formatDuration}
-        calculateTimeWorked={calculateTimeWorked}
-        calculateEarnings={calculateEarnings}
-        rateType={rateType}
-        payRate={payRate}
-      />
+      <SectionWrapper delay={0.1}>
+        <DailySummary
+          employerName={employerName}
+          startTime={startTime}
+          endTime={endTime}
+          isShiftActive={isShiftActive}
+          isShiftComplete={isShiftComplete}
+          formatDuration={formatDuration}
+          calculateTimeWorked={calculateTimeWorked}
+          calculateEarnings={calculateEarnings}
+          rateType={rateType}
+          payRate={payRate}
+        />
+      </SectionWrapper>
 
       {/* Timesheet Log */}
-      <TimesheetLog importBreaksToExport={false} />
+      <SectionWrapper delay={0.2}>
+        <TimesheetLog importBreaksToExport={false} />
+      </SectionWrapper>
 
       {/* Invoice Form */}
-      <InvoiceForm />
+      <SectionWrapper delay={0.3}>
+        <InvoiceForm />
+      </SectionWrapper>
 
       {/* Customer Tabs */}
-      <CustomerTabs />
+      <SectionWrapper delay={0.4}>
+        <CustomerTabs />
+      </SectionWrapper>
     </div>
   );
 };

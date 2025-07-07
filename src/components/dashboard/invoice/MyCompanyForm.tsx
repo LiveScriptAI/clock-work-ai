@@ -208,9 +208,10 @@ const MyCompanyForm: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50">
-                    <div className="text-center text-gray-500">
-                      <div className="text-xs">No logo uploaded yet</div>
+                  <div className="w-32 h-32 border-2 border-dashed border-muted rounded-2xl flex items-center justify-center bg-muted/30">
+                    <div className="text-center text-muted-foreground space-y-1">
+                      <Upload className="w-6 h-6 mx-auto" />
+                      <div className="text-xs">No logo yet</div>
                     </div>
                   </div>
                 )}

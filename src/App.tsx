@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DomainGuard from "./components/DomainGuard";
+import PageTransition from "./components/transitions/PageTransition";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -21,19 +22,21 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <DomainGuard>
-            <Routes>
-              {/* Public support site routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/support" element={<SupportPage />} />
-              
-              {/* Legacy app routes - keeping for existing functionality */}
-              <Route path="/app" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              
-              {/* 404 page */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <PageTransition>
+              <Routes>
+                {/* Public support site routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/support" element={<SupportPage />} />
+                
+                {/* Legacy app routes - keeping for existing functionality */}
+                <Route path="/app" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                
+                {/* 404 page */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PageTransition>
           </DomainGuard>
         </BrowserRouter>
       </TooltipProvider>
