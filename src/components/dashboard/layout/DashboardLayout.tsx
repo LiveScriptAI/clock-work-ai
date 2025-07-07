@@ -1,6 +1,4 @@
 import React from "react";
-import Header from "@/components/dashboard/Header";
-import ModeIndicator from "@/components/dashboard/ModeIndicator";
 interface DashboardLayoutProps {
   children: React.ReactNode;
   sheetOpen: boolean;
@@ -12,13 +10,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   setSheetOpen
 }) => {
   return <div className="min-h-screen flex flex-col bg-gray-400">
-      {/* Header Component */}
-      <Header setSheetOpen={setSheetOpen} sheetOpen={sheetOpen} />
-
       {/* Main Content */}
       <main className="flex-1 p-4 bg-[#0e6797] overflow-y-auto">
         <div className="w-full space-y-4">
-          <ModeIndicator />
           {children}
         </div>
       </main>
