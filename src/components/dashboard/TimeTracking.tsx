@@ -26,13 +26,12 @@ const TimeTracking: React.FC<TimeTrackingProps> = ({
   handleEndShift
 }) => {
   return <Card className="w-full bg-slate-50 rounded-2xl mx-0 px-0 py-0 my-[6px]">
-      <CardHeader className="p-4">
-        <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2 mx-[67px] my-0 py-0 px-px">
-          
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="text-2xl font-bold text-center">
           Time Tracking
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="px-4 pb-4 pt-2 space-y-4">
         {startTime && <div className="p-4 bg-green-50 border border-green-200 rounded-2xl">
             <p className="text-sm text-green-800">
               <span className="font-medium">Clocked in at:</span>{" "}
