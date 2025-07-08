@@ -24,7 +24,8 @@ export function useShiftActions(
   payRate: number,
   rateType: string,
   startSignatureData: string | null,
-  endSignatureData: string | null
+  endSignatureData: string | null,
+  resetShiftState: () => void
 ): ShiftActions {
   
   // — Shift Start —
@@ -127,10 +128,7 @@ export function useShiftActions(
 
     // Clear current shift
     save("currentShift", null);
-    setEndTime(end);
-    setIsShiftComplete(true);
-    setIsEndSignatureOpen(false);
-
+    
     // Clear shift state (no parameters needed)
     try {
       clearShiftState();
@@ -145,6 +143,11 @@ export function useShiftActions(
     }));
 
     toast.success("Shift ended & saved to history!");
+
+    // Reset all state to allow starting a new shift
+    setTimeout(() => {
+      resetShiftState();
+    }, 100); // Small delay to ensure toast is shown before reset
   };
 
   return {

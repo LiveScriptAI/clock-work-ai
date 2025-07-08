@@ -59,6 +59,29 @@ export function useShiftState() {
     setBreakStart
   );
   
+  // Complete state reset function
+  const resetShiftState = () => {
+    setIsShiftActive(false);
+    setIsShiftComplete(false);
+    setIsBreakActive(false);
+    setStartTime(null);
+    setEndTime(null);
+    setBreakStart(null);
+    setTotalBreakDuration(0);
+    setManagerName("");
+    setEndManagerName("");
+    setStartSignatureData(null);
+    setEndSignatureData(null);
+    setEmployerName("");
+    setPayRate(15);
+    setRateType("Per Hour");
+    validation.setIsStartSignatureEmpty(true);
+    validation.setIsEndSignatureEmpty(true);
+    validation.setShowValidationAlert(false);
+    setIsStartSignatureOpen(false);
+    setIsEndSignatureOpen(false);
+  };
+
   // Use our actions hook with all required parameters
   const actions = useShiftActions(
     setIsStartSignatureOpen,
@@ -78,7 +101,8 @@ export function useShiftState() {
     payRate,
     rateType,
     startSignatureData,
-    endSignatureData
+    endSignatureData,
+    resetShiftState
   );
 
   // Simple break handlers (no complex break logic)
@@ -154,5 +178,6 @@ export function useShiftState() {
     handleBreakToggle,
     confirmShiftStart: actions.confirmShiftStart,
     confirmShiftEnd: actions.confirmShiftEnd,
+    resetShiftState,
   };
 }
