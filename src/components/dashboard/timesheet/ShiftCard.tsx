@@ -114,7 +114,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
                 Add to Invoice
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="mx-0">
               <AlertDialogHeader>
                 <AlertDialogTitle>Add to Invoice</AlertDialogTitle>
                 <AlertDialogDescription>
