@@ -34,8 +34,25 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
   setEndSignatureData
 }) => {
   const isMobile = useIsMobile();
-  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xs w-full mx-auto">
+  
+  // Handle form reset when dialog closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset form fields when dialog closes
+      setEndManagerName('');
+      setIsSignatureEmpty(true);
+      setEndSignatureData(null);
+    }
+    onOpenChange(open);
+  };
+  
+  // Handle confirm with proper mobile feedback
+  const handleConfirm = () => {
+    confirmShiftEnd();
+    // Form will be reset by handleOpenChange when dialog closes
+  };
+  return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-full mx-auto max-h-[85vh] overflow-y-auto pb-safe">
         <DialogHeader className="text-center">
           <DialogTitle className="text-base">Manager Approval: Shift End</DialogTitle>
           <DialogDescription className="text-xs">
@@ -68,9 +85,21 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
               </p>
             </div>}
         </div>
-        <div className="flex gap-2 mt-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 text-sm h-8">Cancel</Button>
-          <Button onClick={confirmShiftEnd} className="flex-1 text-sm h-8">Confirm End</Button>
+        <div className="flex gap-3 mt-6 pb-2">
+          <Button 
+            variant="outline" 
+            onClick={() => handleOpenChange(false)} 
+            className="flex-1 h-12 text-base touch-manipulation"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirm} 
+            className="flex-1 h-12 text-base touch-manipulation"
+            disabled={!endManagerName || isSignatureEmpty}
+          >
+            Confirm End
+          </Button>
         </div>
       </DialogContent>
     </Dialog>;

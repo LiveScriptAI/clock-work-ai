@@ -42,9 +42,29 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
+  // Handle form reset when dialog closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset form fields when dialog closes
+      setManagerName('');
+      setEmployerName('');
+      setPayRate(0);
+      setRateType('');
+      setIsSignatureEmpty(true);
+      setStartSignatureData(null);
+    }
+    onOpenChange(open);
+  };
+  
+  // Handle confirm with proper mobile feedback
+  const handleConfirm = () => {
+    confirmShiftStart();
+    // Form will be reset by handleOpenChange when dialog closes
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xs w-full mx-auto">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-full mx-auto max-h-[85vh] overflow-y-auto pb-safe">
         <DialogHeader className="text-center">
           <DialogTitle className="text-base">Manager Approval: Shift Start</DialogTitle>
           <DialogDescription className="text-xs">
@@ -121,9 +141,21 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
             />
           </div>
         </div>
-        <div className="flex gap-2 mt-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 text-sm h-8">Cancel</Button>
-          <Button onClick={confirmShiftStart} className="flex-1 text-sm h-8">Confirm Start</Button>
+        <div className="flex gap-3 mt-6 pb-2">
+          <Button 
+            variant="outline" 
+            onClick={() => handleOpenChange(false)} 
+            className="flex-1 h-12 text-base touch-manipulation"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirm} 
+            className="flex-1 h-12 text-base touch-manipulation"
+            disabled={!employerName || !payRate || !rateType || !managerName || isSignatureEmpty}
+          >
+            Confirm Start
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

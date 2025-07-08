@@ -1,5 +1,5 @@
-// Web-compatible camera service that mimics Capacitor's Camera API
-// Falls back to HTML file input with camera capture for web environments
+// Enhanced mobile-first camera service optimized for iOS
+// Uses Capacitor Camera API with proper permission handling and fallbacks
 
 export enum CameraResultType {
   DataUrl = 'dataUrl',
@@ -11,11 +11,19 @@ export enum CameraSource {
   Photos = 'PHOTOS'
 }
 
+export enum CameraDirection {
+  Rear = 'REAR',
+  Front = 'FRONT'
+}
+
 export interface CameraOptions {
   quality?: number;
   allowEditing?: boolean;
   resultType: CameraResultType;
   source: CameraSource;
+  direction?: CameraDirection;
+  width?: number;
+  height?: number;
 }
 
 export interface CameraPhoto {
@@ -34,13 +42,46 @@ export const Camera = {
     if (isCapacitorEnvironment()) {
       try {
         const { Camera: CapacitorCamera } = await import('@capacitor/camera');
-        return await CapacitorCamera.getPhoto(options);
-      } catch (error) {
-        console.error('Capacitor Camera not available, falling back to web implementation');
+        
+        // Enhanced options for iOS compatibility
+        const enhancedOptions = {
+          ...options,
+          quality: options.quality || 80,
+          direction: options.direction || CameraDirection.Rear,
+          width: options.width || 1920,
+          height: options.height || 1080,
+          allowEditing: options.allowEditing || false,
+          saveToGallery: false, // Don't save to gallery to prevent permission issues
+          correctOrientation: true // Fix orientation issues on iOS
+        };
+
+        console.log('Opening camera with options:', enhancedOptions);
+        
+        const photo = await CapacitorCamera.getPhoto(enhancedOptions);
+        
+        if (!photo.dataUrl && !photo.base64String) {
+          throw new Error('Camera returned empty image data');
+        }
+        
+        console.log('Camera photo captured successfully');
+        return photo;
+        
+      } catch (error: any) {
+        console.error('Capacitor Camera error:', error);
+        
+        // Provide user-friendly error messages
+        if (error.message?.includes('permission') || error.message?.includes('denied')) {
+          throw new Error('Camera access is needed to take a photo. Please enable camera permissions in your device settings.');
+        } else if (error.message?.includes('cancelled') || error.message?.includes('canceled')) {
+          throw new Error('Camera was cancelled');
+        } else {
+          throw new Error('Unable to access camera. Please try again or check your device permissions.');
+        }
       }
     }
 
     // Web fallback implementation
+    console.log('Using web fallback for camera');
     return new Promise((resolve, reject) => {
       // Create a hidden file input
       const input = document.createElement('input');
@@ -65,18 +106,55 @@ export const Camera = {
           return;
         }
 
-        // Convert to base64
+        // Convert to base64 with compression
         const reader = new FileReader();
         reader.onload = () => {
           const dataUrl = reader.result as string;
-          resolve({
-            dataUrl: dataUrl,
-            base64String: dataUrl.split(',')[1] // Remove data:image/...;base64, prefix
-          });
+          
+          // Optional: Compress image for mobile performance
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions for mobile optimization
+            const maxWidth = options.width || 1920;
+            const maxHeight = options.height || 1080;
+            
+            let { width, height } = img;
+            
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', (options.quality || 80) / 100);
+            
+            resolve({
+              dataUrl: compressedDataUrl,
+              base64String: compressedDataUrl.split(',')[1]
+            });
+          };
+          
+          img.src = dataUrl;
         };
+        
         reader.onerror = () => {
           reject(new Error('Failed to read file'));
         };
+        
         reader.readAsDataURL(file);
       };
 
@@ -87,5 +165,33 @@ export const Camera = {
       // Trigger the file picker
       input.click();
     });
+  },
+  
+  // Helper method to check camera permissions
+  async checkPermissions() {
+    if (isCapacitorEnvironment()) {
+      try {
+        const { Camera: CapacitorCamera } = await import('@capacitor/camera');
+        return await CapacitorCamera.checkPermissions();
+      } catch (error) {
+        console.error('Could not check camera permissions:', error);
+        return { camera: 'prompt' };
+      }
+    }
+    return { camera: 'granted' }; // Web assumes granted
+  },
+  
+  // Helper method to request camera permissions
+  async requestPermissions() {
+    if (isCapacitorEnvironment()) {
+      try {
+        const { Camera: CapacitorCamera } = await import('@capacitor/camera');
+        return await CapacitorCamera.requestPermissions();
+      } catch (error) {
+        console.error('Could not request camera permissions:', error);
+        return { camera: 'denied' };
+      }
+    }
+    return { camera: 'granted' }; // Web assumes granted
   }
 };
