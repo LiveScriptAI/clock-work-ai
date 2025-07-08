@@ -40,7 +40,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Manager Approval: Shift End</DialogTitle>
           <DialogDescription>
