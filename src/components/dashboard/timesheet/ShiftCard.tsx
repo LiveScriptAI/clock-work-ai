@@ -95,7 +95,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete the shift 
-                  from {format(shift.date, "MMMM d")} with {shift.employer}.
+                  from {format(shift.date, "MMMM d, yyyy")}{shift.employer && shift.employer !== "ddd" ? ` for ${shift.employer}` : ""}.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
