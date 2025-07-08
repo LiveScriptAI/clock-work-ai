@@ -90,7 +90,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
                 {isDeleting ? "Deleting..." : "Delete Shift"}
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="my-0 mx-0 px-[13px] py-[13px]">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
