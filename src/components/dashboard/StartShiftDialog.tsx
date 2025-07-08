@@ -44,16 +44,16 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Manager Approval: Shift Start</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-xs w-full mx-auto">
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-base">Manager Approval: Shift Start</DialogTitle>
+          <DialogDescription className="text-xs">
             Manager approval is required to start a shift. Please enter manager's name and signature.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label htmlFor="employerName" className="text-sm font-medium block mb-1">
+            <label htmlFor="employerName" className="text-xs font-medium block mb-1">
               Employer Name
             </label>
             <Input 
@@ -62,10 +62,11 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               onChange={(e) => setEmployerName(e.target.value)} 
               placeholder="Enter employer's name" 
               required
+              className="text-sm h-8"
             />
           </div>
           <div>
-            <label htmlFor="payRate" className="text-sm font-medium block mb-1">
+            <label htmlFor="payRate" className="text-xs font-medium block mb-1">
               Pay Rate (£)
             </label>
             <Input 
@@ -77,14 +78,15 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               min="0"
               step="0.01"
               required
+              className="text-sm h-8"
             />
           </div>
           <div>
-            <label htmlFor="rateType" className="text-sm font-medium block mb-1">
+            <label htmlFor="rateType" className="text-xs font-medium block mb-1">
               Rate Type
             </label>
             <Select value={rateType} onValueChange={setRateType}>
-              <SelectTrigger id="rateType">
+              <SelectTrigger id="rateType" className="text-sm h-8">
                 <SelectValue placeholder="Select rate type" />
               </SelectTrigger>
               <SelectContent>
@@ -96,31 +98,32 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
             </Select>
           </div>
           <div>
-            <label htmlFor="managerName" className="text-sm font-medium block mb-1">
+            <label htmlFor="managerName" className="text-xs font-medium block mb-1">
               Manager's Name
             </label>
             <Input 
               id="managerName" 
               value={managerName} 
               onChange={(e) => setManagerName(e.target.value)} 
-              placeholder="Enter manager's name" 
+              placeholder="Enter manager's name"
+              className="text-sm h-8"
             />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">
+            <label className="text-xs font-medium block mb-1">
               Manager's Signature
             </label>
             <SignatureCanvas 
               onSignatureChange={setIsSignatureEmpty}
-              width={isMobile ? 300 : 380} 
-              height={180}
+              width={280} 
+              height={120}
               onSignatureCapture={setStartSignatureData}
             />
           </div>
         </div>
-        <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={confirmShiftStart}>Confirm Start</Button>
+        <div className="flex gap-2 mt-3">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 text-sm h-8">Cancel</Button>
+          <Button onClick={confirmShiftStart} className="flex-1 text-sm h-8">Confirm Start</Button>
         </div>
       </DialogContent>
     </Dialog>
