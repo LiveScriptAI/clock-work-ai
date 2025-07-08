@@ -24,14 +24,14 @@ function App() {
           <DomainGuard>
             <PageTransition>
               <Routes>
-                {/* Public support site routes */}
+                {/* Public marketing site routes */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/support" element={<SupportPage />} />
                 
-                {/* Legacy app routes - keeping for existing functionality */}
-                <Route path="/app" element={<Index />} />
+                {/* App routes */}
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/app" element={<Dashboard />} /> {/* Legacy redirect */}
                 
                 {/* 404 page */}
                 <Route path="*" element={<NotFound />} />
