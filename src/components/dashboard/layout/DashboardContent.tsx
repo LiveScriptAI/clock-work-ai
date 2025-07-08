@@ -62,7 +62,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       </SectionWrapper>
 
       {/* Daily Summary */}
-      <SectionWrapper delay={0.1}>
+      <SectionWrapper delay={0}>
         <DailySummary
           employerName={employerName}
           startTime={startTime}
@@ -78,17 +78,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       </SectionWrapper>
 
       {/* Timesheet Log */}
-      <SectionWrapper delay={0.2}>
+      <SectionWrapper delay={0}>
         <TimesheetLog importBreaksToExport={false} />
       </SectionWrapper>
 
       {/* Invoice Form */}
-      <SectionWrapper delay={0.3}>
+      <SectionWrapper delay={0}>
         <InvoiceForm />
       </SectionWrapper>
 
       {/* Customer Tabs */}
-      <SectionWrapper delay={0.4}>
+      <SectionWrapper delay={0}>
         <CustomerTabs />
       </SectionWrapper>
     </div>
