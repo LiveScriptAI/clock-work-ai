@@ -64,17 +64,17 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-full">
-        <DialogHeader className="text-center mb-4">
+      <DialogContent>
+        <DialogHeader className="text-center mb-3">
           <DialogTitle className="text-lg font-semibold">Manager Approval: Shift Start</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Manager approval is required to start a shift. Please enter manager's name and signature.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 px-2">
+        <div className="space-y-3">
           <div>
-            <label htmlFor="employerName" className="text-sm font-medium block mb-2">
+            <label htmlFor="employerName" className="text-sm font-medium block mb-1.5">
               Employer Name
             </label>
             <Input 
@@ -83,12 +83,12 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               onChange={(e) => setEmployerName(e.target.value)} 
               placeholder="Enter employer's name" 
               required
-              className="h-10 px-3"
+              className="h-11 px-3 text-base"
             />
           </div>
           
           <div>
-            <label htmlFor="payRate" className="text-sm font-medium block mb-2">
+            <label htmlFor="payRate" className="text-sm font-medium block mb-1.5">
               Pay Rate (£)
             </label>
             <Input 
@@ -100,16 +100,16 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               min="0"
               step="0.01"
               required
-              className="h-10 px-3"
+              className="h-11 px-3 text-base"
             />
           </div>
           
           <div>
-            <label htmlFor="rateType" className="text-sm font-medium block mb-2">
+            <label htmlFor="rateType" className="text-sm font-medium block mb-1.5">
               Rate Type
             </label>
             <Select value={rateType} onValueChange={setRateType}>
-              <SelectTrigger id="rateType" className="h-10">
+              <SelectTrigger id="rateType" className="h-11 text-base">
                 <SelectValue placeholder="Select rate type" />
               </SelectTrigger>
               <SelectContent>
@@ -122,7 +122,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
           </div>
           
           <div>
-            <label htmlFor="managerName" className="text-sm font-medium block mb-2">
+            <label htmlFor="managerName" className="text-sm font-medium block mb-1.5">
               Manager's Name
             </label>
             <Input 
@@ -130,26 +130,26 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               value={managerName} 
               onChange={(e) => setManagerName(e.target.value)} 
               placeholder="Enter manager's name"
-              className="h-10 px-3"
+              className="h-11 px-3 text-base"
             />
           </div>
           
-          <div className="flex flex-col items-center">
-            <label className="text-sm font-medium block mb-2 self-start">
+          <div className="text-center">
+            <label className="text-sm font-medium block mb-2 text-left">
               Manager's Signature
             </label>
-            <div className="w-full flex justify-center">
+            <div className="flex justify-center">
               <SignatureCanvas 
                 onSignatureChange={setIsSignatureEmpty}
-                width={300} 
-                height={140}
+                width={280} 
+                height={120}
                 onSignatureCapture={setStartSignatureData}
               />
             </div>
           </div>
         </div>
         
-        <div className="flex flex-col gap-3 mt-6 px-2">
+        <div className="flex flex-col gap-3 mt-4">
           <Button 
             onClick={handleConfirm} 
             className="w-full h-12 text-base font-medium"
