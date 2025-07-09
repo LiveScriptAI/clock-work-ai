@@ -52,7 +52,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
     // Form will be reset by handleOpenChange when dialog closes
   };
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="mx-0 px-[10px] py-[10px]">
         <DialogHeader className="text-center mb-2">
           <DialogTitle className="text-lg font-semibold">Manager Approval: Shift End</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
