@@ -52,53 +52,69 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
     // Form will be reset by handleOpenChange when dialog closes
   };
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-full mx-auto max-h-[85vh] overflow-y-auto pb-safe">
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-base">Manager Approval: Shift End</DialogTitle>
-          <DialogDescription className="text-xs">
+      <DialogContent className="w-full">
+        <DialogHeader className="text-center mb-4">
+          <DialogTitle className="text-lg font-semibold">Manager Approval: Shift End</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             Manager approval is required to end a shift. Please enter manager's name and signature.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        
+        <div className="space-y-4 px-2">
           <div>
-            <label htmlFor="endManagerName" className="text-xs font-medium block mb-1">
+            <label htmlFor="endManagerName" className="text-sm font-medium block mb-2">
               Manager's Name
             </label>
-            <Input id="endManagerName" value={endManagerName} onChange={e => setEndManagerName(e.target.value)} placeholder="Enter manager's name" className="text-sm h-8" />
-          </div>
-          <div>
-            <label className="text-xs font-medium block mb-1">
-              Manager's Signature
-            </label>
-            <SignatureCanvas onSignatureChange={setIsSignatureEmpty} width={280} height={120} onSignatureCapture={setEndSignatureData} />
+            <Input 
+              id="endManagerName" 
+              value={endManagerName} 
+              onChange={e => setEndManagerName(e.target.value)} 
+              placeholder="Enter manager's name" 
+              className="h-10 px-3" 
+            />
           </div>
           
-          {startTime && <div className="p-2 bg-muted border border-border rounded-md">
-              <p className="text-xs">
+          <div className="flex flex-col items-center">
+            <label className="text-sm font-medium block mb-2 self-start">
+              Manager's Signature
+            </label>
+            <div className="w-full flex justify-center">
+              <SignatureCanvas 
+                onSignatureChange={setIsSignatureEmpty} 
+                width={300} 
+                height={140} 
+                onSignatureCapture={setEndSignatureData} 
+              />
+            </div>
+          </div>
+          
+          {startTime && <div className="p-3 bg-muted border border-border rounded-lg mx-1">
+              <p className="text-sm mb-1">
                 <span className="font-medium">Shift started:</span> {format(startTime, "h:mm a")}
               </p>
-              <p className="text-xs mt-1">
+              <p className="text-sm mb-1">
                 <span className="font-medium">Total break time:</span> {getBreakDuration()}
               </p>
-              <p className="text-xs mt-1">
+              <p className="text-sm">
                 <span className="font-medium">Worked time:</span> {formatDuration(calculateTimeWorked())}
               </p>
             </div>}
         </div>
-        <div className="flex gap-3 mt-6 pb-2">
-          <Button 
-            variant="outline" 
-            onClick={() => handleOpenChange(false)} 
-            className="flex-1 h-12 text-base touch-manipulation"
-          >
-            Cancel
-          </Button>
+        
+        <div className="flex flex-col gap-3 mt-6 px-2">
           <Button 
             onClick={handleConfirm} 
-            className="flex-1 h-12 text-base touch-manipulation"
+            className="w-full h-12 text-base font-medium"
             disabled={!endManagerName || isSignatureEmpty}
           >
             Confirm End
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleOpenChange(false)} 
+            className="w-full h-12 text-base font-medium"
+          >
+            Cancel
           </Button>
         </div>
       </DialogContent>

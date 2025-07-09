@@ -64,16 +64,17 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-full mx-auto max-h-[85vh] overflow-y-auto pb-safe">
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-base">Manager Approval: Shift Start</DialogTitle>
-          <DialogDescription className="text-xs">
+      <DialogContent className="w-full">
+        <DialogHeader className="text-center mb-4">
+          <DialogTitle className="text-lg font-semibold">Manager Approval: Shift Start</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             Manager approval is required to start a shift. Please enter manager's name and signature.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        
+        <div className="space-y-4 px-2">
           <div>
-            <label htmlFor="employerName" className="text-xs font-medium block mb-1">
+            <label htmlFor="employerName" className="text-sm font-medium block mb-2">
               Employer Name
             </label>
             <Input 
@@ -82,11 +83,12 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               onChange={(e) => setEmployerName(e.target.value)} 
               placeholder="Enter employer's name" 
               required
-              className="text-sm h-8"
+              className="h-10 px-3"
             />
           </div>
+          
           <div>
-            <label htmlFor="payRate" className="text-xs font-medium block mb-1">
+            <label htmlFor="payRate" className="text-sm font-medium block mb-2">
               Pay Rate (£)
             </label>
             <Input 
@@ -98,15 +100,16 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               min="0"
               step="0.01"
               required
-              className="text-sm h-8"
+              className="h-10 px-3"
             />
           </div>
+          
           <div>
-            <label htmlFor="rateType" className="text-xs font-medium block mb-1">
+            <label htmlFor="rateType" className="text-sm font-medium block mb-2">
               Rate Type
             </label>
             <Select value={rateType} onValueChange={setRateType}>
-              <SelectTrigger id="rateType" className="text-sm h-8">
+              <SelectTrigger id="rateType" className="h-10">
                 <SelectValue placeholder="Select rate type" />
               </SelectTrigger>
               <SelectContent>
@@ -117,8 +120,9 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+          
           <div>
-            <label htmlFor="managerName" className="text-xs font-medium block mb-1">
+            <label htmlFor="managerName" className="text-sm font-medium block mb-2">
               Manager's Name
             </label>
             <Input 
@@ -126,35 +130,39 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               value={managerName} 
               onChange={(e) => setManagerName(e.target.value)} 
               placeholder="Enter manager's name"
-              className="text-sm h-8"
+              className="h-10 px-3"
             />
           </div>
-          <div>
-            <label className="text-xs font-medium block mb-1">
+          
+          <div className="flex flex-col items-center">
+            <label className="text-sm font-medium block mb-2 self-start">
               Manager's Signature
             </label>
-            <SignatureCanvas 
-              onSignatureChange={setIsSignatureEmpty}
-              width={280} 
-              height={120}
-              onSignatureCapture={setStartSignatureData}
-            />
+            <div className="w-full flex justify-center">
+              <SignatureCanvas 
+                onSignatureChange={setIsSignatureEmpty}
+                width={300} 
+                height={140}
+                onSignatureCapture={setStartSignatureData}
+              />
+            </div>
           </div>
         </div>
-        <div className="flex gap-3 mt-6 pb-2">
-          <Button 
-            variant="outline" 
-            onClick={() => handleOpenChange(false)} 
-            className="flex-1 h-12 text-base touch-manipulation"
-          >
-            Cancel
-          </Button>
+        
+        <div className="flex flex-col gap-3 mt-6 px-2">
           <Button 
             onClick={handleConfirm} 
-            className="flex-1 h-12 text-base touch-manipulation"
+            className="w-full h-12 text-base font-medium"
             disabled={!employerName || !payRate || !rateType || !managerName || isSignatureEmpty}
           >
             Confirm Start
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleOpenChange(false)} 
+            className="w-full h-12 text-base font-medium"
+          >
+            Cancel
           </Button>
         </div>
       </DialogContent>
