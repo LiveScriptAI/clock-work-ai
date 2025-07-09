@@ -117,7 +117,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
         </div>
         
         <div className="flex flex-col gap-2 mt-3">
-          <Button onClick={handleConfirm} className="w-full h-10 text-base font-medium" disabled={!employerName || !payRate || !rateType || !managerName || isSignatureEmpty}>
+          <Button onClick={handleConfirm} disabled={!employerName || !payRate || !rateType || !managerName || isSignatureEmpty} className="w-full h-10 text-base font-medium mx-0 my-[12px] px-0 py-0">
             Confirm Start
           </Button>
           <Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full h-10 text-base font-medium">
