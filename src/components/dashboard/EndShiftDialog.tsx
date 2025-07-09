@@ -34,7 +34,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
   setEndSignatureData
 }) => {
   const isMobile = useIsMobile();
-  
+
   // Handle form reset when dialog closes
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -45,7 +45,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
     }
     onOpenChange(open);
   };
-  
+
   // Handle confirm with proper mobile feedback
   const handleConfirm = () => {
     confirmShiftEnd();
@@ -62,29 +62,18 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
         
         <div className="space-y-2 overflow-y-auto max-h-[calc(88vh-140px)] sm:max-h-[calc(85vh-140px)]">
           <div>
-            <label htmlFor="endManagerName" className="text-sm font-medium block mb-1">
+            <label htmlFor="endManagerName" className="text-sm font-medium block mb-1 mx-[12px]">
               Manager's Name
             </label>
-            <Input 
-              id="endManagerName" 
-              value={endManagerName} 
-              onChange={e => setEndManagerName(e.target.value)} 
-              placeholder="Manager name" 
-              className="h-10 px-3 text-base w-[85%] mx-auto" 
-            />
+            <Input id="endManagerName" value={endManagerName} onChange={e => setEndManagerName(e.target.value)} placeholder="Manager name" className="h-10 px-3 text-base w-[85%] mx-auto" />
           </div>
           
           <div className="text-center">
-            <label className="text-sm font-medium block mb-1 text-left">
+            <label className="text-sm font-medium block mb-1 text-left mx-[12px]">
               Manager's Signature
             </label>
             <div className="flex justify-center">
-              <SignatureCanvas 
-                onSignatureChange={setIsSignatureEmpty} 
-                width={260} 
-                height={100} 
-                onSignatureCapture={setEndSignatureData} 
-              />
+              <SignatureCanvas onSignatureChange={setIsSignatureEmpty} width={260} height={100} onSignatureCapture={setEndSignatureData} />
             </div>
           </div>
           
@@ -102,18 +91,10 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
         </div>
         
         <div className="flex flex-col gap-2 mt-3">
-          <Button 
-            onClick={handleConfirm} 
-            className="w-full h-10 text-base font-medium"
-            disabled={!endManagerName || isSignatureEmpty}
-          >
+          <Button onClick={handleConfirm} className="w-full h-10 text-base font-medium" disabled={!endManagerName || isSignatureEmpty}>
             Confirm End
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => handleOpenChange(false)} 
-            className="w-full h-10 text-base font-medium"
-          >
+          <Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full h-10 text-base font-medium">
             Cancel
           </Button>
         </div>
