@@ -65,30 +65,30 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <DialogHeader className="text-center mb-3">
+        <DialogHeader className="text-center mb-2">
           <DialogTitle className="text-lg font-semibold">Manager Approval: Shift Start</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Manager approval is required to start a shift. Please enter manager's name and signature.
+            Manager approval required to start shift.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3">
+        <div className="space-y-2 overflow-y-auto max-h-[calc(88vh-140px)] sm:max-h-[calc(85vh-140px)]">
           <div>
-            <label htmlFor="employerName" className="text-sm font-medium block mb-1.5">
+            <label htmlFor="employerName" className="text-sm font-medium block mb-1">
               Employer Name
             </label>
             <Input 
               id="employerName" 
               value={employerName} 
               onChange={(e) => setEmployerName(e.target.value)} 
-              placeholder="Enter employer's name" 
+              placeholder="Employer name" 
               required
-              className="h-11 px-3 text-base"
+              className="h-10 px-3 text-base w-[85%] mx-auto"
             />
           </div>
           
           <div>
-            <label htmlFor="payRate" className="text-sm font-medium block mb-1.5">
+            <label htmlFor="payRate" className="text-sm font-medium block mb-1">
               Pay Rate (£)
             </label>
             <Input 
@@ -96,20 +96,20 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
               type="number" 
               value={payRate || ''} 
               onChange={(e) => setPayRate(parseFloat(e.target.value) || 0)} 
-              placeholder="Enter pay rate"
+              placeholder="Pay rate"
               min="0"
               step="0.01"
               required
-              className="h-11 px-3 text-base"
+              className="h-10 px-3 text-base w-[85%] mx-auto"
             />
           </div>
           
           <div>
-            <label htmlFor="rateType" className="text-sm font-medium block mb-1.5">
+            <label htmlFor="rateType" className="text-sm font-medium block mb-1">
               Rate Type
             </label>
             <Select value={rateType} onValueChange={setRateType}>
-              <SelectTrigger id="rateType" className="h-11 text-base">
+              <SelectTrigger id="rateType" className="h-10 text-base w-[85%] mx-auto">
                 <SelectValue placeholder="Select rate type" />
               </SelectTrigger>
               <SelectContent>
@@ -122,37 +122,37 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
           </div>
           
           <div>
-            <label htmlFor="managerName" className="text-sm font-medium block mb-1.5">
+            <label htmlFor="managerName" className="text-sm font-medium block mb-1">
               Manager's Name
             </label>
             <Input 
               id="managerName" 
               value={managerName} 
               onChange={(e) => setManagerName(e.target.value)} 
-              placeholder="Enter manager's name"
-              className="h-11 px-3 text-base"
+              placeholder="Manager name"
+              className="h-10 px-3 text-base w-[85%] mx-auto"
             />
           </div>
           
           <div className="text-center">
-            <label className="text-sm font-medium block mb-2 text-left">
+            <label className="text-sm font-medium block mb-1 text-left">
               Manager's Signature
             </label>
             <div className="flex justify-center">
               <SignatureCanvas 
                 onSignatureChange={setIsSignatureEmpty}
-                width={280} 
-                height={120}
+                width={260} 
+                height={100}
                 onSignatureCapture={setStartSignatureData}
               />
             </div>
           </div>
         </div>
         
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-2 mt-3">
           <Button 
             onClick={handleConfirm} 
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-10 text-base font-medium"
             disabled={!employerName || !payRate || !rateType || !managerName || isSignatureEmpty}
           >
             Confirm Start
@@ -160,7 +160,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
           <Button 
             variant="outline" 
             onClick={() => handleOpenChange(false)} 
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-10 text-base font-medium"
           >
             Cancel
           </Button>
