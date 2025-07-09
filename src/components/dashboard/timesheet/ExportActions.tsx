@@ -1,14 +1,14 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { downloadCSV, downloadPDF } from "./export-utils";
+import { downloadPDF } from "./export-utils";
 import { ShiftEntry } from "./types";
 
 interface ExportActionsProps {
   filteredShifts: ShiftEntry[];
   isLoading: boolean;
-  isExporting: string | null;
-  setIsExporting: (value: string | null) => void;
+  isExporting: boolean;
+  setIsExporting: (value: boolean) => void;
   importBreaksToExport?: boolean;
 }
 
@@ -27,33 +27,25 @@ const ExportActions: React.FC<ExportActionsProps> = ({
     importBreaksToExport
   });
 
-  // Export handlers
-  const handleExportCSV = () => {
-    console.log("handleExportCSV: Starting CSV export");
-    setIsExporting('csv');
-    setTimeout(() => {
-      downloadCSV(filteredShifts);
-      setIsExporting(null);
-      console.log("handleExportCSV: CSV export completed");
-    }, 500);
-  };
-
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     console.log("handleExportPDF: Starting PDF export");
-    setIsExporting('pdf');
-    setTimeout(() => {
-      downloadPDF(filteredShifts);
-      setIsExporting(null);
+    setIsExporting(true);
+    try {
+      await downloadPDF(filteredShifts);
       console.log("handleExportPDF: PDF export completed");
-    }, 500);
+    } catch (error) {
+      console.error("handleExportPDF: PDF export failed", error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Calculate if buttons should be disabled
-  const buttonsDisabled = isLoading || isExporting !== null || filteredShifts.length === 0;
+  const buttonsDisabled = isLoading || isExporting || filteredShifts.length === 0;
   
   console.log("ExportActions buttons disabled:", buttonsDisabled, {
     isLoading,
-    isExporting: isExporting !== null,
+    isExporting,
     noShifts: filteredShifts.length === 0
   });
 
@@ -62,20 +54,11 @@ const ExportActions: React.FC<ExportActionsProps> = ({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleExportCSV}
-        disabled={buttonsDisabled}
-        className="w-full sm:w-auto"
-      >
-        {isExporting === 'csv' ? 'Exporting...' : 'Download CSV'}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
         onClick={handleExportPDF}
         disabled={buttonsDisabled}
         className="w-full sm:w-auto"
       >
-        {isExporting === 'pdf' ? 'Exporting...' : 'Download PDF'}
+        {isExporting ? 'Exporting...' : 'Download PDF'}
       </Button>
     </div>
   );

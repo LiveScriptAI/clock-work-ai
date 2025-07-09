@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ShiftEntry } from "@/components/dashboard/timesheet/types";
 import { generateInvoicePDF } from "./invoice-utils";
 import { fetchInvoiceSettings } from "@/services/invoiceLocalService";
+import { sharePDF } from "@/services/pdfExportService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineItem } from "./invoice-types";
 
@@ -99,19 +100,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       if (!pdfBlob) return;
 
       const fileName = `Invoice-${reference || shift.id}.pdf`;
-      
-      // For mobile devices, create download link
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Invoice PDF downloaded successfully");
+      await sharePDF({ fileName, pdfBlob });
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error("Failed to download invoice PDF");
@@ -127,38 +116,7 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       if (!pdfBlob) return;
 
       const fileName = `Invoice-${reference || shift.id}.pdf`;
-      const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
-
-      // Check if Web Share API is supported and can share files
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        try {
-          await navigator.share({
-            files: [pdfFile],
-            title: `Invoice ${reference}`,
-            text: `Please find attached Invoice ${reference}.`
-          });
-          toast.success("Share dialog opened successfully");
-        } catch (shareError: any) {
-          // If user cancels share dialog, don't show error
-          if (shareError.name !== 'AbortError') {
-            console.error("Share failed:", shareError);
-            // Fallback to download
-            handleDownloadPDF();
-          }
-        }
-      } else {
-        // Fallback: download for manual attach
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.success("Downloaded PDF - please attach it in your email app");
-      }
+      await sharePDF({ fileName, pdfBlob });
     } catch (error) {
       console.error("Error sharing invoice:", error);
       toast.error("Failed to share invoice");

@@ -99,7 +99,7 @@ export function useTimesheetLog() {
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateRangeActive, setIsDateRangeActive] = useState(false);
-  const [isExporting, setIsExporting] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
   const [shifts, setShifts] = useState<ShiftEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   
