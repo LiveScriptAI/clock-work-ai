@@ -59,7 +59,7 @@ const StartShiftDialog: React.FC<StartShiftDialogProps> = ({
     // Form will be reset by handleOpenChange when dialog closes
   };
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="mx-0 px-[20px] py-[10px]">
         <DialogHeader className="text-center mb-2">
           <DialogTitle className="text-lg font-semibold">Manager Approval: Shift Start</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
