@@ -53,16 +53,16 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
   };
   return <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <DialogHeader className="text-center mb-2">
-          <DialogTitle className="text-base font-semibold">Manager Approval: Shift End</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            Manager approval is required to end a shift.
+        <DialogHeader className="text-center mb-3">
+          <DialogTitle className="text-lg font-semibold">Manager Approval: Shift End</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Manager approval is required to end a shift. Please enter manager's name and signature.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <div>
-            <label htmlFor="endManagerName" className="text-xs font-medium block mb-1">
+            <label htmlFor="endManagerName" className="text-sm font-medium block mb-1.5">
               Manager's Name
             </label>
             <Input 
@@ -70,41 +70,41 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
               value={endManagerName} 
               onChange={e => setEndManagerName(e.target.value)} 
               placeholder="Enter manager's name" 
-              className="h-10 px-2.5 text-sm" 
+              className="h-11 px-3 text-base" 
             />
           </div>
           
           <div className="text-center">
-            <label className="text-xs font-medium block mb-1.5 text-left">
+            <label className="text-sm font-medium block mb-2 text-left">
               Manager's Signature
             </label>
             <div className="flex justify-center">
               <SignatureCanvas 
                 onSignatureChange={setIsSignatureEmpty} 
-                width={240} 
-                height={100} 
+                width={280} 
+                height={120} 
                 onSignatureCapture={setEndSignatureData} 
               />
             </div>
           </div>
           
-          {startTime && <div className="p-2.5 bg-muted border border-border rounded-lg">
-              <p className="text-xs mb-1">
+          {startTime && <div className="p-3 bg-muted border border-border rounded-lg">
+              <p className="text-sm mb-1">
                 <span className="font-medium">Shift started:</span> {format(startTime, "h:mm a")}
               </p>
-              <p className="text-xs mb-1">
+              <p className="text-sm mb-1">
                 <span className="font-medium">Total break time:</span> {getBreakDuration()}
               </p>
-              <p className="text-xs">
+              <p className="text-sm">
                 <span className="font-medium">Worked time:</span> {formatDuration(calculateTimeWorked())}
               </p>
             </div>}
         </div>
         
-        <div className="flex flex-col gap-2.5 mt-3">
+        <div className="flex flex-col gap-3 mt-4">
           <Button 
             onClick={handleConfirm} 
-            className="w-full h-10 text-sm font-medium"
+            className="w-full h-12 text-base font-medium"
             disabled={!endManagerName || isSignatureEmpty}
           >
             Confirm End
@@ -112,7 +112,7 @@ const EndShiftDialog: React.FC<EndShiftDialogProps> = ({
           <Button 
             variant="outline" 
             onClick={() => handleOpenChange(false)} 
-            className="w-full h-10 text-sm font-medium"
+            className="w-full h-12 text-base font-medium"
           >
             Cancel
           </Button>
