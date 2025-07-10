@@ -29,12 +29,24 @@ const ExportActions: React.FC<ExportActionsProps> = ({
 
   const handleExportPDF = async () => {
     console.log("handleExportPDF: Starting PDF export");
+    console.log("Filtered shifts data:", filteredShifts);
+    
     setIsExporting(true);
     try {
+      // CRITICAL: Add data validation
+      if (!filteredShifts || filteredShifts.length === 0) {
+        console.warn("No shifts available for export");
+        return;
+      }
+      
       await downloadPDF(filteredShifts);
-      console.log("handleExportPDF: PDF export completed");
+      console.log("handleExportPDF: PDF export completed successfully");
     } catch (error) {
       console.error("handleExportPDF: PDF export failed", error);
+      // Show user-friendly error
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
     } finally {
       setIsExporting(false);
     }

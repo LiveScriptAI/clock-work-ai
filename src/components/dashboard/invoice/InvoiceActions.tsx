@@ -56,10 +56,18 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
 
   const generatePDF = async () => {
     try {
+      console.log("Generating invoice PDF...");
+      
       // Load company info with better error handling
       const senderInfo = await fetchInvoiceSettings();
       if (!senderInfo || !senderInfo.business_name || !senderInfo.contact_name) {
         toast.error("Please complete your company details in the My Company tab first");
+        return null;
+      }
+
+      // CRITICAL: Validate invoice data
+      if (!lineItems || lineItems.length === 0) {
+        toast.error("No line items found for invoice");
         return null;
       }
 
@@ -85,8 +93,13 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         isVatRegistered
       };
 
+      console.log("Invoice data prepared:", { customer, lineItemsCount: lineItems.length, total });
+
       // Generate PDF blob
-      return await generateInvoicePDF(invoiceData, senderInfo);
+      const pdfBlob = await generateInvoicePDF(invoiceData, senderInfo);
+      console.log("Invoice PDF blob generated, size:", pdfBlob?.size || 0);
+      
+      return pdfBlob;
     } catch (error) {
       console.error("Error generating PDF:", error);
       throw error;
