@@ -14,6 +14,14 @@ const config: CapacitorConfig = {
         photos: 'This app needs access to photo library to select existing photos.'
       }
     },
+    Filesystem: {
+      requestPermissions: true,
+      appendPermissions: true
+    },
+    Share: {
+      subject: 'Clock Work Pal - Document Share',
+      dialogTitle: 'Share Document'
+    },
     StatusBar: {
       style: 'light',
       backgroundColor: '#000000'
