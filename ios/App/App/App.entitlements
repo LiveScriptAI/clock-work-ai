@@ -15,5 +15,11 @@
 	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<key>com.apple.runningboard.process-state</key>
+	<true/>
+	<key>com.apple.security.files.bookmarks.app-scope</key>
+	<true/>
+	<key>com.apple.security.files.bookmarks.document-scope</key>
+	<true/>
 </dict>
 </plist>

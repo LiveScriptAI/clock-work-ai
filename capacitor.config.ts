@@ -35,7 +35,10 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     scrollEnabled: true,
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
+    allowsLinkPreview: false,
+    handleApplicationURL: true,
+    backgroundMode: 'background-processing'
   },
   android: {
     backgroundColor: '#ffffff'

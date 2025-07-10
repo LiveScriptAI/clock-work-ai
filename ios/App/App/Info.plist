@@ -104,5 +104,32 @@
 	<string>This app needs access to camera to take photos for timesheet documentation.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>This app needs access to save and share PDF documents and timesheets.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>background-fetch</string>
+	</array>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.clockworkpal.timesheet</string>
+			<key>UTTypeDescription</key>
+			<string>Clock Work Pal Timesheet</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.adobe.pdf</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>pdf</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

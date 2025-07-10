@@ -47,11 +47,12 @@ export const sharePDF = async ({ fileName, pdfBlob }: PDFShareOptions): Promise<
       // Clean URI (remove trailing slashes)
       const cleanUri = result.uri.replace(/\/$/, '');
       
-      // CRITICAL: Use files array instead of deprecated url parameter
+      // CRITICAL: Use proper object format for Capacitor Share API
       await Share.share({
         title: 'Share PDF',
         text: `${fileName} - Ready to save or share`,
-        files: [cleanUri] // Use string array format for Capacitor
+        url: cleanUri,
+        dialogTitle: 'Share PDF Document'
       });
       
       toast.success('PDF ready to share or save');
@@ -70,7 +71,18 @@ export const sharePDF = async ({ fileName, pdfBlob }: PDFShareOptions): Promise<
     }
   } catch (error) {
     console.error('Error sharing PDF:', error);
-    toast.error('Failed to share PDF');
+    
+    // Handle specific iOS entitlement errors
+    if (error instanceof Error && error.message.includes('RBSServiceErrorDomain')) {
+      console.error('iOS entitlement error detected:', error.message);
+      toast.error('PDF sharing requires additional permissions. Please try again or restart the app.');
+    } else if (error instanceof Error && error.message.includes('Client not entitled')) {
+      console.error('iOS client entitlement error:', error.message);
+      toast.error('App permissions issue. Please restart the app and try again.');
+    } else {
+      toast.error('Failed to share PDF');
+    }
+    
     throw error;
   }
 };
